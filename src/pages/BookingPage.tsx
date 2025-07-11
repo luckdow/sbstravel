@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
+import { useSearchParams } from 'react-router-dom';
 import { LocationData } from '../types';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -44,6 +45,7 @@ const bookingSchema = yup.object({
 type BookingFormData = yup.InferType<typeof bookingSchema>;
 
 export default function BookingPage() {
+  const [searchParams] = useSearchParams();
   const [currentStep, setCurrentStep] = useState(1);
   const [totalPrice, setTotalPrice] = useState<number>(0);
   const [distance, setDistance] = useState<number>(0);
@@ -65,10 +67,16 @@ export default function BookingPage() {
     defaultValues: {
       transferType: 'airport-hotel',
       vehicleType: 'standard',
-      destination: null,
+      destination: searchParams.get('destination') ? {
+        name: searchParams.get('destination') || '',
+        lat: 0,
+        lng: 0
+      } : null,
       passengerCount: 2,
       baggageCount: 2,
-      additionalServices: []
+      additionalServices: [],
+      pickupDate: searchParams.get('date') || '',
+      pickupTime: searchParams.get('time') || ''
     }
   });
 
@@ -254,7 +262,7 @@ export default function BookingPage() {
                       {/* Transfer Type */}
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-3">Transfer Türü</label>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-3">
                           <label className="relative">
                             <input
                               type="radio"
@@ -262,16 +270,14 @@ export default function BookingPage() {
                               value="airport-hotel"
                               className="sr-only"
                             />
-                            <div className={`p-4 border-2 rounded-2xl cursor-pointer transition-all duration-300 ${
+                            <div className={`p-3 border-2 rounded-xl cursor-pointer transition-all duration-300 text-center ${
                               watchedValues.transferType === 'airport-hotel'
                                 ? 'border-blue-600 bg-blue-50'
                                 : 'border-gray-200 hover:border-blue-300'
                             }`}>
-                              <div className="text-center">
-                                <MapPin className="h-6 w-6 text-blue-600 mx-auto mb-2" />
-                                <h3 className="font-bold text-gray-800 mb-1">Havalimanı → Otel</h3>
-                                <p className="text-sm text-gray-600">Antalya Havalimanı'ndan varış noktası</p>
-                              </div>
+                              <MapPin className="h-5 w-5 text-blue-600 mx-auto mb-1" />
+                              <h3 className="font-semibold text-gray-800 text-sm mb-1">Havalimanı → Otel</h3>
+                              <p className="text-xs text-gray-600">AYT'den varış noktası</p>
                             </div>
                           </label>
                           
@@ -282,16 +288,14 @@ export default function BookingPage() {
                               value="hotel-airport"
                               className="sr-only"
                             />
-                            <div className={`p-4 border-2 rounded-2xl cursor-pointer transition-all duration-300 ${
+                            <div className={`p-3 border-2 rounded-xl cursor-pointer transition-all duration-300 text-center ${
                               watchedValues.transferType === 'hotel-airport'
                                 ? 'border-blue-600 bg-blue-50'
                                 : 'border-gray-200 hover:border-blue-300'
                             }`}>
-                              <div className="text-center">
-                                <MapPin className="h-6 w-6 text-blue-600 mx-auto mb-2" />
-                                <h3 className="font-bold text-gray-800 mb-1">Otel → Havalimanı</h3>
-                                <p className="text-sm text-gray-600">Kalkış noktasından Antalya Havalimanı</p>
-                              </div>
+                              <MapPin className="h-5 w-5 text-blue-600 mx-auto mb-1" />
+                              <h3 className="font-semibold text-gray-800 text-sm mb-1">Otel → Havalimanı</h3>
+                              <p className="text-xs text-gray-600">AYT'ye transfer</p>
                             </div>
                           </label>
                         </div>

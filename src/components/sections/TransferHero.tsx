@@ -221,10 +221,26 @@ export default function TransferHero() {
                     </div>
                   </div>
                   
-                  <Link href="/booking" className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-8 rounded-xl font-bold text-lg hover:shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105 flex items-center justify-center space-x-3">
+                  <button 
+                    onClick={() => {
+                      const destination = document.querySelector('input[placeholder*="Otel adı"]') as HTMLInputElement;
+                      const date = document.querySelector('input[type="date"]') as HTMLInputElement;
+                      const time = document.querySelector('select') as HTMLSelectElement;
+                      const passengers = document.querySelectorAll('select')[1] as HTMLSelectElement;
+                      
+                      const params = new URLSearchParams();
+                      if (destination?.value) params.set('destination', destination.value);
+                      if (date?.value) params.set('date', date.value);
+                      if (time?.value) params.set('time', time.value);
+                      if (passengers?.value) params.set('passengers', passengers.value);
+                      
+                      window.location.href = `/booking?${params.toString()}`;
+                    }}
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-8 rounded-xl font-bold text-lg hover:shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105 flex items-center justify-center space-x-3"
+                  >
                     <Search className="h-6 w-6" />
                     <span>Fiyat Hesapla & Rezervasyon Yap</span>
-                  </Link>
+                  </button>
                 </form>
 
                 <div className="mt-6 text-center">
