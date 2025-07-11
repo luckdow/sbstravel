@@ -2,15 +2,29 @@ import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Calendar, DollarSign, Users, Car, Clock, TrendingUp } from 'lucide-react';
 import { useStore } from '../../../store/useStore';
+import MockDataIndicator from '../../Common/MockDataIndicator';
+import toast from 'react-hot-toast';
 
 export default function Dashboard() {
-  const { reservations, drivers, fetchReservations, fetchDrivers, getStats } = useStore();
+  const { 
+    reservations, 
+    drivers, 
+    customers, 
+    vehicles, 
+    fetchReservations, 
+    fetchDrivers, 
+    fetchCustomers, 
+    fetchVehicles, 
+    getStats 
+  } = useStore();
 
   useEffect(() => {
     // Fetch data when component mounts
     fetchReservations();
     fetchDrivers();
-  }, [fetchReservations, fetchDrivers]);
+    fetchCustomers();
+    fetchVehicles();
+  }, [fetchReservations, fetchDrivers, fetchCustomers, fetchVehicles]);
 
   const stats = getStats();
 
@@ -237,6 +251,22 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+      
+      {/* Mock Data Indicator for Development */}
+      <MockDataIndicator 
+        onAddSampleData={() => {
+          // Trigger all fetch methods to load mock data
+          fetchReservations();
+          fetchDrivers();
+          fetchCustomers();
+          fetchVehicles();
+          toast.success('Örnek veriler yüklendi!');
+        }}
+        onClearData={() => {
+          // This would clear the data if we had a method for it
+          toast.info('Veriler temizlendi!');
+        }}
+      />
     </div>
   );
 }

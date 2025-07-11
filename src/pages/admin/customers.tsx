@@ -276,6 +276,21 @@ export default function AdminCustomersPage() {
               <Plus className="h-5 w-5" />
               <span>Müşteri + Rezervasyon</span>
             </button>
+            
+            {/* Development mode sample data button */}
+            {process.env.NODE_ENV === 'development' && (
+              <button
+                onClick={() => {
+                  // Trigger fetchCustomers to load mock data
+                  fetchCustomers();
+                  toast.success('Örnek müşteri verileri yüklendi!');
+                }}
+                className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-4 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 flex items-center space-x-2 text-sm"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Örnek Veri</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -466,28 +481,28 @@ export default function AdminCustomersPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm mr-3">
-                            {customer.firstName[0]}{customer.lastName[0]}
+                            {(customer.firstName?.[0] || '?').toUpperCase()}{(customer.lastName?.[0] || '?').toUpperCase()}
                           </div>
                           <div>
                             <div className="text-sm font-medium text-gray-900">
-                              {customer.firstName} {customer.lastName}
+                              {customer.firstName || ''} {customer.lastName || ''}
                             </div>
-                            <div className="text-sm text-gray-500">{customer.id}</div>
+                            <div className="text-sm text-gray-500">{customer.id || 'N/A'}</div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900 flex items-center">
                           <Mail className="h-4 w-4 mr-2 text-gray-400" />
-                          {customer.email}
+                          {customer.email || 'E-posta yok'}
                         </div>
                         <div className="text-sm text-gray-500 flex items-center">
                           <Phone className="h-4 w-4 mr-2 text-gray-400" />
-                          {customer.phone}
+                          {customer.phone || 'Telefon yok'}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{customer.totalReservations}</div>
+                        <div className="text-sm font-medium text-gray-900">{customer.totalReservations || 0}</div>
                         <div className="text-sm text-gray-500">rezervasyon</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
