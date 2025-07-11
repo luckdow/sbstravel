@@ -121,6 +121,9 @@ export default function PaymentSuccessPage() {
                     <li>• Şoför QR kodu okutarak transferi başlatacak</li>
                     <li>• QR kod olmadan transfer başlatılamaz</li>
                     <li>• Kodu telefonunuzda saklayın veya yazdırın</li>
+                  </ul>
+                </div>
+                
                 <button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-6 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 flex items-center justify-center space-x-2">
                   <Share2 className="h-5 w-5" />
                   <span>QR Kodu Paylaş</span>
@@ -128,7 +131,6 @@ export default function PaymentSuccessPage() {
               </div>
             </div>
           </div>
-                  </ul>
           {/* Important Notes */}
           <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-2xl p-6">
             <h3 className="font-bold text-yellow-800 mb-4">Önemli Bilgiler</h3>
