@@ -16,10 +16,13 @@ import {
   RefreshCw
 } from 'lucide-react';
 // import { notificationService, testCommunicationServices } from '../../services/communication';
+import { notificationService, testCommunicationServices } from '../../services/communication';
+import { pushNotificationService } from '../../services/push-notifications';
 import NotificationCenter from '../../components/Communication/NotificationCenter';
 import EmailPreview from '../../components/Communication/EmailPreview';
 import SMSComposer from '../../components/Communication/SMSComposer';
 import WhatsAppChat from '../../components/Communication/WhatsAppChat';
+import AdminLayout from '../../components/Admin/Layout/AdminLayout';
 
 export default function AdminNotificationManagement() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'send' | 'templates' | 'settings' | 'analytics'>('dashboard');
@@ -89,6 +92,34 @@ export default function AdminNotificationManagement() {
       }
     } catch (error) {
       alert('Test bildirimi sırasında hata oluştu');
+    }
+  };
+
+  const sendTestPushNotification = async () => {
+    try {
+      const success = await pushNotificationService.sendTestNotification();
+      if (success) {
+        alert('Push notification test başarılı!');
+      } else {
+        alert('Push notification test başarısız!');
+      }
+    } catch (error) {
+      alert('Push notification test sırasında hata oluştu');
+    }
+  };
+
+  const setupPushNotifications = async () => {
+    try {
+      await pushNotificationService.requestPermission();
+      pushNotificationService.setupMessageListener();
+      const token = await pushNotificationService.getToken();
+      if (token) {
+        alert(`Push notifications kuruldu! Token: ${token.substring(0, 20)}...`);
+      } else {
+        alert('Push notifications kurulamadı!');
+      }
+    } catch (error) {
+      alert('Push notifications kurulum hatası!');
     }
   };
 
@@ -234,6 +265,47 @@ export default function AdminNotificationManagement() {
               </div>
             </div>
 
+            {/* Push Notifications */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Firebase Push Notifications</h3>
+              <div className="bg-white rounded-lg border p-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <button
+                    onClick={setupPushNotifications}
+                    className="flex items-center justify-center p-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <Settings className="w-5 h-5 mr-2" />
+                    Push Notification Kur
+                  </button>
+                  
+                  <button
+                    onClick={sendTestPushNotification}
+                    className="flex items-center justify-center p-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                  >
+                    <Send className="w-5 h-5 mr-2" />
+                    Test Push Notification
+                  </button>
+                  
+                  <div className="flex items-center justify-center p-4 bg-gray-100 rounded-lg">
+                    <span className="text-gray-600 text-sm">
+                      Firebase entegrasyonu aktif
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                  <h4 className="font-semibold text-blue-900 mb-2">Firebase Push Notification Özellikleri:</h4>
+                  <ul className="text-sm text-blue-800 space-y-1">
+                    <li>• Rezervasyon onay bildirimleri</li>
+                    <li>• Transfer başlangıç/bitiş bildirimleri</li>
+                    <li>• Şoför konumu güncellemeleri</li>
+                    <li>• Ödeme durumu bildirimleri</li>
+                    <li>• Özel kampanya duyuruları</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
             {/* Recent Notifications */}
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Son Bildirimler</h3>
@@ -362,49 +434,44 @@ export default function AdminNotificationManagement() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900">Bildirim Yönetimi</h1>
-              <p className="text-sm text-gray-600">Email, SMS ve WhatsApp bildirimleri yönetimi</p>
-            </div>
-            <NotificationCenter />
+    <AdminLayout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">Bildirim Yönetimi</h1>
+          <p className="text-gray-600">Email, SMS ve WhatsApp bildirimleri yönetimi</p>
+        </div>
+        {/* Tabs */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
+          <div className="border-b border-gray-200">
+            <nav className="flex space-x-8 px-6">
+              {[
+                { key: 'dashboard', label: 'Dashboard', icon: BarChart3 },
+                { key: 'send', label: 'Gönder', icon: Send },
+                { key: 'templates', label: 'Template\'ler', icon: Edit },
+                { key: 'settings', label: 'Ayarlar', icon: Settings },
+                { key: 'analytics', label: 'Analitikler', icon: BarChart3 }
+              ].map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key as any)}
+                  className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                    activeTab === tab.key
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
+                >
+                  <tab.icon className="w-4 h-4 mr-2" />
+                  {tab.label}
+                </button>
+              ))}
+            </nav>
+          </div>
+
+          <div className="p-6">
+            <TabContent />
           </div>
         </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Tabs */}
-        <div className="mb-8">
-          <nav className="flex space-x-8">
-            {[
-              { key: 'dashboard', label: 'Dashboard', icon: BarChart3 },
-              { key: 'send', label: 'Gönder', icon: Send },
-              { key: 'templates', label: 'Template\'ler', icon: Edit },
-              { key: 'settings', label: 'Ayarlar', icon: Settings },
-              { key: 'analytics', label: 'Analitikler', icon: BarChart3 }
-            ].map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key as any)}
-                className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                  activeTab === tab.key
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                }`}
-              >
-                <tab.icon className="w-4 h-4 mr-2" />
-                {tab.label}
-              </button>
-            ))}
-          </nav>
-        </div>
-
-        {/* Tab Content */}
-        <TabContent />
       </div>
 
       {/* Modals */}
@@ -429,6 +496,6 @@ export default function AdminNotificationManagement() {
           <WhatsAppChat onClose={() => setShowWhatsAppChat(false)} />
         </div>
       )}
-    </div>
+    </AdminLayout>
   );
 }
