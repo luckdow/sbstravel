@@ -32,6 +32,13 @@ export default class ErrorBoundary extends Component<Props, State> {
     console.error('React Error Boundary caught an error:', error);
     console.error('Error info:', errorInfo);
     
+    // Special handling for React Error #31 (object rendering)
+    if (error.message && error.message.includes('Objects are not valid as a React child')) {
+      console.error('🔍 React Error #31 detected - Object rendering in JSX');
+      console.error('💡 This usually means an object is being rendered directly in JSX instead of a string');
+      console.error('🛠️ Check location objects, ensure they are converted to strings before rendering');
+    }
+    
     // Call optional error handler
     if (this.props.onError) {
       this.props.onError(error, errorInfo);
@@ -58,6 +65,9 @@ export default class ErrorBoundary extends Component<Props, State> {
         return this.props.fallback;
       }
 
+      // Check if this is React Error #31 (object rendering)
+      const isObjectRenderingError = this.state.error?.message?.includes('Objects are not valid as a React child');
+
       // Default error UI
       return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -65,13 +75,28 @@ export default class ErrorBoundary extends Component<Props, State> {
             <div className="mb-6">
               <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
               <h1 className="text-2xl font-bold text-gray-800 mb-2">
-                Bir şeyler ters gitti
+                {isObjectRenderingError ? 'Veri Görüntüleme Hatası' : 'Bir şeyler ters gitti'}
               </h1>
               <p className="text-gray-600">
-                Sayfa yüklenirken beklenmedik bir hata oluştu. 
-                Lütfen sayfayı yenilemeyi deneyin.
+                {isObjectRenderingError 
+                  ? 'Lokasyon verilerinde bir sorun var. Bu genellikle veri formatı sorunundan kaynaklanır.'
+                  : 'Sayfa yüklenirken beklenmedik bir hata oluştu. Lütfen sayfayı yenilemeyi deneyin.'
+                }
               </p>
             </div>
+
+            {/* Special message for React Error #31 */}
+            {isObjectRenderingError && (
+              <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <h3 className="text-sm font-semibold text-amber-800 mb-2">
+                  🔍 Teknik Bilgi
+                </h3>
+                <p className="text-sm text-amber-700">
+                  Bu hata, lokasyon nesnelerinin düzgün string'e dönüştürülememesinden kaynaklanıyor olabilir. 
+                  Sayfayı yenilemek sorunu çözebilir.
+                </p>
+              </div>
+            )}
 
             {/* Error details (only in development) */}
             {process.env.NODE_ENV === 'development' && this.state.error && (
