@@ -285,7 +285,7 @@ export default function ReservationManagement() {
                     <div className="w-32 h-32 bg-white border-2 border-gray-300 rounded-xl mx-auto mb-2 flex items-center justify-center">
                       <span className="text-xs text-gray-500">QR Kod</span>
                     </div>
-                    <div className="text-sm text-gray-600">{selectedReservation.qr_code}</div>
+                    <div className="text-sm text-gray-600">{selectedReservation.qrCode || 'N/A'}</div>
                   </div>
                 </div>
               </div>
