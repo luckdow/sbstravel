@@ -3,6 +3,7 @@ import { useStore } from '../../../store/useStore';
 import toast from 'react-hot-toast';
 import { QrCode, Camera, CheckCircle, XCircle, Scan } from 'lucide-react';
 import { Reservation } from '../../../types';
+import { formatRoute } from '../../../lib/utils/location-utils';
 
 interface ScanResult {
   success: boolean;
@@ -180,7 +181,7 @@ export default function QRScanner() {
                 <div className="bg-gray-50 p-4 rounded-xl">
                   <h4 className="font-semibold text-gray-800">Güzergah</h4>
                   <p className="text-lg font-bold text-gray-800">
-                    {scanResult.reservation.pickupLocation} → {scanResult.reservation.dropoffLocation}
+                    {formatRoute(scanResult.reservation.pickupLocation, scanResult.reservation.dropoffLocation)}
                   </p>
                 </div>
               </div>

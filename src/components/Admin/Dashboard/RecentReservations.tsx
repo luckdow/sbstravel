@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../../../store/useStore';
 import { Eye, Edit, Trash2, MapPin, Clock, User, Car, Loader2 } from 'lucide-react';
+import { formatRoute } from '../../../lib/utils/location-utils';
 
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -130,7 +131,7 @@ export default function RecentReservations() {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center text-sm text-gray-900">
                     <MapPin className="h-4 w-4 mr-2 text-gray-400" />
-                    {reservation.pickupLocation} → {reservation.dropoffLocation}
+                    {formatRoute(reservation.pickupLocation, reservation.dropoffLocation)}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">

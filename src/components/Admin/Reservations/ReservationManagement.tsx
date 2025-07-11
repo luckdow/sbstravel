@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../../../store/useStore';
 import { Search, Filter, Calendar, MapPin, User, Car, DollarSign, Eye, Edit, Trash2 } from 'lucide-react';
+import { safeLocationToString } from '../../../lib/utils/location-utils';
 
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -164,11 +165,11 @@ export default function ReservationManagement() {
                     <div className="text-sm text-gray-900">
                       <div className="flex items-center mb-1">
                         <MapPin className="h-3 w-3 mr-1 text-green-500" />
-                        <span className="truncate max-w-32">{reservation.pickupLocation || 'N/A'}</span>
+                        <span className="truncate max-w-32">{safeLocationToString(reservation.pickupLocation)}</span>
                       </div>
                       <div className="flex items-center">
                         <MapPin className="h-3 w-3 mr-1 text-red-500" />
-                        <span className="truncate max-w-32">{reservation.dropoffLocation || 'N/A'}</span>
+                        <span className="truncate max-w-32">{safeLocationToString(reservation.dropoffLocation)}</span>
                       </div>
                     </div>
                   </td>
@@ -269,8 +270,8 @@ export default function ReservationManagement() {
               <div>
                 <h3 className="font-semibold text-gray-800 mb-3">Transfer Detayları</h3>
                 <div className="bg-gray-50 rounded-xl p-4 space-y-2">
-                  <div><span className="font-medium">Kalkış:</span> {selectedReservation.pickupLocation || 'N/A'}</div>
-                  <div><span className="font-medium">Varış:</span> {selectedReservation.dropoffLocation || 'N/A'}</div>
+                  <div><span className="font-medium">Kalkış:</span> {safeLocationToString(selectedReservation.pickupLocation)}</div>
+                  <div><span className="font-medium">Varış:</span> {safeLocationToString(selectedReservation.dropoffLocation)}</div>
                   <div><span className="font-medium">Tarih:</span> {selectedReservation.pickupDate || 'N/A'}</div>
                   <div><span className="font-medium">Saat:</span> {selectedReservation.pickupTime || 'N/A'}</div>
                   <div><span className="font-medium">Araç Tipi:</span> {selectedReservation.vehicleType || 'N/A'}</div>
