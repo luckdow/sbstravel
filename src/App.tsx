@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import ErrorBoundary from './components/Error/ErrorBoundary';
 
 // Test Component
 import SimpleTest from './components/SimpleTest';
@@ -48,7 +49,13 @@ import ProtectedRoute from './components/Auth/ProtectedRoute';
 
 function App() {
   return (
-    <>
+    <ErrorBoundary
+      onError={(error, errorInfo) => {
+        console.error('Application Error:', error);
+        console.error('Error Info:', errorInfo);
+        // Here you could send error to logging service
+      }}
+    >
       <Routes>
         {/* Test Route */}
         <Route path="/test" element={<SimpleTest />} />
@@ -143,7 +150,7 @@ function App() {
           },
         }}
       />
-    </>
+    </ErrorBoundary>
   );
 }
 

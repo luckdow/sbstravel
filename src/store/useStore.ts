@@ -83,12 +83,22 @@ export const useStore = create<StoreState>((set, get) => ({
     set({ loading: true });
     try {
       console.log('Fetching reservations from Firebase...');
-      const reservations = await getReservations();
+      
+      // Add timeout for Firebase requests
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Firebase connection timeout')), 10000);
+      });
+      
+      const reservations = await Promise.race([
+        getReservations(),
+        timeoutPromise
+      ]);
+      
       console.log('Fetched reservations:', reservations.length);
       set({ reservations });
     } catch (error) {
       console.error('Error fetching reservations:', error);
-      toast.error('Rezervasyonlar yüklenirken hata oluştu');
+      console.warn('Using fallback mock data for reservations');
       
       // Fallback to mock data if Firebase fails
       const mockReservations = [
@@ -282,12 +292,22 @@ export const useStore = create<StoreState>((set, get) => ({
   fetchDrivers: async () => {
     try {
       console.log('Fetching drivers...');
-      const availableDrivers = await getAvailableDrivers();
+      
+      // Add timeout for Firebase requests
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Firebase connection timeout')), 10000);
+      });
+      
+      const availableDrivers = await Promise.race([
+        getAvailableDrivers(),
+        timeoutPromise
+      ]);
+      
       console.log('Fetched drivers:', availableDrivers.length);
       set({ drivers: availableDrivers });
     } catch (error) {
       console.error('Error fetching drivers:', error);
-      toast.error('Şoförler yüklenirken hata oluştu');
+      console.warn('Using fallback mock data for drivers');
       
       // Fallback to mock data
       const mockDrivers = [
@@ -507,20 +527,32 @@ export const useStore = create<StoreState>((set, get) => ({
   subscribeToRealtimeUpdates: () => {
     console.log('Subscribing to real-time updates...');
     
-    const unsubscribeReservations = subscribeToReservations((reservations) => {
-      console.log('Real-time reservations update:', reservations.length);
-      set({ reservations });
-    });
+    let unsubscribeReservations: (() => void) | null = null;
+    let unsubscribeDrivers: (() => void) | null = null;
+    
+    try {
+      unsubscribeReservations = subscribeToReservations((reservations) => {
+        console.log('Real-time reservations update:', reservations.length);
+        set({ reservations });
+      });
 
-    const unsubscribeDrivers = subscribeToDrivers((drivers) => {
-      console.log('Real-time drivers update:', drivers.length);
-      set({ drivers });
-    });
+      unsubscribeDrivers = subscribeToDrivers((drivers) => {
+        console.log('Real-time drivers update:', drivers.length);
+        set({ drivers });
+      });
+    } catch (error) {
+      console.error('Error setting up real-time subscriptions:', error);
+      console.warn('Real-time updates not available, using manual refresh');
+    }
 
     // Return cleanup function
     return () => {
-      unsubscribeReservations();
-      unsubscribeDrivers();
+      try {
+        if (unsubscribeReservations) unsubscribeReservations();
+        if (unsubscribeDrivers) unsubscribeDrivers();
+      } catch (error) {
+        console.error('Error cleaning up subscriptions:', error);
+      }
     };
   },
 
