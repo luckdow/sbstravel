@@ -7,4 +7,8 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
+  preview: {
+    // Ensure SPA routing works in preview mode
+    historyApiFallback: true,
+  },
 });
