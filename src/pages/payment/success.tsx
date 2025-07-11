@@ -9,12 +9,12 @@ export default function PaymentSuccessPage() {
   
   const reservationData = {
     id: searchParams.get('order_id') || 'RES-001',
-    transactionId: searchParams.get('transaction_id') || 'TXN_123456',
-    amount: 85.00,
+    transactionId: 'TXN_' + Date.now(),
+    amount: parseFloat(searchParams.get('amount') || '85.00'),
     currency: 'USD',
-    customerName: 'Ahmet Yılmaz',
+    customerName: decodeURIComponent(searchParams.get('customer') || 'Müşteri'),
     route: 'Antalya Havalimanı → Kemer',
-    date: '2024-01-15',
+    date: new Date().toLocaleDateString('tr-TR'),
     time: '14:30',
     qrCode: 'QR_' + Date.now(),
     timestamp: new Date().toISOString()
@@ -158,20 +158,27 @@ export default function PaymentSuccessPage() {
           <div className="text-center mt-8 space-y-4">
             <Link
               to="/customer-panel"
-              className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300"
+              className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 text-lg"
             >
               <User className="h-5 w-5" />
-              <span>Müşteri Paneline Git</span>
+              <span>Rezervasyonumu Gör</span>
             </Link>
             
             <div className="text-center">
               <Link
                 to="/"
-                className="inline-flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors"
+                className="inline-flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors text-sm"
               >
                 <Home className="h-4 w-4" />
                 <span>Ana Sayfaya Dön</span>
               </Link>
+            </div>
+            
+            {/* Auto redirect message */}
+            <div className="mt-6 p-4 bg-blue-50 rounded-xl">
+              <p className="text-sm text-blue-700">
+                📧 Fatura e-posta adresinize gönderildi. 5 saniye sonra müşteri panelinize yönlendirileceksiniz...
+              </p>
             </div>
           </div>
         </div>
