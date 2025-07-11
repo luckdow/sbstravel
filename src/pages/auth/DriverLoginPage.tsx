@@ -2,12 +2,21 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Car, Lock, User, Eye, EyeOff, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import GoogleSignInButton from '../../components/GoogleSignInButton';
 
 export default function DriverLoginPage() {
   const [credentials, setCredentials] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  const handleGoogleSuccess = (user: any, role: string) => {
+    if (role === 'driver') {
+      navigate('/driver');
+    } else {
+      toast.error('Bu hesap şoför yetkisine sahip değil');
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,6 +110,19 @@ export default function DriverLoginPage() {
               )}
             </button>
           </form>
+
+          {/* Divider */}
+          <div className="my-6 flex items-center">
+            <div className="flex-1 border-t border-gray-200"></div>
+            <span className="px-4 text-sm text-gray-500">veya</span>
+            <div className="flex-1 border-t border-gray-200"></div>
+          </div>
+
+          {/* Google Sign In */}
+          <GoogleSignInButton 
+            onSuccess={handleGoogleSuccess}
+            requiredRole="driver"
+          />
 
           {/* Demo Credentials */}
           <div className="mt-6 p-4 bg-green-50 rounded-xl">
