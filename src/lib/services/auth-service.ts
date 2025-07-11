@@ -686,11 +686,19 @@ export class AuthService {
               isLoading: false,
               sessionExpiry,
             };
+            console.log('Session restored for user:', parsed.user.email);
+          } else {
+            console.log('Session expired, clearing auth state');
+            this.clearAuthState();
           }
+        } else {
+          console.log('Invalid stored auth data, clearing');
+          this.clearAuthState();
         }
       }
     } catch (error) {
       console.error('Error loading auth state:', error);
+      console.warn('Clearing potentially corrupted auth state');
       this.clearAuthState();
     }
   }

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../../../store/useStore';
 import { Eye, Edit, Trash2, MapPin, Clock, User, Car, Loader2 } from 'lucide-react';
@@ -21,12 +21,22 @@ const statusLabels = {
 
 export default function RecentReservations() {
   const { reservations, fetchReservations, loading } = useStore();
+  const [loadingTimeout, setLoadingTimeout] = useState(false);
 
   useEffect(() => {
     fetchReservations();
+    
+    // Set a timeout to stop showing loading after 15 seconds
+    const timeoutId = setTimeout(() => {
+      setLoadingTimeout(true);
+    }, 15000);
+    
+    return () => clearTimeout(timeoutId);
   }, [fetchReservations]);
 
   const recentReservations = reservations.slice(0, 5);
+
+  const showLoading = loading && !loadingTimeout;
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
@@ -67,12 +77,35 @@ export default function RecentReservations() {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {loading ? (
+            {showLoading ? (
               <tr>
                 <td colSpan={7} className="px-6 py-8 text-center">
                   <div className="flex items-center justify-center">
                     <Loader2 className="h-8 w-8 animate-spin text-blue-600 mr-3" />
-                    <span className="text-gray-600">Yükleniyor...</span>
+                    <span className="text-gray-600">Veriler yükleniyor...</span>
+                  </div>
+                </td>
+              </tr>
+            ) : loadingTimeout && recentReservations.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="px-6 py-8 text-center">
+                  <div className="text-center space-y-3">
+                    <div className="text-amber-600">
+                      <svg className="h-8 w-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.502 0L4.312 15.5c-.77.833.192 2.5 1.732 2.5z" />
+                      </svg>
+                    </div>
+                    <div className="text-gray-700 font-medium">Veriler yüklenemedi</div>
+                    <div className="text-sm text-gray-500">Firebase bağlantısı kurulamadı, demo veriler gösteriliyor</div>
+                    <button 
+                      onClick={() => {
+                        setLoadingTimeout(false);
+                        fetchReservations();
+                      }}
+                      className="mt-2 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      Tekrar Dene
+                    </button>
                   </div>
                 </td>
               </tr>

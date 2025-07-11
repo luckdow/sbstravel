@@ -194,32 +194,52 @@ export default function LocationSearch({
   const handleSuggestionClick = (suggestion: google.maps.places.PlaceResult | LocationData | PopularLocation) => {
     let locationData: LocationData;
     
-    if ('category' in suggestion) {
-      // Popular destination
-      locationData = {
-        name: suggestion.name,
-        lat: suggestion.lat,
-        lng: suggestion.lng,
-        formatted_address: `${suggestion.name}, Antalya, Türkiye`
-      };
-    } else if ('lat' in suggestion) {
-      // Recent search
-      locationData = suggestion;
-    } else {
-      // Google Places result
-      const place = suggestion as google.maps.places.PlaceResult;
-      locationData = {
-        name: place.name || place.formatted_address || '',
-        formatted_address: place.formatted_address,
-        lat: place.geometry?.location?.lat() || 0,
-        lng: place.geometry?.location?.lng() || 0
-      };
+    try {
+      if ('category' in suggestion) {
+        // Popular destination
+        locationData = {
+          name: suggestion.name || '',
+          lat: suggestion.lat || 0,
+          lng: suggestion.lng || 0,
+          formatted_address: suggestion.formatted_address || `${suggestion.name}, Antalya, Türkiye`
+        };
+      } else if ('lat' in suggestion && 'lng' in suggestion) {
+        // Recent search or LocationData
+        locationData = {
+          name: suggestion.name || '',
+          lat: suggestion.lat || 0,
+          lng: suggestion.lng || 0,
+          formatted_address: suggestion.formatted_address || `${suggestion.name}, Antalya, Türkiye`
+        };
+      } else {
+        // Google Places result
+        const place = suggestion as google.maps.places.PlaceResult;
+        const lat = place.geometry?.location?.lat?.() || 0;
+        const lng = place.geometry?.location?.lng?.() || 0;
+        
+        locationData = {
+          name: place.name || place.formatted_address || '',
+          formatted_address: place.formatted_address || '',
+          lat: lat,
+          lng: lng
+        };
+      }
+      
+      // Validate the location data before proceeding
+      if (!locationData.name) {
+        console.error('Invalid location data: missing name');
+        return;
+      }
+      
+      onChange(locationData);
+      saveRecentSearch(locationData);
+      setShowSuggestions(false);
+      setSuggestions([]);
+    } catch (error) {
+      console.error('Error processing location selection:', error);
+      // Show user-friendly error
+      console.warn('Could not process selected location, please try another option');
     }
-    
-    onChange(locationData);
-    saveRecentSearch(locationData);
-    setShowSuggestions(false);
-    setSuggestions([]);
   };
 
   const handleInputFocus = () => {
