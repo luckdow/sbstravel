@@ -1,5 +1,6 @@
 import React from 'react';
 import { Car, Facebook, Twitter, Instagram, Youtube, Phone, Mail, MapPin, ArrowRight, Award, Shield, Clock } from 'lucide-react';
+import SecurityBadge from './Security/SecurityBadge';
 
 export default function Footer() {
   return (
@@ -190,19 +191,26 @@ export default function Footer() {
             
             <div className="flex flex-wrap justify-center lg:justify-end space-x-6">
               {[
-                'Gizlilik Politikası',
-                'Kullanım Şartları', 
-                'Çerez Politikası',
-                'KVKK'
+                { name: 'Gizlilik Politikası', href: '/privacy-policy' },
+                { name: 'Kullanım Şartları', href: '/terms-of-service' }, 
+                { name: 'Çerez Politikası', href: '/privacy-policy#cerezler' },
+                { name: 'KVKK', href: '/kvkk-policy' }
               ].map((link, index) => (
                 <a 
                   key={index}
-                  href="#" 
+                  href={link.href} 
                   className="text-gray-400 hover:text-white text-sm transition-colors"
                 >
-                  {link}
+                  {link.name}
                 </a>
               ))}
+            </div>
+
+            {/* Security Badges */}
+            <div className="flex flex-wrap justify-center lg:justify-end gap-3 mt-4">
+              <SecurityBadge type="ssl" size="sm" />
+              <SecurityBadge type="payment" size="sm" />
+              <SecurityBadge type="data" size="sm" />
             </div>
           </div>
         </div>

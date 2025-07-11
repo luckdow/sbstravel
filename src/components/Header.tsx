@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X, Car, Phone, MapPin, ChevronDown } from 'lucide-react';
+import SSLIndicator from './Security/SSLIndicator';
+import SecurityBadge from './Security/SecurityBadge';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -59,6 +61,7 @@ export default function Header() {
           </nav>
 
           <div className="hidden lg:flex items-center space-x-6">
+            <SSLIndicator className={isScrolled ? 'text-gray-600' : 'text-white'} />
             <div className={`flex items-center space-x-2 text-sm ${isScrolled ? 'text-gray-600' : 'text-white/90'}`}>
               <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg">
                 <Phone className="h-4 w-4 text-white" />
