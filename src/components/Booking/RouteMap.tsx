@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { MapPin, Navigation, Clock, Route } from 'lucide-react';
+import { Navigation, Clock, Route } from 'lucide-react';
 import { googleMapsService } from '../../lib/google-maps';
 import { LocationData } from '../../types';
 

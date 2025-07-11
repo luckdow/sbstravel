@@ -91,7 +91,7 @@ export class PayTRService {
     return 'mock_token_' + btoa(hashString).substring(0, 20);
   }
   
-  verifyCallback(callbackData: Record<string, any>): boolean {
+  verifyCallback(callbackData: Record<string, string | number>): boolean {
     // Verify PayTR callback hash
     // In production, implement actual hash verification
     return true;
@@ -100,8 +100,8 @@ export class PayTRService {
 
 // Initialize PayTR service
 export const paytrService = new PayTRService({
-  merchantId: process.env.PAYTR_MERCHANT_ID || '',
-  merchantKey: process.env.PAYTR_MERCHANT_KEY || '',
-  merchantSalt: process.env.PAYTR_MERCHANT_SALT || '',
-  testMode: process.env.NODE_ENV !== 'production'
+  merchantId: import.meta.env.VITE_PAYTR_MERCHANT_ID || '',
+  merchantKey: import.meta.env.VITE_PAYTR_MERCHANT_KEY || '',
+  merchantSalt: import.meta.env.VITE_PAYTR_MERCHANT_SALT || '',
+  testMode: import.meta.env.MODE !== 'production'
 });

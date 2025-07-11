@@ -1,18 +1,4 @@
 import React, { useState } from 'react';
-import { 
-  LayoutDashboard, 
-  Calendar, 
-  Users, 
-  Car, 
-  UserCheck, 
-  DollarSign, 
-  Settings, 
-  LogOut,
-  Menu,
-  X,
-  Bell,
-  Search
-} from 'lucide-react';
 import AdminSidebar from './AdminSidebar';
 import AdminHeader from './AdminHeader';
 

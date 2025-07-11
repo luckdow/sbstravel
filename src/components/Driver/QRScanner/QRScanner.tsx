@@ -1,11 +1,18 @@
 import React, { useState } from 'react';
 import { useStore } from '../../../store/useStore';
 import toast from 'react-hot-toast';
-import { QrCode, Camera, CheckCircle, XCircle, AlertCircle, Scan } from 'lucide-react';
+import { QrCode, Camera, CheckCircle, XCircle, Scan } from 'lucide-react';
+import { Reservation } from '../../../types';
+
+interface ScanResult {
+  success: boolean;
+  reservation?: Reservation;
+  error?: string;
+}
 
 export default function QRScanner() {
   const [isScanning, setIsScanning] = useState(false);
-  const [scanResult, setScanResult] = useState<any>(null);
+  const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [manualCode, setManualCode] = useState('');
   
   const { reservations, updateReservationStatus } = useStore();
@@ -34,7 +41,7 @@ export default function QRScanner() {
   const handleManualEntry = () => {
     if (manualCode.trim()) {
       const reservation = reservations.find(r => 
-        r.id === manualCode || r.qr_code === manualCode
+        r.id === manualCode || r.qrCode === manualCode
       );
       
       if (reservation) {
@@ -168,12 +175,12 @@ export default function QRScanner() {
                 </div>
                 <div className="bg-gray-50 p-4 rounded-xl">
                   <h4 className="font-semibold text-gray-800">Müşteri</h4>
-                  <p className="text-lg font-bold text-gray-800">{scanResult.reservation.customer_name}</p>
+                  <p className="text-lg font-bold text-gray-800">{scanResult.reservation.customerName}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-xl">
                   <h4 className="font-semibold text-gray-800">Güzergah</h4>
                   <p className="text-lg font-bold text-gray-800">
-                    {scanResult.reservation.pickup_location} → {scanResult.reservation.dropoff_location}
+                    {scanResult.reservation.pickupLocation} → {scanResult.reservation.dropoffLocation}
                   </p>
                 </div>
               </div>

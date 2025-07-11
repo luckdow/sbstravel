@@ -3,6 +3,9 @@ import {
   Reservation, 
   Driver, 
   Customer,
+  BookingFormData
+} from '../types';
+import {
   createReservation,
   updateReservation,
   getReservations,
@@ -26,7 +29,7 @@ interface FirebaseState {
   
   // Actions
   fetchReservations: () => Promise<void>;
-  createNewReservation: (data: any) => Promise<string | null>;
+  createNewReservation: (data: BookingFormData & { distance?: number; totalPrice?: number }) => Promise<string | null>;
   updateReservationStatus: (id: string, status: string, driverId?: string) => Promise<void>;
   
   fetchDrivers: () => Promise<void>;
@@ -80,21 +83,22 @@ export const useFirebaseStore = create<FirebaseState>((set, get) => ({
           id: customerId, 
           ...reservationData.customerInfo,
           totalReservations: 0,
-          createdAt: new Date() as any
+          createdAt: new Date()
         };
       }
 
       // Create reservation
-      const reservation = {
+      const reservation: Omit<Reservation, 'id' | 'createdAt' | 'updatedAt'> = {
         customerId: customer.id!,
         customerName: `${reservationData.customerInfo.firstName} ${reservationData.customerInfo.lastName}`,
         customerEmail: reservationData.customerInfo.email,
         customerPhone: reservationData.customerInfo.phone,
+        transferType: reservationData.transferType,
         pickupLocation: reservationData.transferType === 'airport-hotel' 
           ? 'Antalya Havalimanı (AYT)' 
-          : reservationData.destination,
+          : reservationData.destination.name,
         dropoffLocation: reservationData.transferType === 'airport-hotel' 
-          ? reservationData.destination 
+          ? reservationData.destination.name 
           : 'Antalya Havalimanı (AYT)',
         pickupDate: reservationData.pickupDate,
         pickupTime: reservationData.pickupTime,
@@ -102,21 +106,22 @@ export const useFirebaseStore = create<FirebaseState>((set, get) => ({
         baggageCount: reservationData.baggageCount,
         vehicleType: reservationData.vehicleType,
         distance: reservationData.distance || 45, // Default distance
+        basePrice: (reservationData.totalPrice || 0) / 1.18, // Remove tax for base price
         totalPrice: reservationData.totalPrice || 0,
-        status: 'pending' as const,
+        status: 'pending',
         qrCode,
-        paymentStatus: 'completed' as const, // Assuming payment is completed
-        additionalServices: reservationData.additionalServices || []
+        paymentStatus: 'completed', // Assuming payment is completed
+        additionalServices: []
       };
 
       const reservationId = await createReservation(reservation);
       
       // Update local state
-      const newReservation = { 
+      const newReservation: Reservation = { 
         id: reservationId, 
         ...reservation,
-        createdAt: new Date() as any,
-        updatedAt: new Date() as any
+        createdAt: new Date(),
+        updatedAt: new Date()
       };
       
       set(state => ({
@@ -136,7 +141,7 @@ export const useFirebaseStore = create<FirebaseState>((set, get) => ({
   // Update Reservation Status
   updateReservationStatus: async (id, status, driverId) => {
     try {
-      const updates: any = { status };
+      const updates: Partial<Reservation> = { status };
       
       if (driverId) {
         updates.driverId = driverId;
@@ -153,7 +158,7 @@ export const useFirebaseStore = create<FirebaseState>((set, get) => ({
       // Update local state
       set(state => ({
         reservations: state.reservations.map(res =>
-          res.id === id ? { ...res, ...updates, updatedAt: new Date() as any } : res
+          res.id === id ? { ...res, ...updates, updatedAt: new Date() } : res
         )
       }));
 

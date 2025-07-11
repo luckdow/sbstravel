@@ -200,7 +200,7 @@ export const useStore = create<StoreState>((set, get) => ({
   // Update Reservation Status
   updateReservationStatus: async (id, status, driverId) => {
     try {
-      const updates: any = { status };
+      const updates: Partial<Reservation> = { status };
       
       if (driverId) {
         updates.driverId = driverId;
