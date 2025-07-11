@@ -693,15 +693,6 @@ export default function BookingPage() {
                 
                 <button
                   type="submit"
-                  onClick={(e) => {
-                    console.log('🔘 SUBMIT BUTTON CLICKED!');
-                    console.log('📍 Current step:', currentStep);
-                    console.log('🎯 Destination:', watchedValues.destination);
-                    console.log('🚗 Vehicle:', watchedValues.vehicleType);
-                    console.log('📅 Date:', watchedValues.pickupDate);
-                    console.log('⏰ Time:', watchedValues.pickupTime);
-                    console.log('💰 Price:', totalPrice);
-                  }}
                   disabled={isCalculatingPrice || (currentStep === 1 && totalPrice === 0)}
                   className="ml-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
