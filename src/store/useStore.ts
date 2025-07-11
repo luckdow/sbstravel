@@ -86,7 +86,7 @@ export const useStore = create<StoreState>((set, get) => ({
       
       // Add timeout for Firebase requests
       const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('Firebase connection timeout')), 10000);
+        setTimeout(() => reject(new Error('Firebase connection timeout')), 5000);
       });
       
       const reservations = await Promise.race([
@@ -95,12 +95,19 @@ export const useStore = create<StoreState>((set, get) => ({
       ]);
       
       console.log('Fetched reservations:', reservations.length);
+      
+      // If Firebase returns empty results, use mock data for demo
+      if (reservations.length === 0) {
+        console.warn('Firebase returned empty results, using mock data for demo');
+        throw new Error('Empty results, using mock data');
+      }
+      
       set({ reservations });
     } catch (error) {
       console.error('Error fetching reservations:', error);
       console.warn('Using fallback mock data for reservations');
       
-      // Fallback to mock data if Firebase fails
+      // Enhanced mock data with more realistic data for demo
       const mockReservations = [
         {
           id: 'RES-001',
@@ -111,7 +118,7 @@ export const useStore = create<StoreState>((set, get) => ({
           transferType: 'airport-hotel' as const,
           pickupLocation: 'Antalya Havalimanı (AYT)',
           dropoffLocation: 'Kemer - Club Med Palmiye',
-          pickupDate: '2024-01-15',
+          pickupDate: new Date().toISOString().split('T')[0], // Today's date
           pickupTime: '14:30',
           passengerCount: 4,
           baggageCount: 3,
@@ -135,7 +142,7 @@ export const useStore = create<StoreState>((set, get) => ({
           transferType: 'hotel-airport' as const,
           pickupLocation: 'Belek - Regnum Carya',
           dropoffLocation: 'Antalya Havalimanı (AYT)',
-          pickupDate: '2024-01-15',
+          pickupDate: new Date().toISOString().split('T')[0], // Today's date
           pickupTime: '16:00',
           passengerCount: 2,
           baggageCount: 2,
@@ -147,6 +154,31 @@ export const useStore = create<StoreState>((set, get) => ({
           status: 'assigned' as const,
           driverId: 'DRV-001',
           qrCode: 'QR-002',
+          paymentStatus: 'completed' as const,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          id: 'RES-003',
+          customerId: 'CUST-003',
+          customerName: 'Mustafa Demir',
+          customerEmail: 'mustafa@email.com',
+          customerPhone: '+90 533 987 6543',
+          transferType: 'airport-hotel' as const,
+          pickupLocation: 'Antalya Havalimanı (AYT)',
+          dropoffLocation: 'Side - Manavgat Resort',
+          pickupDate: new Date().toISOString().split('T')[0], // Today's date
+          pickupTime: '19:00',
+          passengerCount: 3,
+          baggageCount: 4,
+          vehicleType: 'premium' as const,
+          distance: 60,
+          basePrice: 89.55,
+          additionalServices: [],
+          totalPrice: 105,
+          status: 'completed' as const,
+          driverId: 'DRV-002',
+          qrCode: 'QR-003',
           paymentStatus: 'completed' as const,
           createdAt: new Date(),
           updatedAt: new Date()
@@ -295,7 +327,7 @@ export const useStore = create<StoreState>((set, get) => ({
       
       // Add timeout for Firebase requests
       const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('Firebase connection timeout')), 10000);
+        setTimeout(() => reject(new Error('Firebase connection timeout')), 5000);
       });
       
       const availableDrivers = await Promise.race([
@@ -304,12 +336,19 @@ export const useStore = create<StoreState>((set, get) => ({
       ]);
       
       console.log('Fetched drivers:', availableDrivers.length);
+      
+      // If Firebase returns empty results, use mock data for demo
+      if (availableDrivers.length === 0) {
+        console.warn('Firebase returned empty driver results, using mock data for demo');
+        throw new Error('Empty results, using mock data');
+      }
+      
       set({ drivers: availableDrivers });
     } catch (error) {
       console.error('Error fetching drivers:', error);
       console.warn('Using fallback mock data for drivers');
       
-      // Fallback to mock data
+      // Enhanced mock data for drivers
       const mockDrivers = [
         {
           id: 'DRV-001',
@@ -319,8 +358,8 @@ export const useStore = create<StoreState>((set, get) => ({
           phone: '+90 532 111 2233',
           licenseNumber: 'ABC123',
           vehicleType: 'premium' as const,
-          status: 'available' as const,
-          currentLocation: 'Antalya Merkez',
+          status: 'busy' as const,
+          currentLocation: 'Kemer - Club Med Palmiye',
           rating: 4.8,
           totalEarnings: 2340,
           completedTrips: 156,
@@ -335,11 +374,43 @@ export const useStore = create<StoreState>((set, get) => ({
           phone: '+90 533 222 3344',
           licenseNumber: 'DEF456',
           vehicleType: 'luxury' as const,
-          status: 'busy' as const,
-          currentLocation: 'Kemer',
+          status: 'available' as const,
+          currentLocation: 'Antalya Merkez',
           rating: 4.9,
           totalEarnings: 3120,
           completedTrips: 203,
+          isActive: true,
+          createdAt: new Date()
+        },
+        {
+          id: 'DRV-003',
+          firstName: 'Osman',
+          lastName: 'Çelik',
+          email: 'osman@ayttransfer.com',
+          phone: '+90 534 333 4455',
+          licenseNumber: 'GHI789',
+          vehicleType: 'standard' as const,
+          status: 'available' as const,
+          currentLocation: 'Belek',
+          rating: 4.7,
+          totalEarnings: 1890,
+          completedTrips: 124,
+          isActive: true,
+          createdAt: new Date()
+        },
+        {
+          id: 'DRV-004',
+          firstName: 'Fatih',
+          lastName: 'Özkan',
+          email: 'fatih@ayttransfer.com',
+          phone: '+90 535 444 5566',
+          licenseNumber: 'JKL012',
+          vehicleType: 'premium' as const,
+          status: 'offline' as const,
+          currentLocation: 'Side',
+          rating: 4.6,
+          totalEarnings: 1560,
+          completedTrips: 98,
           isActive: true,
           createdAt: new Date()
         }
