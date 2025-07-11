@@ -2,8 +2,11 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 
-// Admin Pages
+// Auth Pages
 import AdminLoginPage from './pages/auth/AdminLoginPage';
+import DriverLoginPage from './pages/auth/DriverLoginPage';
+import CustomerLoginPage from './pages/auth/CustomerLoginPage';
+import CustomerRegisterPage from './pages/auth/CustomerRegisterPage';
 
 // Simple placeholder components
 const SimplePage = ({ title }: { title: string }) => (
@@ -30,11 +33,13 @@ function App() {
         <Route path="/admin" element={<SimplePage title="Admin Dashboard" />} />
         
         {/* Driver Routes */}
-        <Route path="/driver/login" element={<SimplePage title="Driver Login" />} />
+        <Route path="/driver/login" element={<DriverLoginPage />} />
         <Route path="/driver" element={<SimplePage title="Driver Dashboard" />} />
         
         {/* Customer Auth */}
         <Route path="/customer/login" element={<SimplePage title="Customer Login" />} />
+        <Route path="/customer/register" element={<CustomerRegisterPage />} />
+        <Route path="/customer" element={<SimplePage title="Customer Dashboard" />} />
         
         {/* Legal Pages */}
         <Route path="/privacy-policy" element={<SimplePage title="Privacy Policy" />} />
