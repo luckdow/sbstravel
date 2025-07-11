@@ -118,9 +118,9 @@ export default function BookingPage() {
   const onSubmit = async (data: BookingFormData) => {
     console.log('🚀 Form submitted!');
     console.log('📍 Current step:', currentStep);
-    console.log('📋 Form data:', data);
-    console.log('👀 Watched values:', watchedValues);
-    console.log('🎯 Destination:', watchedValues.destination);
+    console.log('📋 Form data:', JSON.stringify(data, null, 2));
+    console.log('👀 Watched values:', JSON.stringify(watchedValues, null, 2));
+    console.log('🎯 Destination:', JSON.stringify(watchedValues.destination, null, 2));
     console.log('🚗 Vehicle type:', watchedValues.vehicleType);
     console.log('💰 Total price:', totalPrice);
     console.log('📏 Distance:', distance);
@@ -178,8 +178,9 @@ export default function BookingPage() {
         
         console.log('✅ All validations passed!');
         console.log('🎯 Moving to step 2...');
+        console.log('📍 Current step before update:', currentStep);
         setCurrentStep(2);
-        console.log('📍 New current step:', 2);
+        console.log('📍 Step updated to 2');
         return;
       }
       
@@ -694,7 +695,6 @@ export default function BookingPage() {
                   type="submit"
                   disabled={isCalculatingPrice || (currentStep === 1 && totalPrice === 0)}
                   className="ml-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                  onClick={() => console.log('🔘 Button clicked! Current step:', currentStep)}
                 >
                   <span>
                     {isCalculatingPrice ? 'Hesaplanıyor...' : 
