@@ -11,11 +11,24 @@ export default function AdminLoginPage() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleGoogleSuccess = (user: { email: string; name: string }, role: string) => {
-    if (role === 'admin') {
-      navigate('/admin');
-    } else {
-      toast.error('Bu hesap admin yetkisine sahip değil');
+  const handleGoogleSuccess = async (user: { email: string; name: string }, role: string) => {
+    try {
+      if (role === 'admin') {
+        // Authenticate user in local auth service
+        const result = await authService.authenticateGoogleUser(user, 'admin');
+        
+        if (result.success) {
+          toast.success('Admin Google girişi başarılı!');
+          navigate('/admin');
+        } else {
+          toast.error(result.error || 'Google ile giriş başarısız');
+        }
+      } else {
+        toast.error('Bu hesap admin yetkisine sahip değil');
+      }
+    } catch (error) {
+      console.error('Google sign-in error:', error);
+      toast.error('Google ile giriş sırasında bir hata oluştu');
     }
   };
 

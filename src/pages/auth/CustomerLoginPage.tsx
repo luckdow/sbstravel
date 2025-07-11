@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { User, Lock, Mail, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { authService } from '../../lib/services/auth-service';
 import toast from 'react-hot-toast';
 import GoogleSignInButton from '../../components/GoogleSignInButton';
 
@@ -8,11 +9,24 @@ export default function CustomerLoginPage() {
   const [credentials, setCredentials] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isRegister, setIsRegister] = useState(false);
   const navigate = useNavigate();
 
-  const handleGoogleSuccess = () => {
-    // For customer login, any role is acceptable, but we'll navigate to customer area
-    navigate('/');
+  const handleGoogleSuccess = async (user: { email: string; name: string }, role: string) => {
+    try {
+      // For customer login, accept any role but authenticate in local system
+      const result = await authService.authenticateGoogleUser(user, role as any);
+      
+      if (result.success) {
+        toast.success('Google ile giriş başarılı!');
+        navigate('/');
+      } else {
+        toast.error(result.error || 'Google ile giriş başarısız');
+      }
+    } catch (error) {
+      console.error('Google sign-in error:', error);
+      toast.error('Google ile giriş sırasında bir hata oluştu');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

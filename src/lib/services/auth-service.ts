@@ -279,6 +279,103 @@ export class AuthService {
     this.notifyListeners();
   }
 
+  // Google sign-in integration
+  async authenticateGoogleUser(googleUser: { email: string; name: string }, role: UserRole): Promise<{
+    success: boolean;
+    user?: User;
+    error?: string;
+  }> {
+    try {
+      this.setLoading(true);
+
+      // Check if user already exists
+      let existingUser = Array.from(this.users.values()).find(
+        u => u.email.toLowerCase() === googleUser.email.toLowerCase()
+      );
+
+      let user: User;
+
+      if (existingUser) {
+        // Verify role matches
+        if (existingUser.role !== role) {
+          return { 
+            success: false, 
+            error: `Bu hesap ${role} yetkisine sahip değil. Mevcut yetki: ${existingUser.role}` 
+          };
+        }
+        
+        user = { ...existingUser };
+        delete (user as any).password;
+        
+        // Update login metadata
+        user.metadata.lastLogin = new Date();
+        user.metadata.loginCount += 1;
+        
+        // Update the stored user
+        this.users.set(user.id, { ...existingUser, metadata: user.metadata });
+      } else {
+        // Create new user from Google account
+        const userId = this.generateUserId();
+        const [firstName, ...lastNameParts] = googleUser.name.split(' ');
+        
+        user = {
+          id: userId,
+          email: googleUser.email.toLowerCase(),
+          firstName: firstName || '',
+          lastName: lastNameParts.join(' ') || '',
+          phone: '', // Will need to be filled later
+          role: role,
+          isActive: true,
+          permissions: this.rolePermissions[role],
+          metadata: {
+            lastLogin: new Date(),
+            loginCount: 1,
+            registrationDate: new Date(),
+            emailVerified: true, // Google accounts are verified
+            phoneVerified: false,
+          },
+          profile: {
+            preferences: {
+              language: 'tr',
+              currency: 'USD',
+              notifications: {
+                email: true,
+                sms: true,
+                push: true,
+              },
+            },
+          },
+        };
+
+        // Store user (Google users don't have passwords in our system)
+        this.users.set(userId, { ...user, password: '' });
+      }
+
+      // Generate session token
+      const token = this.generateToken(user.id);
+      const sessionExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+      this.authState = {
+        user,
+        token,
+        isAuthenticated: true,
+        isLoading: false,
+        sessionExpiry,
+      };
+
+      this.saveAuthState();
+      this.saveUsers();
+      this.notifyListeners();
+
+      return { success: true, user };
+    } catch (error) {
+      console.error('Google authentication error:', error);
+      return { success: false, error: 'Google ile giriş sırasında bir hata oluştu' };
+    } finally {
+      this.setLoading(false);
+    }
+  }
+
   async requestPasswordReset(request: PasswordResetRequest): Promise<{
     success: boolean;
     error?: string;

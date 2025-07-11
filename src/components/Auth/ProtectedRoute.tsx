@@ -14,8 +14,14 @@ export default function ProtectedRoute({
   children,
   requiredRole,
   requiredPermission,
-  fallbackPath = '/login'
+  fallbackPath
 }: ProtectedRouteProps) {
+  // Set default fallback path based on required role
+  const defaultFallbackPath = fallbackPath || (
+    requiredRole === 'admin' ? '/admin/login' :
+    requiredRole === 'driver' ? '/driver/login' :
+    '/customer/login'
+  );
   const location = useLocation();
   const authState = authService.getAuthState();
 
@@ -33,13 +39,13 @@ export default function ProtectedRoute({
 
   // Redirect to login if not authenticated
   if (!authState.isAuthenticated) {
-    return <Navigate to={fallbackPath} state={{ from: location }} replace />;
+    return <Navigate to={defaultFallbackPath} state={{ from: location }} replace />;
   }
 
   // Check if session is still valid
   if (!authService.isSessionValid()) {
     authService.logout();
-    return <Navigate to={fallbackPath} state={{ from: location }} replace />;
+    return <Navigate to={defaultFallbackPath} state={{ from: location }} replace />;
   }
 
   // Check role requirement
