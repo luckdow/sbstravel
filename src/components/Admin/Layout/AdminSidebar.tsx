@@ -10,7 +10,8 @@ import {
   Settings, 
   LogOut,
   X,
-  Plane
+  Plane,
+  Bell
 } from 'lucide-react';
 import { authService } from '../../../lib/services/auth-service';
 import toast from 'react-hot-toast';
@@ -27,6 +28,7 @@ const menuItems = [
   { icon: Car, label: 'Araç Yönetimi', href: '/admin/vehicles' },
   { icon: UserCheck, label: 'Şoför Yönetimi', href: '/admin/drivers' },
   { icon: DollarSign, label: 'Ödemeler', href: '/admin/payments' },
+  { icon: Bell, label: 'Bildirimler', href: '/admin/notifications' },
   { icon: Settings, label: 'Ayarlar', href: '/admin/settings' }
 ];
 
