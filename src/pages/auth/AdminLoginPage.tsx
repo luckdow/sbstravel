@@ -9,6 +9,8 @@ export default function AdminLoginPage() {
   const [credentials, setCredentials] = useState({ email: '', password: '', rememberMe: false });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  
   const handleGoogleSuccess = (user: any, role: string) => {
     if (role === 'admin') {
       navigate('/admin');
