@@ -156,3 +156,106 @@ export interface RouteResult {
   duration: number; // in minutes
   route: google.maps.DirectionsResult;
 }
+
+// Communication Types
+export interface NotificationChannel {
+  email: boolean;
+  sms: boolean;
+  whatsapp: boolean;
+}
+
+export interface NotificationPreferences {
+  customerId: string;
+  channels: NotificationChannel;
+  language: 'tr' | 'en';
+  frequency: 'minimal' | 'normal' | 'all';
+  optOut: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface EmailTemplate {
+  id: string;
+  name: string;
+  subject: string;
+  htmlContent: string;
+  textContent: string;
+  variables: string[];
+  language: 'tr' | 'en';
+  category: 'booking' | 'payment' | 'reminder' | 'notification';
+}
+
+export interface SMSTemplate {
+  id: string;
+  name: string;
+  content: string;
+  variables: string[];
+  language: 'tr' | 'en';
+  category: 'booking' | 'payment' | 'reminder' | 'otp';
+}
+
+export interface WhatsAppTemplate {
+  id: string;
+  name: string;
+  content: string;
+  mediaType?: 'text' | 'image' | 'document';
+  mediaUrl?: string;
+  variables: string[];
+  language: 'tr' | 'en';
+  category: 'booking' | 'payment' | 'reminder' | 'support';
+}
+
+export interface NotificationMessage {
+  id?: string;
+  customerId: string;
+  reservationId?: string;
+  type: 'email' | 'sms' | 'whatsapp';
+  template: string;
+  recipient: string;
+  subject?: string;
+  content: string;
+  variables: Record<string, string>;
+  status: 'pending' | 'sent' | 'delivered' | 'failed' | 'read';
+  retryCount: number;
+  providerId?: string;
+  error?: string;
+  sentAt?: Date;
+  deliveredAt?: Date;
+  readAt?: Date;
+  createdAt?: Date;
+}
+
+export interface NotificationProvider {
+  id: string;
+  name: string;
+  type: 'email' | 'sms' | 'whatsapp';
+  isActive: boolean;
+  config: Record<string, string>;
+  priority: number;
+  costPerMessage: number;
+  dailyQuota: number;
+  usedQuota: number;
+}
+
+export interface NotificationAnalytics {
+  totalSent: number;
+  totalDelivered: number;
+  totalRead: number;
+  totalFailed: number;
+  deliveryRate: number;
+  readRate: number;
+  avgDeliveryTime: number;
+  byChannel: {
+    email: NotificationStats;
+    sms: NotificationStats;
+    whatsapp: NotificationStats;
+  };
+}
+
+export interface NotificationStats {
+  sent: number;
+  delivered: number;
+  read: number;
+  failed: number;
+  cost: number;
+}
