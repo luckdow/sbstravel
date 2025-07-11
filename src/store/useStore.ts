@@ -97,7 +97,7 @@ export const useStore = create<StoreState>((set, get) => ({
       // Create reservation
       const reservation: Omit<Reservation, 'id' | 'createdAt' | 'updatedAt'> = {
         customerId: customer.id!,
-        customerName: `${reservationData.customerInfo.firstName} ${reservationData.customerInfo.lastName}`,
+        customerName: `${reservationData.customerInfo?.firstName} ${reservationData.customerInfo?.lastName}`,
         customerEmail: reservationData.customerInfo.email,
         customerPhone: reservationData.customerInfo.phone,
         transferType: reservationData.transferType,
@@ -113,7 +113,7 @@ export const useStore = create<StoreState>((set, get) => ({
         baggageCount: reservationData.baggageCount,
         vehicleType: reservationData.vehicleType,
         distance: reservationData.distance,
-        basePrice: reservationData.totalPrice,
+        basePrice: reservationData.totalPrice / 1.18, // Remove tax for base price
         additionalServices: [],
         totalPrice: reservationData.totalPrice,
         status: 'pending',

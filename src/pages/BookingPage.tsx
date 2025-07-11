@@ -20,6 +20,7 @@ import PaymentGateway from '../components/Payment/PaymentGateway';
 import RouteMap from '../components/Booking/RouteMap';
 
 import { MapPin, Calendar, Clock, Users, Luggage, ArrowRight, CheckCircle, Car, DollarSign, Loader2 } from 'lucide-react';
+import { CreditCard, Shield } from 'lucide-react';
 
 // Form validation schema
 const bookingSchema = yup.object({
@@ -246,6 +247,37 @@ export default function BookingPage() {
   const handlePaymentError = (error: string) => {
     toast.error(error);
     setShowPayment(false);
+  };
+
+  const handlePayTRPayment = async () => {
+    try {
+      setIsCalculatingPrice(true);
+      
+      // Create reservation first
+      const reservationData = {
+        ...watchedValues,
+        distance,
+        totalPrice: totalPrice * 1.18 // Include tax
+      };
+
+      const reservationId = await createNewReservation(reservationData);
+      
+      if (reservationId) {
+        // Simulate PayTR payment process
+        toast.success('Rezervasyon oluşturuldu! Ödeme sayfasına yönlendiriliyorsunuz...');
+        
+        // Simulate payment processing
+        setTimeout(() => {
+          toast.success('Ödeme başarılı! Rezervasyonunuz onaylandı.');
+          navigate(`/payment/success?order_id=${reservationId}&amount=${(totalPrice * 1.18).toFixed(2)}&customer=${encodeURIComponent(watchedValues.customerInfo?.firstName + ' ' + watchedValues.customerInfo?.lastName)}`);
+        }, 2000);
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+      toast.error('Ödeme işlemi sırasında hata oluştu');
+    } finally {
+      setIsCalculatingPrice(false);
+    }
   };
 
   const steps = [
@@ -608,7 +640,7 @@ export default function BookingPage() {
               {/* Step 3: Confirmation */}
               {currentStep === 3 && (
                 <div className="bg-white rounded-3xl shadow-xl p-6 border border-gray-100">
-                  <h2 className="text-2xl font-bold text-gray-800 mb-6">Rezervasyon Onayı</h2>
+                  <h2 className="text-2xl font-bold text-gray-800 mb-6">Rezervasyon Onayı & Ödeme</h2>
                   
                   <div className="space-y-6">
                     {/* Transfer Summary */}
@@ -661,6 +693,64 @@ export default function BookingPage() {
                         <div>
                           <p className="text-sm text-gray-600">Telefon</p>
                           <p className="font-semibold">{watchedValues.customerInfo?.phone}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* PayTR Payment Section */}
+                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6">
+                      <h3 className="font-bold text-gray-800 mb-4 flex items-center">
+                        <CreditCard className="h-5 w-5 mr-2 text-blue-600" />
+                        Ödeme Bilgileri
+                      </h3>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Payment Methods */}
+                        <div>
+                          <h4 className="font-semibold text-gray-700 mb-3">Ödeme Yöntemi</h4>
+                          <div className="space-y-3">
+                            <label className="flex items-center p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-blue-50">
+                              <input type="radio" name="paymentMethod" value="credit-card" defaultChecked className="mr-3" />
+                              <CreditCard className="h-5 w-5 text-blue-600 mr-2" />
+                              <span className="font-medium">Kredi/Banka Kartı</span>
+                            </label>
+                            <label className="flex items-center p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-blue-50">
+                              <input type="radio" name="paymentMethod" value="bank-transfer" className="mr-3" />
+                              <DollarSign className="h-5 w-5 text-green-600 mr-2" />
+                              <span className="font-medium">Banka Havalesi</span>
+                            </label>
+                          </div>
+                        </div>
+
+                        {/* Price Summary */}
+                        <div className="bg-white rounded-xl p-4">
+                          <h4 className="font-semibold text-gray-700 mb-3">Ödeme Özeti</h4>
+                          <div className="space-y-2">
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Transfer Ücreti:</span>
+                              <span className="font-semibold">${totalPrice.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">KDV (%18):</span>
+                              <span className="font-semibold">${(totalPrice * 0.18).toFixed(2)}</span>
+                            </div>
+                            <div className="border-t pt-2">
+                              <div className="flex justify-between">
+                                <span className="font-bold text-gray-800">Toplam:</span>
+                                <span className="font-bold text-green-600 text-lg">${(totalPrice * 1.18).toFixed(2)}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Security Info */}
+                      <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-xl">
+                        <div className="flex items-center space-x-2">
+                          <Shield className="h-4 w-4 text-green-600" />
+                          <span className="text-sm text-green-700 font-medium">
+                            256-bit SSL şifreleme ile güvenli ödeme
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -741,16 +831,16 @@ export default function BookingPage() {
                     }
                     
                     if (currentStep === 3) {
-                      // Create reservation
-                      handleSubmit(onSubmit)();
+                      // PayTR Payment Process
+                      handlePayTRPayment();
                     }
                   }}
                   disabled={isCalculatingPrice || (currentStep === 1 && totalPrice === 0)}
                   className="ml-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span>
-                    {isCalculatingPrice ? 'Hesaplanıyor...' : 
-                     currentStep === 3 ? 'Rezervasyonu Tamamla' : 'Devam Et'}
+                    {isCalculatingPrice ? 'İşleniyor...' : 
+                     currentStep === 3 ? 'Ödeme Yap & Rezervasyonu Tamamla' : 'Devam Et'}
                   </span>
                   <ArrowRight className="h-5 w-5" />
                 </button>

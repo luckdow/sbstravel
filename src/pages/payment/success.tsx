@@ -156,14 +156,6 @@ export default function PaymentSuccessPage() {
                 </div>
           {/* Navigation */}
           <div className="text-center mt-8 space-y-4">
-            <Link
-              to="/customer-panel"
-              className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 text-lg"
-            >
-              <User className="h-5 w-5" />
-              <span>Rezervasyonumu Gör</span>
-            </Link>
-            
             <div className="text-center">
               <Link
                 to="/"
@@ -177,7 +169,7 @@ export default function PaymentSuccessPage() {
             {/* Auto redirect message */}
             <div className="mt-6 p-4 bg-blue-50 rounded-xl">
               <p className="text-sm text-blue-700">
-                📧 Fatura e-posta adresinize gönderildi. 5 saniye sonra müşteri panelinize yönlendirileceksiniz...
+                📧 Fatura e-posta adresinize gönderildi. QR kodunuzu kaydetmeyi unutmayın!
               </p>
             </div>
           </div>

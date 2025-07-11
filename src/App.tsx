@@ -21,7 +21,6 @@ import DriverEarningsPage from './pages/driver/earnings';
 
 // Payment Pages
 import PaymentSuccessPage from "./pages/payment/success";
-import CustomerPanelPage from "./pages/customer-panel";
 
 // Quick Access Navigation
 import QuickAccess from './components/Navigation/QuickAccess';
@@ -49,9 +48,6 @@ function App() {
         
         {/* Payment Routes */}
         <Route path="/payment/success" element={<PaymentSuccessPage />} />
-        
-        {/* Customer Panel */}
-        <Route path="/customer-panel" element={<CustomerPanelPage />} />
       </Routes>
       
       {/* Quick Access Navigation */}
