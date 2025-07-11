@@ -61,8 +61,60 @@ export const useStore = create<StoreState>((set, get) => ({
   fetchReservations: async () => {
     set({ loading: true });
     try {
-      const reservations = await getReservations();
-      set({ reservations });
+      // Demo data for testing
+      const mockReservations = [
+        {
+          id: 'RES-001',
+          customerId: 'CUST-001',
+          customerName: 'Ahmet Yılmaz',
+          customerEmail: 'ahmet@email.com',
+          customerPhone: '+90 532 123 4567',
+          transferType: 'airport-hotel',
+          pickupLocation: 'Antalya Havalimanı (AYT)',
+          dropoffLocation: 'Kemer - Club Med Palmiye',
+          pickupDate: '2024-01-15',
+          pickupTime: '14:30',
+          passengerCount: 4,
+          baggageCount: 3,
+          vehicleType: 'premium',
+          distance: 45,
+          basePrice: 72.03,
+          additionalServices: [],
+          totalPrice: 85,
+          status: 'pending',
+          qrCode: 'QR-001',
+          paymentStatus: 'completed',
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          id: 'RES-002',
+          customerId: 'CUST-002',
+          customerName: 'Sarah Johnson',
+          customerEmail: 'sarah@email.com',
+          customerPhone: '+1 555 123 4567',
+          transferType: 'hotel-airport',
+          pickupLocation: 'Belek - Regnum Carya',
+          dropoffLocation: 'Antalya Havalimanı (AYT)',
+          pickupDate: '2024-01-15',
+          pickupTime: '16:00',
+          passengerCount: 2,
+          baggageCount: 2,
+          vehicleType: 'luxury',
+          distance: 35,
+          basePrice: 101.69,
+          additionalServices: [],
+          totalPrice: 120,
+          status: 'assigned',
+          driverId: 'DRV-001',
+          qrCode: 'QR-002',
+          paymentStatus: 'completed',
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+      ];
+      
+      set({ reservations: mockReservations });
     } catch (error) {
       console.error('Error fetching reservations:', error);
       toast.error('Rezervasyonlar yüklenirken hata oluştu');
@@ -184,8 +236,45 @@ export const useStore = create<StoreState>((set, get) => ({
   // Fetch Drivers
   fetchDrivers: async () => {
     try {
-      const drivers = await getAvailableDrivers();
-      set({ drivers });
+      // Demo data for testing
+      const mockDrivers = [
+        {
+          id: 'DRV-001',
+          firstName: 'Mehmet',
+          lastName: 'Demir',
+          name: 'Mehmet Demir',
+          email: 'mehmet@ayttransfer.com',
+          phone: '+90 532 111 2233',
+          licenseNumber: 'ABC123',
+          vehicleType: 'premium',
+          status: 'available',
+          currentLocation: 'Antalya Merkez',
+          rating: 4.8,
+          totalEarnings: 2340,
+          completedTrips: 156,
+          isActive: true,
+          createdAt: new Date()
+        },
+        {
+          id: 'DRV-002',
+          firstName: 'Ali',
+          lastName: 'Kaya',
+          name: 'Ali Kaya',
+          email: 'ali@ayttransfer.com',
+          phone: '+90 533 222 3344',
+          licenseNumber: 'DEF456',
+          vehicleType: 'luxury',
+          status: 'busy',
+          currentLocation: 'Kemer',
+          rating: 4.9,
+          totalEarnings: 3120,
+          completedTrips: 203,
+          isActive: true,
+          createdAt: new Date()
+        }
+      ];
+      
+      set({ drivers: mockDrivers });
     } catch (error) {
       console.error('Error fetching drivers:', error);
       toast.error('Şoförler yüklenirken hata oluştu');

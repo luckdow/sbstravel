@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, Lock, User, Eye, EyeOff, Loader2 } from 'lucide-react';
-import { adminLogin } from '../../lib/firebase/auth';
 import toast from 'react-hot-toast';
 
 export default function AdminLoginPage() {
@@ -14,16 +13,21 @@ export default function AdminLoginPage() {
     e.preventDefault();
     setLoading(true);
 
-    const result = await adminLogin(credentials.email, credentials.password);
-    
-    if (result.success) {
-      toast.success('Admin girişi başarılı!');
-      navigate('/admin');
-    } else {
-      toast.error(result.error || 'Giriş başarısız');
+    try {
+      // Demo login - gerçek sistemde authentication yapılacak
+      if (credentials.email === 'sbstravelinfo@gmail.com' && credentials.password === 'admin123') {
+        localStorage.setItem('adminToken', 'demo-admin-token');
+        toast.success('Admin girişi başarılı!');
+        navigate('/admin');
+      } else {
+        toast.error('Geçersiz kullanıcı adı veya şifre');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      toast.error('Giriş sırasında bir hata oluştu');
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   return (
@@ -52,7 +56,7 @@ export default function AdminLoginPage() {
                   value={credentials.email}
                   onChange={(e) => setCredentials({...credentials, email: e.target.value})}
                   className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="admin@ayttransfer.com"
+                  placeholder="sbstravelinfo@gmail.com"
                   required
                 />
               </div>
@@ -100,8 +104,8 @@ export default function AdminLoginPage() {
 
           {/* Demo Credentials */}
           <div className="mt-6 p-4 bg-blue-50 rounded-xl">
-            <h4 className="font-semibold text-blue-800 mb-2">Demo Giriş Bilgileri:</h4>
-            <p className="text-sm text-blue-700">E-posta: admin@ayttransfer.com</p>
+            <h4 className="font-semibold text-blue-800 mb-2">Giriş Bilgileri:</h4>
+            <p className="text-sm text-blue-700">E-posta: sbstravelinfo@gmail.com</p>
             <p className="text-sm text-blue-700">Şifre: admin123</p>
           </div>
         </div>
@@ -109,3 +113,18 @@ export default function AdminLoginPage() {
     </div>
   );
 }
+
+/* 
+Eski Firebase Auth kodu:
+
+const result = await adminLogin(credentials.email, credentials.password);
+
+if (result.success) {
+  toast.success('Admin girişi başarılı!');
+      navigate('/admin');
+    } else {
+      toast.error(result.error || 'Giriş başarısız');
+    }
+    
+    setLoading(false);
+*/

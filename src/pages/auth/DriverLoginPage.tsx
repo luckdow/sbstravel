@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Car, Lock, User, Eye, EyeOff, Loader2 } from 'lucide-react';
-import { driverLogin } from '../../lib/firebase/auth';
 import toast from 'react-hot-toast';
 
 export default function DriverLoginPage() {
@@ -14,16 +13,21 @@ export default function DriverLoginPage() {
     e.preventDefault();
     setLoading(true);
 
-    const result = await driverLogin(credentials.email, credentials.password);
-    
-    if (result.success) {
-      toast.success('Şoför girişi başarılı!');
-      navigate('/driver');
-    } else {
-      toast.error(result.error || 'Giriş başarısız');
+    try {
+      // Demo login - gerçek sistemde authentication yapılacak
+      if (credentials.email === 'sofor@ayttransfer.com' && credentials.password === 'sofor123') {
+        localStorage.setItem('driverToken', 'demo-driver-token');
+        toast.success('Şoför girişi başarılı!');
+        navigate('/driver');
+      } else {
+        toast.error('Geçersiz kullanıcı adı veya şifre');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      toast.error('Giriş sırasında bir hata oluştu');
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   return (

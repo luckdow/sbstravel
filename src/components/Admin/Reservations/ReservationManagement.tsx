@@ -42,8 +42,11 @@ export default function ReservationManagement() {
   }, [fetchReservations, fetchDrivers]);
 
   const filteredReservations = reservations.filter(reservation => {
-    const matchesSearch = (reservation.customerName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-                         (reservation.id?.toLowerCase() || '').includes(searchTerm.toLowerCase());
+    const customerName = reservation.customerName || '';
+    const reservationId = reservation.id || '';
+    
+    const matchesSearch = customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         reservationId.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || reservation.status === statusFilter;
     return matchesSearch && matchesStatus;
   });

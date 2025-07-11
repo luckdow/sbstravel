@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../../../store/useStore';
 import { useEffect } from 'react';
-import { Eye, Edit, Trash2, MapPin, Clock, User, Car } from 'lucide-react';
+import { Eye, Edit, Trash2, MapPin, Clock, User, Car, Loader2 } from 'lucide-react';
 
 const reservations = [
   {
@@ -116,8 +116,11 @@ export default function RecentReservations() {
           <tbody className="bg-white divide-y divide-gray-200">
             {loading ? (
               <tr>
-                <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
-                  Yükleniyor...
+                <td colSpan={7} className="px-6 py-8 text-center">
+                  <div className="flex items-center justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin text-blue-600 mr-3" />
+                    <span className="text-gray-600">Yükleniyor...</span>
+                  </div>
                 </td>
               </tr>
             ) : recentReservations.length === 0 ? (

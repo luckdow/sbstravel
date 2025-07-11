@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Lock, Mail, Eye, EyeOff, Loader2 } from 'lucide-react';
-import { customerAuth } from '../../lib/firebase/auth';
 import toast from 'react-hot-toast';
 
 export default function CustomerLoginPage() {
@@ -15,16 +14,21 @@ export default function CustomerLoginPage() {
     e.preventDefault();
     setLoading(true);
 
-    const result = await customerAuth(credentials.email, credentials.password, isRegister);
-    
-    if (result.success) {
-      toast.success(isRegister ? 'Hesap oluşturuldu!' : 'Giriş başarılı!');
-      navigate('/');
-    } else {
-      toast.error(result.error || 'İşlem başarısız');
+    try {
+      // Demo login - gerçek sistemde authentication yapılacak
+      if (credentials.email && credentials.password) {
+        localStorage.setItem('customerToken', 'demo-customer-token');
+        toast.success(isRegister ? 'Hesap oluşturuldu!' : 'Giriş başarılı!');
+        navigate('/');
+      } else {
+        toast.error('Lütfen tüm alanları doldurun');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      toast.error('İşlem sırasında bir hata oluştu');
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   return (
