@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../../../store/useStore';
 import { Eye, Edit, Trash2, MapPin, Clock, User, Car, Loader2 } from 'lucide-react';
+import { getSafeLocationStrings } from '../../../lib/utils/location';
 
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -116,7 +117,9 @@ export default function RecentReservations() {
                 </td>
               </tr>
             ) : (
-              recentReservations.map((reservation) => (
+              recentReservations.map((reservation) => {
+                const { pickup, dropoff } = getSafeLocationStrings(reservation.pickupLocation, reservation.dropoffLocation);
+                return (
               <tr key={reservation.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div>
@@ -130,7 +133,7 @@ export default function RecentReservations() {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center text-sm text-gray-900">
                     <MapPin className="h-4 w-4 mr-2 text-gray-400" />
-                    {reservation.pickupLocation} → {reservation.dropoffLocation}
+                    {pickup} → {dropoff}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -169,7 +172,8 @@ export default function RecentReservations() {
                   </div>
                 </td>
               </tr>
-              ))
+                );
+              })
             )}
           </tbody>
         </table>
