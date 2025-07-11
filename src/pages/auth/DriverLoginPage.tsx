@@ -123,13 +123,6 @@ export default function DriverLoginPage() {
             onSuccess={handleGoogleSuccess}
             requiredRole="driver"
           />
-
-          {/* Demo Credentials */}
-          <div className="mt-6 p-4 bg-green-50 rounded-xl">
-            <h4 className="font-semibold text-green-800 mb-2">Demo Giriş Bilgileri:</h4>
-            <p className="text-sm text-green-700">E-posta: sofor@ayttransfer.com</p>
-            <p className="text-sm text-green-700">Şifre: sofor123</p>
-          </div>
         </div>
       </div>
     </div>

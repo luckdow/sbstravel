@@ -9,6 +9,8 @@ export default function AdminLoginPage() {
   const [credentials, setCredentials] = useState({ email: '', password: '', rememberMe: false });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
   const handleGoogleSuccess = (user: any, role: string) => {
     if (role === 'admin') {
       navigate('/admin');
@@ -147,13 +149,6 @@ export default function AdminLoginPage() {
             onSuccess={handleGoogleSuccess}
             requiredRole="admin"
           />
-
-          {/* Demo Credentials */}
-          <div className="mt-6 p-4 bg-blue-50 rounded-xl">
-            <h4 className="font-semibold text-blue-800 mb-2">Giriş Bilgileri:</h4>
-            <p className="text-sm text-blue-700">E-posta: sbstravelinfo@gmail.com</p>
-            <p className="text-sm text-blue-700">Şifre: admin123</p>
-          </div>
         </div>
       </div>
     </div>
