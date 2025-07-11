@@ -15,12 +15,19 @@ export interface Vehicle {
   name: string;
   model: string;
   image: string;
+  images?: string[]; // Multiple images support
+  licensePlate?: string;
   passengerCapacity: number;
   baggageCapacity: number;
   pricePerKm: number;
   features: string[];
+  extraServices?: string[]; // References to extra service IDs
+  status?: 'active' | 'maintenance' | 'inactive';
   isActive: boolean;
+  lastMaintenance?: Date;
+  totalKilometers?: number;
   createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface Customer {
@@ -30,7 +37,35 @@ export interface Customer {
   email: string;
   phone: string;
   totalReservations?: number;
+  totalSpent?: number;
+  lastActivity?: Date;
+  lastReservationDate?: Date;
+  status?: 'active' | 'inactive';
+  notes?: string;
   createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface ExtraService {
+  id?: string;
+  name: string;
+  description: string;
+  price: number;
+  category: 'comfort' | 'assistance' | 'special';
+  isActive: boolean;
+  applicableVehicleTypes: ('standard' | 'premium' | 'luxury')[];
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface DriverFinancials {
+  totalEarnings: number;
+  currentBalance: number; // Cari hesap bakiyesi
+  receivables: number; // Alacaklar
+  payables: number; // Borçlar
+  lastPayment?: Date;
+  pendingPayments: number;
+  monthlyEarnings: Record<string, number>; // Month-year -> earnings
 }
 
 export interface Driver {
@@ -47,7 +82,14 @@ export interface Driver {
   totalEarnings: number;
   completedTrips: number;
   isActive: boolean;
+  isProblemDriver?: boolean; // Problem driver marking
+  problemNotes?: string; // Notes about driver problems
+  financials?: DriverFinancials; // Detailed financial information
+  lastActivityDate?: Date;
+  joinDate?: Date;
+  vehicleIds?: string[]; // Multiple vehicles support
   createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface Reservation {
