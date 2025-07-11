@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useStore } from '../../../store/useStore';
 import { Search, Filter, Calendar, MapPin, User, Car, DollarSign, Eye, Edit, Trash2 } from 'lucide-react';
 import { getLocationString } from '../../../lib/utils/location';
+import ReservationDetailModal from './ReservationDetailModal';
 
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -241,62 +242,11 @@ export default function ReservationManagement() {
       </div>
 
       {/* Reservation Detail Modal */}
-      {selectedReservation && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-800">Rezervasyon Detayları</h2>
-                <button 
-                  onClick={() => setSelectedReservation(null)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  ✕
-                </button>
-              </div>
-            </div>
-            <div className="p-6 space-y-6">
-              {/* Customer Info */}
-              <div>
-                <h3 className="font-semibold text-gray-800 mb-3">Müşteri Bilgileri</h3>
-                <div className="bg-gray-50 rounded-xl p-4 space-y-2">
-                  <div><span className="font-medium">Ad:</span> {selectedReservation.customerName || 'N/A'}</div>
-                  <div><span className="font-medium">E-posta:</span> {selectedReservation.customerEmail || 'N/A'}</div>
-                  <div><span className="font-medium">Telefon:</span> {selectedReservation.customerPhone || 'N/A'}</div>
-                </div>
-              </div>
-
-              {/* Transfer Details */}
-              <div>
-                <h3 className="font-semibold text-gray-800 mb-3">Transfer Detayları</h3>
-                <div className="bg-gray-50 rounded-xl p-4 space-y-2">
-                  <div><span className="font-medium">Kalkış:</span> {getLocationString(selectedReservation.pickupLocation)}</div>
-                  <div><span className="font-medium">Varış:</span> {getLocationString(selectedReservation.dropoffLocation)}</div>
-                  <div><span className="font-medium">Tarih:</span> {selectedReservation.pickupDate || 'N/A'}</div>
-                  <div><span className="font-medium">Saat:</span> {selectedReservation.pickupTime || 'N/A'}</div>
-                  <div><span className="font-medium">Araç Tipi:</span> {selectedReservation.vehicleType || 'N/A'}</div>
-                  <div><span className="font-medium">Yolcu:</span> {selectedReservation.passengerCount || 0} kişi</div>
-                  <div><span className="font-medium">Bagaj:</span> {selectedReservation.baggageCount || 0} adet</div>
-                  <div><span className="font-medium">Fiyat:</span> ${selectedReservation.totalPrice || 0}</div>
-                </div>
-              </div>
-
-              {/* QR Code */}
-              <div>
-                <h3 className="font-semibold text-gray-800 mb-3">QR Kod</h3>
-                <div className="bg-gray-50 rounded-xl p-4">
-                  <div className="text-center">
-                    <div className="w-32 h-32 bg-white border-2 border-gray-300 rounded-xl mx-auto mb-2 flex items-center justify-center">
-                      <span className="text-xs text-gray-500">QR Kod</span>
-                    </div>
-                    <div className="text-sm text-gray-600">{selectedReservation.qrCode || 'N/A'}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <ReservationDetailModal
+        isOpen={!!selectedReservation}
+        onClose={() => setSelectedReservation(null)}
+        reservation={selectedReservation}
+      />
     </div>
   );
 }
