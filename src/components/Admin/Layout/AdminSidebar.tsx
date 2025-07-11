@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Calendar, 
@@ -12,6 +12,8 @@ import {
   X,
   Plane
 } from 'lucide-react';
+import { authService } from '../../../lib/services/auth-service';
+import toast from 'react-hot-toast';
 
 interface AdminSidebarProps {
   isOpen: boolean;
@@ -31,6 +33,17 @@ const menuItems = [
 
 export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await authService.logout();
+      toast.success('Başarıyla çıkış yapıldı');
+      navigate('/admin/login');
+    } catch (error) {
+      toast.error('Çıkış sırasında bir hata oluştu');
+    }
+  };
 
   return (
     <>
@@ -91,7 +104,10 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
         
         {/* Footer */}
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
-          <button className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-xl w-full transition-colors">
+          <button 
+            onClick={handleLogout}
+            className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-xl w-full transition-colors"
+          >
             <LogOut className="h-5 w-5" />
             <span className="font-medium">Çıkış Yap</span>
           </button>
