@@ -10,14 +10,22 @@ import ServicesPage from './pages/ServicesPage';
 import ContactPage from './pages/ContactPage';
 
 // Admin Pages
-import AdminLoginPage from './pages/admin/AdminLoginPage';
+import AdminLoginPage from './pages/auth/AdminLoginPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import AdminReservationsPage from './pages/admin/AdminReservationsPage';
+import AdminCustomersPage from './pages/admin/customers';
+import AdminDriversPage from './pages/admin/drivers';
+import AdminVehiclesPage from './pages/admin/vehicles';
+import AdminSettingsPage from './pages/admin/settings';
 
 // Driver Pages
+import DriverLoginPage from './pages/auth/DriverLoginPage';
 import DriverDashboardPage from './pages/driver/index';
 import DriverQRScannerPage from './pages/driver/qr-scanner';
 import DriverEarningsPage from './pages/driver/earnings';
+
+// Customer Auth
+import CustomerLoginPage from './pages/auth/CustomerLoginPage';
 
 // Payment Pages
 import PaymentSuccessPage from "./pages/payment/success";
@@ -40,11 +48,19 @@ function App() {
         <Route path="/admin/login" element={<AdminLoginPage />} />
         <Route path="/admin" element={<AdminDashboardPage />} />
         <Route path="/admin/reservations" element={<AdminReservationsPage />} />
+        <Route path="/admin/customers" element={<AdminCustomersPage />} />
+        <Route path="/admin/drivers" element={<AdminDriversPage />} />
+        <Route path="/admin/vehicles" element={<AdminVehiclesPage />} />
+        <Route path="/admin/settings" element={<AdminSettingsPage />} />
         
         {/* Driver Routes */}
+        <Route path="/driver/login" element={<DriverLoginPage />} />
         <Route path="/driver" element={<DriverDashboardPage />} />
         <Route path="/driver/qr-scanner" element={<DriverQRScannerPage />} />
         <Route path="/driver/earnings" element={<DriverEarningsPage />} />
+        
+        {/* Customer Auth */}
+        <Route path="/customer/login" element={<CustomerLoginPage />} />
         
         {/* Payment Routes */}
         <Route path="/payment/success" element={<PaymentSuccessPage />} />
