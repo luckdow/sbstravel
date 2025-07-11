@@ -680,7 +680,6 @@ export default function BookingPage() {
 
               {/* Navigation Buttons */}
               <div className="flex justify-between mt-8">
-                {currentStep > 1 && (
                   <button
                     type="button"
                     onClick={() => setCurrentStep(currentStep - 1)}
