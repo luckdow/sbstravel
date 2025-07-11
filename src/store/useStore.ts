@@ -61,7 +61,7 @@ export const useStore = create<StoreState>((set, get) => ({
   fetchReservations: async () => {
     set({ loading: true });
     try {
-      // Demo data for testing
+      // Demo data for testing - in production this would fetch from Firebase
       const mockReservations = [
         {
           id: 'RES-001',
@@ -69,21 +69,21 @@ export const useStore = create<StoreState>((set, get) => ({
           customerName: 'Ahmet Yılmaz',
           customerEmail: 'ahmet@email.com',
           customerPhone: '+90 532 123 4567',
-          transferType: 'airport-hotel',
+          transferType: 'airport-hotel' as const,
           pickupLocation: 'Antalya Havalimanı (AYT)',
           dropoffLocation: 'Kemer - Club Med Palmiye',
           pickupDate: '2024-01-15',
           pickupTime: '14:30',
           passengerCount: 4,
           baggageCount: 3,
-          vehicleType: 'premium',
+          vehicleType: 'premium' as const,
           distance: 45,
           basePrice: 72.03,
           additionalServices: [],
           totalPrice: 85,
-          status: 'pending',
+          status: 'pending' as const,
           qrCode: 'QR-001',
-          paymentStatus: 'completed',
+          paymentStatus: 'completed' as const,
           createdAt: new Date(),
           updatedAt: new Date()
         },
@@ -93,22 +93,22 @@ export const useStore = create<StoreState>((set, get) => ({
           customerName: 'Sarah Johnson',
           customerEmail: 'sarah@email.com',
           customerPhone: '+1 555 123 4567',
-          transferType: 'hotel-airport',
+          transferType: 'hotel-airport' as const,
           pickupLocation: 'Belek - Regnum Carya',
           dropoffLocation: 'Antalya Havalimanı (AYT)',
           pickupDate: '2024-01-15',
           pickupTime: '16:00',
           passengerCount: 2,
           baggageCount: 2,
-          vehicleType: 'luxury',
+          vehicleType: 'luxury' as const,
           distance: 35,
           basePrice: 101.69,
           additionalServices: [],
           totalPrice: 120,
-          status: 'assigned',
+          status: 'assigned' as const,
           driverId: 'DRV-001',
           qrCode: 'QR-002',
-          paymentStatus: 'completed',
+          paymentStatus: 'completed' as const,
           createdAt: new Date(),
           updatedAt: new Date()
         }
