@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, Bell, Search, User, LogOut } from 'lucide-react';
+import { Menu, Search, User, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../../../lib/services/auth-service';
+import NotificationCenter from '../../Communication/NotificationCenter';
 import toast from 'react-hot-toast';
 
 interface AdminHeaderProps {
@@ -11,7 +12,6 @@ interface AdminHeaderProps {
 export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
   const [currentUser, setCurrentUser] = useState(authService.getAuthState().user);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const navigate = useNavigate();
 
@@ -25,7 +25,6 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element;
       if (!target.closest('.dropdown-container')) {
-        setShowNotifications(false);
         setShowProfile(false);
       }
     };
@@ -91,48 +90,7 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
           </div>
           
           {/* Notifications */}
-          <div className="relative dropdown-container">
-            <button 
-              onClick={() => setShowNotifications(!showNotifications)}
-              className="relative p-2 rounded-lg hover:bg-gray-100"
-            >
-              <Bell className="h-5 w-5 text-gray-600" />
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                3
-              </span>
-            </button>
-            
-            {/* Notifications Dropdown */}
-            {showNotifications && (
-              <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-                <div className="p-4 border-b border-gray-200">
-                  <h3 className="text-lg font-semibold">Bildirimler</h3>
-                </div>
-                <div className="max-h-64 overflow-y-auto">
-                  <div className="p-4 border-b border-gray-100 hover:bg-gray-50">
-                    <p className="text-sm font-medium">Yeni rezervasyon</p>
-                    <p className="text-xs text-gray-600">5 dakika önce</p>
-                  </div>
-                  <div className="p-4 border-b border-gray-100 hover:bg-gray-50">
-                    <p className="text-sm font-medium">Şoför durumu güncellendi</p>
-                    <p className="text-xs text-gray-600">15 dakika önce</p>
-                  </div>
-                  <div className="p-4 hover:bg-gray-50">
-                    <p className="text-sm font-medium">Ödeme tamamlandı</p>
-                    <p className="text-xs text-gray-600">1 saat önce</p>
-                  </div>
-                </div>
-                <div className="p-2 border-t border-gray-200">
-                  <button 
-                    onClick={() => navigate('/admin/notifications')}
-                    className="w-full text-center text-sm text-blue-600 hover:text-blue-800 py-2"
-                  >
-                    Tüm bildirimleri görüntüle
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+          <NotificationCenter />
           
           {/* Profile */}
           <div className="relative dropdown-container">
