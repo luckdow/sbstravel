@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { User, Lock, Mail, Eye, EyeOff, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import GoogleSignInButton from '../../components/GoogleSignInButton';
 
 export default function CustomerLoginPage() {
-  const [isRegister, setIsRegister] = useState(false);
   const [credentials, setCredentials] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -24,7 +23,7 @@ export default function CustomerLoginPage() {
       // Demo login - gerçek sistemde authentication yapılacak
       if (credentials.email && credentials.password) {
         localStorage.setItem('customerToken', 'demo-customer-token');
-        toast.success(isRegister ? 'Hesap oluşturuldu!' : 'Giriş başarılı!');
+        toast.success('Giriş başarılı!');
         navigate('/');
       } else {
         toast.error('Lütfen tüm alanları doldurun');
@@ -124,14 +123,14 @@ export default function CustomerLoginPage() {
             requiredRole="customer"
           />
 
-          {/* Toggle Register/Login */}
+          {/* Register Link */}
           <div className="mt-6 text-center">
-            <button
-              onClick={() => setIsRegister(!isRegister)}
+            <Link
+              to="/customer/register"
               className="text-purple-600 hover:text-purple-700 font-medium"
             >
-              {isRegister ? 'Zaten hesabınız var mı? Giriş yapın' : 'Hesabınız yok mu? Hesap oluşturun'}
-            </button>
+              Hesabınız yok mu? Hesap oluşturun
+            </Link>
           </div>
         </div>
       </div>

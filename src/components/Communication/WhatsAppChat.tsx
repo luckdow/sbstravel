@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, MessageCircle, Phone, Image, Paperclip, Smile, X } from 'lucide-react';
-import { WhatsAppService } from '../../services/communication';
+// import { WhatsAppService } from '../../services/communication';
 
 interface Message {
   id: string;

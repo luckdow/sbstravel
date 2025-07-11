@@ -2,6 +2,9 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 
+// Test Component
+import SimpleTest from './components/SimpleTest';
+
 // Public Pages
 import HomePage from './pages/HomePage';
 import BookingPage from './pages/BookingPage';
@@ -47,6 +50,9 @@ function App() {
   return (
     <>
       <Routes>
+        {/* Test Route */}
+        <Route path="/test" element={<SimpleTest />} />
+        
         {/* Public Routes */}
         <Route path="/" element={<HomePage />} />
         <Route path="/booking" element={<BookingPage />} />

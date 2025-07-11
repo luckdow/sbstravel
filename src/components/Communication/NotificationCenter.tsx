@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, Mail, MessageCircle, Smartphone, CheckCircle, AlertCircle, Clock, X } from 'lucide-react';
-import { notificationService } from '../../services/communication';
+// import { notificationService } from '../../services/communication';
 
 interface Notification {
   id: string;

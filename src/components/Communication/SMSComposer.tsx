@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Send, MessageSquare, Users, X, AlertCircle } from 'lucide-react';
 import { smsTemplates } from '../../services/communication/templates';
-import { SMSService } from '../../services/communication';
+// import { SMSService } from '../../services/communication';
 
 interface SMSComposerProps {
   onClose?: () => void;
