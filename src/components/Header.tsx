@@ -33,9 +33,9 @@ export default function Header() {
             </div>
             <div>
               <h1 className={`text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent`}>
-                PremiumRent
+                SBS TRAVEL
               </h1>
-              <p className={`text-xs ${isScrolled ? 'text-gray-500' : 'text-white/80'}`}>Luxury Car Rental</p>
+              <p className={`text-xs ${isScrolled ? 'text-gray-500' : 'text-white/80'}`}>Transfer Hizmeti</p>
             </div>
           </Link>
           

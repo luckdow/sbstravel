@@ -1,74 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, Mail, MessageCircle, Smartphone, CheckCircle, AlertCircle, Clock, X } from 'lucide-react';
-// import { notificationService } from '../../services/communication';
-
-interface Notification {
-  id: string;
-  type: 'email' | 'sms' | 'whatsapp';
-  title: string;
-  message: string;
-  status: 'pending' | 'sent' | 'delivered' | 'failed' | 'read';
-  timestamp: Date;
-  customerId?: string;
-  reservationId?: string;
-}
+import { Bell, Mail, MessageCircle, Smartphone, CheckCircle, AlertCircle, Clock, X, Monitor } from 'lucide-react';
+import { useNotificationStore, notificationService } from '../../lib/services/notification-service';
 
 export default function NotificationCenter() {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotificationStore();
   const [isOpen, setIsOpen] = useState(false);
-  const [filter, setFilter] = useState<'all' | 'email' | 'sms' | 'whatsapp'>('all');
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [filter, setFilter] = useState<'all' | 'email' | 'sms' | 'whatsapp' | 'system'>('all');
 
   useEffect(() => {
-    // Load notifications (mock data for demo)
-    const mockNotifications: Notification[] = [
-      {
-        id: '1',
-        type: 'email',
-        title: 'Rezervasyon Onayı Gönderildi',
-        message: 'Müşteri Ali Demir için rezervasyon onay emaili gönderildi',
-        status: 'delivered',
-        timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-        customerId: 'customer1',
-        reservationId: 'RES001'
-      },
-      {
-        id: '2',
-        type: 'sms',
-        title: 'Transfer Hatırlatıcı SMS',
-        message: 'Yarın 14:30 transferi için hatırlatıcı SMS gönderildi',
-        status: 'sent',
-        timestamp: new Date(Date.now() - 1000 * 60 * 15), // 15 minutes ago
-        customerId: 'customer2',
-        reservationId: 'RES002'
-      },
-      {
-        id: '3',
-        type: 'whatsapp',
-        title: 'QR Kod Gönderildi',
-        message: 'Müşteriye WhatsApp ile QR kod paylaşıldı',
-        status: 'read',
-        timestamp: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
-        customerId: 'customer3',
-        reservationId: 'RES003'
-      },
-      {
-        id: '4',
-        type: 'email',
-        title: 'Ödeme Başarılı Bildirimi',
-        message: 'Ödeme onayı emaili gönderildi',
-        status: 'failed',
-        timestamp: new Date(Date.now() - 1000 * 60 * 2), // 2 minutes ago
-        customerId: 'customer4',
-        reservationId: 'RES004'
-      }
-    ];
+    // Initialize demo notifications on first load
+    if (notifications.length === 0) {
+      notificationService.initializeDemoNotifications();
+    }
+  }, [notifications.length]);
 
-    setNotifications(mockNotifications);
-    setUnreadCount(mockNotifications.filter(n => n.status !== 'read').length);
-  }, []);
-
-  const getIcon = (type: 'email' | 'sms' | 'whatsapp') => {
+  const getIcon = (type: 'email' | 'sms' | 'whatsapp' | 'system') => {
     switch (type) {
       case 'email':
         return <Mail className="w-4 h-4" />;
@@ -76,6 +22,8 @@ export default function NotificationCenter() {
         return <Smartphone className="w-4 h-4" />;
       case 'whatsapp':
         return <MessageCircle className="w-4 h-4" />;
+      case 'system':
+        return <Monitor className="w-4 h-4" />;
     }
   };
 
@@ -165,7 +113,8 @@ export default function NotificationCenter() {
                 { key: 'all', label: 'Tümü', count: notifications.length },
                 { key: 'email', label: 'Email', count: notifications.filter(n => n.type === 'email').length },
                 { key: 'sms', label: 'SMS', count: notifications.filter(n => n.type === 'sms').length },
-                { key: 'whatsapp', label: 'WhatsApp', count: notifications.filter(n => n.type === 'whatsapp').length }
+                { key: 'whatsapp', label: 'WhatsApp', count: notifications.filter(n => n.type === 'whatsapp').length },
+                { key: 'system', label: 'Sistem', count: notifications.filter(n => n.type === 'system').length }
               ].map((tab) => (
                 <button
                   key={tab.key}
@@ -199,7 +148,8 @@ export default function NotificationCenter() {
                     <div className={`p-2 rounded-full ${
                       notification.type === 'email' ? 'bg-blue-100 text-blue-600' :
                       notification.type === 'sms' ? 'bg-green-100 text-green-600' :
-                      'bg-green-100 text-green-600'
+                      notification.type === 'whatsapp' ? 'bg-green-100 text-green-600' :
+                      'bg-gray-100 text-gray-600'
                     }`}>
                       {getIcon(notification.type)}
                     </div>

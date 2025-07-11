@@ -20,6 +20,7 @@ import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import AdminReservationsPage from './pages/admin/AdminReservationsPage';
 import AdminCustomersPage from './pages/admin/customers';
 import AdminDriversPage from './pages/admin/drivers';
+import AdminDriverAssignmentPage from './pages/admin/driver-assignment';
 import AdminVehiclesPage from './pages/admin/vehicles';
 import AdminSettingsPage from './pages/admin/settings';
 import AdminNotificationsPage from './pages/admin/notifications';
@@ -88,6 +89,11 @@ function App() {
         <Route path="/admin/drivers" element={
           <ProtectedRoute requiredRole="admin">
             <AdminDriversPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/driver-assignment" element={
+          <ProtectedRoute requiredRole="admin">
+            <AdminDriverAssignmentPage />
           </ProtectedRoute>
         } />
         <Route path="/admin/vehicles" element={
