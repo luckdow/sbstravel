@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Calendar, DollarSign, Users, Car, Clock, TrendingUp } from 'lucide-react';
 import { useStore } from '../../../store/useStore';
+import { getSafeLocationStrings } from '../../../lib/utils/location';
 
 export default function Dashboard() {
   const { reservations, drivers, fetchReservations, fetchDrivers, getStats } = useStore();
@@ -122,7 +123,9 @@ export default function Dashboard() {
           
           {recentReservations.length > 0 ? (
             <div className="space-y-4">
-              {recentReservations.map((reservation, index) => (
+              {recentReservations.map((reservation, index) => {
+                const { pickup, dropoff } = getSafeLocationStrings(reservation.pickupLocation, reservation.dropoffLocation);
+                return (
                 <div key={index} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-xl">
                   <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
                     <Calendar className="h-5 w-5 text-white" />
@@ -132,14 +135,15 @@ export default function Dashboard() {
                       {reservation.customerName}
                     </div>
                     <div className="text-xs text-gray-500 truncate">
-                      {reservation.pickupLocation} → {reservation.dropoffLocation}
+                      {pickup} → {dropoff}
                     </div>
                   </div>
                   <div className="text-sm font-semibold text-gray-800">
                     ${reservation.totalPrice}
                   </div>
                 </div>
-              ))}
+                );
+              })}
               <Link 
                 to="/admin/reservations"
                 className="block w-full text-center bg-gray-100 text-gray-600 py-2 px-4 rounded-xl hover:bg-gray-200 transition-colors text-sm font-medium"

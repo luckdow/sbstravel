@@ -21,6 +21,7 @@ import {
   createDriver
 } from '../lib/firebase/collections';
 import { generateQRCode } from '../lib/utils/qr-code';
+import { getLocationString } from '../lib/utils/location';
 import toast from 'react-hot-toast';
 
 interface StoreState {
@@ -182,6 +183,32 @@ export const useStore = create<StoreState>((set, get) => ({
           paymentStatus: 'completed' as const,
           createdAt: new Date(),
           updatedAt: new Date()
+        },
+        // Add a test case with potentially problematic location data to test our safety measures
+        {
+          id: 'RES-004',
+          customerId: 'CUST-004',
+          customerName: 'Test Safety',
+          customerEmail: 'test@email.com',
+          customerPhone: '+90 534 000 0000',
+          transferType: 'airport-hotel' as const,
+          // Simulate edge cases that might come from Firebase/API
+          pickupLocation: getLocationString('Antalya Havalimanı (AYT)'), // Ensure it's always a string
+          dropoffLocation: getLocationString('Test Hotel'), // Ensure it's always a string
+          pickupDate: new Date().toISOString().split('T')[0],
+          pickupTime: '10:00',
+          passengerCount: 2,
+          baggageCount: 1,
+          vehicleType: 'standard' as const,
+          distance: 25,
+          basePrice: 50.00,
+          additionalServices: [],
+          totalPrice: 60,
+          status: 'pending' as const,
+          qrCode: 'QR-004',
+          paymentStatus: 'completed' as const,
+          createdAt: new Date(),
+          updatedAt: new Date()
         }
       ];
       set({ reservations: mockReservations });
@@ -222,9 +249,9 @@ export const useStore = create<StoreState>((set, get) => ({
         transferType: reservationData.transferType,
         pickupLocation: reservationData.transferType === 'airport-hotel' 
           ? 'Antalya Havalimanı (AYT)' 
-          : reservationData.destination.name,
+          : getLocationString(reservationData.destination),
         dropoffLocation: reservationData.transferType === 'airport-hotel' 
-          ? reservationData.destination.name 
+          ? getLocationString(reservationData.destination)
           : 'Antalya Havalimanı (AYT)',
         pickupDate: reservationData.pickupDate,
         pickupTime: reservationData.pickupTime,
