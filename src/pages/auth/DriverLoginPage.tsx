@@ -10,7 +10,7 @@ export default function DriverLoginPage() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleGoogleSuccess = (user: any, role: string) => {
+  const handleGoogleSuccess = (user: { email: string; name: string }, role: string) => {
     if (role === 'driver') {
       navigate('/driver');
     } else {

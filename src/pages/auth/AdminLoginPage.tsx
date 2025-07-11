@@ -11,7 +11,7 @@ export default function AdminLoginPage() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleGoogleSuccess = (user: any, role: string) => {
+  const handleGoogleSuccess = (user: { email: string; name: string }, role: string) => {
     if (role === 'admin') {
       navigate('/admin');
     } else {

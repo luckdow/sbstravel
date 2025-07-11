@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Calculator, MapPin, Car, Plus, DollarSign, Clock, Users, Info, TrendingUp, TrendingDown } from 'lucide-react';
 import { PriceCalculation } from '../../types';
-import { calculateTotalPrice, calculateBasePrice, ADDITIONAL_SERVICES } from '../../lib/utils/pricing';
 
 interface PriceDisplayProps {
   priceCalculation: PriceCalculation;

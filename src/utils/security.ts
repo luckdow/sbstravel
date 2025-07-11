@@ -40,7 +40,7 @@ export const validateSecurityCompliance = (): boolean => {
 };
 
 // Security monitoring
-export const logSecurityEvent = (event: string, details?: any): void => {
+export const logSecurityEvent = (event: string, details?: Record<string, unknown>): void => {
   if (typeof window !== 'undefined') {
     console.log(`[Security] ${event}`, details);
     // In production, this would send to monitoring service

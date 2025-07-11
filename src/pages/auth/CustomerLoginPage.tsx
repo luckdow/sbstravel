@@ -11,7 +11,7 @@ export default function CustomerLoginPage() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleGoogleSuccess = (user: any, role: string) => {
+  const handleGoogleSuccess = () => {
     // For customer login, any role is acceptable, but we'll navigate to customer area
     navigate('/');
   };

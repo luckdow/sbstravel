@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MapPin, Search, Navigation, Loader2, Star, Clock } from 'lucide-react';
-import { googleMapsService } from '../../lib/google-maps';
 import { LocationData } from '../../types';
 
 interface LocationSearchProps {

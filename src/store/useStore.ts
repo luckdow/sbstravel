@@ -10,8 +10,6 @@ import {
 import {
   createReservation,
   updateReservation,
-  getReservations,
-  getAvailableDrivers,
   createCustomer,
   getCustomerByEmail,
   createCommission,
@@ -19,8 +17,6 @@ import {
   subscribeToDrivers
 } from '../lib/firebase/collections';
 import { generateQRCode } from '../lib/utils/qr-code';
-import { calculateTotalPrice } from '../lib/utils/pricing';
-import { googleMapsService } from '../lib/google-maps';
 import toast from 'react-hot-toast';
 
 interface StoreState {
@@ -200,7 +196,7 @@ export const useStore = create<StoreState>((set, get) => ({
   // Update Reservation Status
   updateReservationStatus: async (id, status, driverId) => {
     try {
-      const updates: any = { status };
+      const updates: Partial<Reservation> = { status };
       
       if (driverId) {
         updates.driverId = driverId;

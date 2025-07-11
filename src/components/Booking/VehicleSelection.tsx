@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, Luggage, Star, Shield, Wifi, Coffee, Car, CheckCircle, Loader2 } from 'lucide-react';
+import { Users, Luggage, Star, Shield, Car, CheckCircle, Loader2 } from 'lucide-react';
 import { PriceCalculation } from '../../types';
 
 interface VehicleOption {

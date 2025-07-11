@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import CarCard from './CarCard';
-import { Filter, Car, Truck, Zap, Grid, List, Search, SlidersHorizontal } from 'lucide-react';
+import { Car, Grid, List, Search, SlidersHorizontal } from 'lucide-react';
 
 const cars = [
   {

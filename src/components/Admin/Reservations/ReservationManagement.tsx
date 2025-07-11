@@ -1,8 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '../../../store/useStore';
-import { useEffect } from 'react';
-import toast from 'react-hot-toast';
-import { Search, Filter, Calendar, MapPin, User, Car, DollarSign, Eye, Edit, Trash2, UserPlus } from 'lucide-react';
+import { Search, Filter, Calendar, MapPin, User, Car, DollarSign, Eye, Edit, Trash2 } from 'lucide-react';
 
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
