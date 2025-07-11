@@ -109,13 +109,85 @@ export default function BookingPage() {
   }, [watchedValues.destination, watchedValues.vehicleType]);
 
   const onSubmit = async (data: BookingFormData) => {
-    if (currentStep < 3) {
-      setCurrentStep(currentStep + 1);
-      return;
-    }
+    console.log('Form submitted, current step:', currentStep);
+    console.log('Form data:', data);
+    console.log('Watched values:', watchedValues);
+    
+    try {
+      if (currentStep === 1) {
+        // Step 1: Validate transfer details and vehicle selection
+        console.log('Validating step 1...');
+        console.log('Destination:', watchedValues.destination);
+        console.log('Vehicle type:', watchedValues.vehicleType);
+        console.log('Total price:', totalPrice);
+        
+        if (!watchedValues.destination || !watchedValues.destination.name || watchedValues.destination.lat === 0) {
+          toast.error('Lütfen varış noktasını seçin');
+          return;
+        }
+        
+        if (!watchedValues.vehicleType) {
+          toast.error('Lütfen araç tipini seçin');
+          return;
+        }
+        
+        if (!watchedValues.pickupDate) {
+          toast.error('Lütfen transfer tarihini seçin');
+          return;
+        }
+        
+        if (!watchedValues.pickupTime) {
+          toast.error('Lütfen transfer saatini seçin');
+          return;
+        }
+        
+        if (totalPrice === 0) {
+          toast.error('Fiyat hesaplanıyor, lütfen bekleyin');
+          return;
+        }
+        
+        console.log('Step 1 validation passed, moving to step 2');
+        setCurrentStep(2);
+        return;
+      }
+      
+      if (currentStep === 2) {
+        // Step 2: Validate customer info
+        console.log('Validating step 2...');
+        console.log('Customer info:', watchedValues.customerInfo);
+        
+        if (!watchedValues.customerInfo?.firstName || !watchedValues.customerInfo?.lastName || 
+            !watchedValues.customerInfo?.email || !watchedValues.customerInfo?.phone) {
+          toast.error('Lütfen tüm zorunlu alanları doldurun');
+          return;
+        }
+        
+        console.log('Step 2 validation passed, moving to step 3');
+        setCurrentStep(3);
+        return;
+      }
 
-    // Show payment gateway
-    setShowPayment(true);
+      // Step 3: Create reservation and show success
+      if (currentStep === 3) {
+        console.log('Creating reservation...');
+        const reservationData = {
+          ...watchedValues,
+          distance,
+          totalPrice
+        };
+
+        const reservationId = await createNewReservation(reservationData);
+        
+        if (reservationId) {
+          toast.success('Rezervasyon başarıyla oluşturuldu!');
+          // Redirect to success page with reservation data
+          navigate(`/payment/success?order_id=${reservationId}&amount=${totalPrice}&customer=${encodeURIComponent(watchedValues.customerInfo?.firstName + ' ' + watchedValues.customerInfo?.lastName)}`);
+        }
+      }
+    } catch (error) {
+      console.error('Error in form submission:', error);
+      toast.error('Rezervasyon oluşturulurken hata oluştu');
+    }
   };
 
   const handlePaymentSuccess = async (paymentResult: any) => {
@@ -588,10 +660,13 @@ export default function BookingPage() {
                 
                 <button
                   type="submit"
-                  disabled={currentStep === 1 && (!watchedValues.destination || watchedValues.destination.lat === 0 || !watchedValues.vehicleType || totalPrice === 0)}
+                  disabled={isCalculatingPrice}
                   className="ml-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <span>{currentStep === 3 ? 'Ödemeye Geç' : 'Devam Et'}</span>
+                  <span>
+                    {isCalculatingPrice ? 'Hesaplanıyor...' : 
+                     currentStep === 3 ? 'Rezervasyonu Tamamla' : 'Devam Et'}
+                  </span>
                   <ArrowRight className="h-5 w-5" />
                 </button>
               </div>
