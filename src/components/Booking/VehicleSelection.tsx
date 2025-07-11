@@ -1,0 +1,259 @@
+import React from 'react';
+import { Users, Luggage, Star, Shield, Wifi, Coffee, Car, CheckCircle, Loader2 } from 'lucide-react';
+import { PriceCalculation } from '../../types';
+
+interface VehicleOption {
+  type: 'standard' | 'premium' | 'luxury';
+  name: string;
+  model: string;
+  image: string;
+  passengerCapacity: number;
+  baggageCapacity: number;
+  features: string[];
+  description: string;
+  popular?: boolean;
+}
+
+interface VehicleSelectionProps {
+  selectedVehicle: string;
+  onVehicleSelect: (vehicleType: 'standard' | 'premium' | 'luxury') => void;
+  passengerCount: number;
+  baggageCount: number;
+  priceCalculation: PriceCalculation | null;
+  isCalculatingPrice: boolean;
+}
+
+const vehicles: VehicleOption[] = [
+  {
+    type: 'standard',
+    name: 'Standart Transfer',
+    model: 'Volkswagen Caddy / Ford Tourneo',
+    image: 'https://images.pexels.com/photos/116675/pexels-photo-116675.jpeg?auto=compress&cs=tinysrgb&w=800',
+    passengerCapacity: 4,
+    baggageCapacity: 4,
+    features: ['Klima', 'Müzik Sistemi', 'Güvenli Sürüş', 'Temiz Araç'],
+    description: 'Ekonomik ve konforlu transfer çözümü. Küçük gruplar için ideal.'
+  },
+  {
+    type: 'premium',
+    name: 'Premium Transfer',
+    model: 'Mercedes Vito / Volkswagen Caravelle',
+    image: 'https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg?auto=compress&cs=tinysrgb&w=800',
+    passengerCapacity: 8,
+    baggageCapacity: 8,
+    features: ['Premium İç Mekan', 'Wi-Fi', 'Su İkramı', 'Profesyonel Şoför'],
+    description: 'Konfor ve kaliteyi bir arada sunan premium araç seçeneği.',
+    popular: true
+  },
+  {
+    type: 'luxury',
+    name: 'Lüks & VIP Transfer',
+    model: 'Mercedes V-Class / BMW X7',
+    image: 'https://images.pexels.com/photos/1545743/pexels-photo-1545743.jpeg?auto=compress&cs=tinysrgb&w=800',
+    passengerCapacity: 6,
+    baggageCapacity: 6,
+    features: ['Lüks Deri Döşeme', 'VIP Karşılama', 'Soğuk İçecek', 'Özel Şoför'],
+    description: 'En üst düzey konfor ve prestij arayanlar için VIP transfer hizmeti.'
+  }
+];
+
+export default function VehicleSelection({
+  selectedVehicle,
+  onVehicleSelect,
+  passengerCount,
+  baggageCount,
+  priceCalculation,
+  isCalculatingPrice
+}: VehicleSelectionProps) {
+  const isVehicleSuitable = (vehicle: VehicleOption) => {
+    return vehicle.passengerCapacity >= passengerCount && vehicle.baggageCapacity >= baggageCount;
+  };
+
+  const getVehiclePrice = (vehicleType: string) => {
+    if (!priceCalculation) return null;
+    
+    const prices = {
+      standard: 4.5,
+      premium: 6.5,
+      luxury: 8.5
+    };
+    
+    return priceCalculation.distance * prices[vehicleType as keyof typeof prices];
+  };
+
+  return (
+    <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
+      <h2 className="text-2xl font-bold text-gray-800 mb-6">Araç Seçimi</h2>
+      
+      {isCalculatingPrice && (
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600 mr-3" />
+          <span className="text-gray-600">Fiyatlar hesaplanıyor...</span>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {vehicles.map((vehicle) => {
+          const isSuitable = isVehicleSuitable(vehicle);
+          const isSelected = selectedVehicle === vehicle.type;
+          const vehiclePrice = getVehiclePrice(vehicle.type);
+
+          return (
+            <div
+              key={vehicle.type}
+              className={`relative border-2 rounded-2xl transition-all duration-300 cursor-pointer ${
+                isSelected
+                  ? 'border-blue-600 bg-blue-50 shadow-lg scale-105'
+                  : isSuitable
+                  ? 'border-gray-200 hover:border-blue-300 hover:shadow-md'
+                  : 'border-gray-200 opacity-50 cursor-not-allowed'
+              }`}
+              onClick={() => isSuitable && onVehicleSelect(vehicle.type)}
+            >
+              {/* Badges */}
+              <div className="absolute top-4 left-4 z-10 flex flex-col space-y-2">
+                {vehicle.popular && (
+                  <div className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
+                    ⭐ En Popüler
+                  </div>
+                )}
+                {!isSuitable && (
+                  <div className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
+                    Uygun Değil
+                  </div>
+                )}
+              </div>
+
+              {/* Selection Indicator */}
+              {isSelected && (
+                <div className="absolute top-4 right-4 z-10">
+                  <div className="bg-blue-600 text-white p-2 rounded-full shadow-lg">
+                    <CheckCircle className="h-5 w-5" />
+                  </div>
+                </div>
+              )}
+
+              {/* Vehicle Image */}
+              <div className="relative overflow-hidden rounded-t-2xl">
+                <img 
+                  src={vehicle.image} 
+                  alt={vehicle.name}
+                  className="w-full h-48 object-cover"
+                />
+                <div className="absolute bottom-4 right-4">
+                  <div className="bg-black/50 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-semibold capitalize">
+                    {vehicle.type}
+                  </div>
+                </div>
+              </div>
+
+              {/* Vehicle Info */}
+              <div className="p-6 space-y-4">
+                <div>
+                  <h3 className="text-xl font-bold text-gray-800 mb-1">{vehicle.name}</h3>
+                  <p className="text-gray-600 text-sm">{vehicle.model}</p>
+                  <p className="text-gray-500 text-sm mt-2">{vehicle.description}</p>
+                </div>
+
+                {/* Capacity */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className={`flex flex-col items-center p-3 rounded-xl transition-colors ${
+                    vehicle.passengerCapacity >= passengerCount
+                      ? 'bg-green-50 text-green-700'
+                      : 'bg-red-50 text-red-700'
+                  }`}>
+                    <Users className="h-5 w-5 mb-1" />
+                    <span className="text-sm font-medium">{vehicle.passengerCapacity} Kişi</span>
+                    {vehicle.passengerCapacity < passengerCount && (
+                      <span className="text-xs">Yetersiz</span>
+                    )}
+                  </div>
+                  <div className={`flex flex-col items-center p-3 rounded-xl transition-colors ${
+                    vehicle.baggageCapacity >= baggageCount
+                      ? 'bg-green-50 text-green-700'
+                      : 'bg-red-50 text-red-700'
+                  }`}>
+                    <Luggage className="h-5 w-5 mb-1" />
+                    <span className="text-sm font-medium">{vehicle.baggageCapacity} Bagaj</span>
+                    {vehicle.baggageCapacity < baggageCount && (
+                      <span className="text-xs">Yetersiz</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Features */}
+                <div className="space-y-2">
+                  <h4 className="text-sm font-semibold text-gray-700">Özellikler:</h4>
+                  <div className="flex flex-wrap gap-1">
+                    {vehicle.features.map((feature, index) => (
+                      <span key={index} className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-lg">
+                        {feature}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Price */}
+                <div className="pt-4 border-t border-gray-100">
+                  {vehiclePrice && !isCalculatingPrice ? (
+                    <div className="text-center">
+                      <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                        ${vehiclePrice.toFixed(2)}
+                      </div>
+                      <div className="text-sm text-gray-500">Toplam Fiyat</div>
+                    </div>
+                  ) : (
+                    <div className="text-center">
+                      <div className="text-lg font-semibold text-gray-400">
+                        ${vehicle.type === 'standard' ? '4.5' : vehicle.type === 'premium' ? '6.5' : '8.5'}/km
+                      </div>
+                      <div className="text-sm text-gray-500">KM başına</div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Select Button */}
+                <button
+                  type="button"
+                  disabled={!isSuitable}
+                  className={`w-full py-3 rounded-xl font-semibold transition-all duration-300 ${
+                    isSelected
+                      ? 'bg-blue-600 text-white'
+                      : isSuitable
+                      ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  {isSelected ? 'Seçildi' : isSuitable ? 'Seç' : 'Uygun Değil'}
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Additional Info */}
+      <div className="mt-8 bg-blue-50 rounded-xl p-6">
+        <h4 className="font-bold text-gray-800 mb-3">Tüm Araçlarda Dahil:</h4>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="flex items-center space-x-2">
+            <Shield className="h-5 w-5 text-blue-600" />
+            <span className="text-sm text-gray-700">Tam Sigorta</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Car className="h-5 w-5 text-green-600" />
+            <span className="text-sm text-gray-700">Yakıt Dahil</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Star className="h-5 w-5 text-yellow-600" />
+            <span className="text-sm text-gray-700">Profesyonel Şoför</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <CheckCircle className="h-5 w-5 text-purple-600" />
+            <span className="text-sm text-gray-700">7/24 Destek</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
