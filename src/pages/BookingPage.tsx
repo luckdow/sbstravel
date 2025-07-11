@@ -86,10 +86,16 @@ export default function BookingPage() {
   useEffect(() => {
     const calculatePricing = async () => {
       if (watchedValues.destination && watchedValues.destination.lat !== 0 && watchedValues.vehicleType) {
+        console.log('💰 Calculating price...');
+        console.log('📍 Destination:', watchedValues.destination);
+        console.log('🚗 Vehicle:', watchedValues.vehicleType);
         setIsCalculatingPrice(true);
         try {
           const calculatedDistance = await googleMapsService.getDistanceFromAirport(watchedValues.destination);
           const price = calculateTotalPrice(calculatedDistance, watchedValues.vehicleType, []);
+          
+          console.log('📏 Calculated distance:', calculatedDistance);
+          console.log('💰 Calculated price:', price);
           
           setDistance(calculatedDistance);
           setTotalPrice(price);
@@ -101,6 +107,7 @@ export default function BookingPage() {
           setIsCalculatingPrice(false);
         }
       } else {
+        console.log('❌ Price calculation skipped - missing data');
         setShowPriceDetails(false);
       }
     };
@@ -109,45 +116,70 @@ export default function BookingPage() {
   }, [watchedValues.destination, watchedValues.vehicleType]);
 
   const onSubmit = async (data: BookingFormData) => {
-    console.log('Form submitted, current step:', currentStep);
-    console.log('Form data:', data);
-    console.log('Watched values:', watchedValues);
+    console.log('🚀 Form submitted!');
+    console.log('📍 Current step:', currentStep);
+    console.log('📋 Form data:', data);
+    console.log('👀 Watched values:', watchedValues);
+    console.log('🎯 Destination:', watchedValues.destination);
+    console.log('🚗 Vehicle type:', watchedValues.vehicleType);
+    console.log('💰 Total price:', totalPrice);
+    console.log('📏 Distance:', distance);
     
     try {
       if (currentStep === 1) {
-        // Step 1: Validate transfer details and vehicle selection
-        console.log('Validating step 1...');
-        console.log('Destination:', watchedValues.destination);
-        console.log('Vehicle type:', watchedValues.vehicleType);
-        console.log('Total price:', totalPrice);
+        console.log('✅ Step 1 validation starting...');
         
-        if (!watchedValues.destination || !watchedValues.destination.name || watchedValues.destination.lat === 0) {
+        // Destination check
+        if (!watchedValues.destination) {
+          console.log('❌ No destination object');
           toast.error('Lütfen varış noktasını seçin');
           return;
         }
         
+        if (!watchedValues.destination.name) {
+          console.log('❌ No destination name');
+          toast.error('Lütfen varış noktasını seçin');
+          return;
+        }
+        
+        if (watchedValues.destination.lat === 0) {
+          console.log('❌ Destination lat is 0');
+          toast.error('Lütfen geçerli bir varış noktası seçin');
+          return;
+        }
+        
+        // Vehicle type check
         if (!watchedValues.vehicleType) {
+          console.log('❌ No vehicle type');
           toast.error('Lütfen araç tipini seçin');
           return;
         }
         
+        // Date check
         if (!watchedValues.pickupDate) {
+          console.log('❌ No pickup date');
           toast.error('Lütfen transfer tarihini seçin');
           return;
         }
         
+        // Time check
         if (!watchedValues.pickupTime) {
+          console.log('❌ No pickup time');
           toast.error('Lütfen transfer saatini seçin');
           return;
         }
         
+        // Price check
         if (totalPrice === 0) {
+          console.log('❌ Total price is 0');
           toast.error('Fiyat hesaplanıyor, lütfen bekleyin');
           return;
         }
         
-        console.log('Step 1 validation passed, moving to step 2');
+        console.log('✅ All validations passed!');
+        console.log('🎯 Moving to step 2...');
         setCurrentStep(2);
+        console.log('📍 New current step:', 2);
         return;
       }
       
@@ -660,8 +692,9 @@ export default function BookingPage() {
                 
                 <button
                   type="submit"
-                  disabled={isCalculatingPrice}
+                  disabled={isCalculatingPrice || (currentStep === 1 && totalPrice === 0)}
                   className="ml-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={() => console.log('🔘 Button clicked! Current step:', currentStep)}
                 >
                   <span>
                     {isCalculatingPrice ? 'Hesaplanıyor...' : 
