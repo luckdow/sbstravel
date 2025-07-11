@@ -8,6 +8,7 @@ import BookingPage from './pages/BookingPage';
 import AboutPage from './pages/AboutPage';
 import ServicesPage from './pages/ServicesPage';
 import ContactPage from './pages/ContactPage';
+import UnauthorizedPage from './pages/UnauthorizedPage';
 
 // Admin Pages
 import AdminLoginPage from './pages/auth/AdminLoginPage';
@@ -33,6 +34,9 @@ import PaymentSuccessPage from "./pages/payment/success";
 // Quick Access Navigation
 import QuickAccess from './components/Navigation/QuickAccess';
 
+// Protected Route Component
+import ProtectedRoute from './components/Auth/ProtectedRoute';
+
 function App() {
   return (
     <>
@@ -43,21 +47,58 @@ function App() {
         <Route path="/about" element={<AboutPage />} />
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/contact" element={<ContactPage />} />
+        <Route path="/unauthorized" element={<UnauthorizedPage />} />
         
         {/* Admin Routes */}
         <Route path="/admin/login" element={<AdminLoginPage />} />
-        <Route path="/admin" element={<AdminDashboardPage />} />
-        <Route path="/admin/reservations" element={<AdminReservationsPage />} />
-        <Route path="/admin/customers" element={<AdminCustomersPage />} />
-        <Route path="/admin/drivers" element={<AdminDriversPage />} />
-        <Route path="/admin/vehicles" element={<AdminVehiclesPage />} />
-        <Route path="/admin/settings" element={<AdminSettingsPage />} />
+        <Route path="/admin" element={
+          <ProtectedRoute requiredRole="admin">
+            <AdminDashboardPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/reservations" element={
+          <ProtectedRoute requiredRole="admin">
+            <AdminReservationsPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/customers" element={
+          <ProtectedRoute requiredRole="admin">
+            <AdminCustomersPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/drivers" element={
+          <ProtectedRoute requiredRole="admin">
+            <AdminDriversPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/vehicles" element={
+          <ProtectedRoute requiredRole="admin">
+            <AdminVehiclesPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/settings" element={
+          <ProtectedRoute requiredRole="admin">
+            <AdminSettingsPage />
+          </ProtectedRoute>
+        } />
         
         {/* Driver Routes */}
         <Route path="/driver/login" element={<DriverLoginPage />} />
-        <Route path="/driver" element={<DriverDashboardPage />} />
-        <Route path="/driver/qr-scanner" element={<DriverQRScannerPage />} />
-        <Route path="/driver/earnings" element={<DriverEarningsPage />} />
+        <Route path="/driver" element={
+          <ProtectedRoute requiredRole="driver">
+            <DriverDashboardPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/driver/qr-scanner" element={
+          <ProtectedRoute requiredRole="driver">
+            <DriverQRScannerPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/driver/earnings" element={
+          <ProtectedRoute requiredRole="driver">
+            <DriverEarningsPage />
+          </ProtectedRoute>
+        } />
         
         {/* Customer Auth */}
         <Route path="/customer/login" element={<CustomerLoginPage />} />

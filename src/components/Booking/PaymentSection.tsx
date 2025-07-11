@@ -1,24 +1,124 @@
 import React, { useState } from 'react';
-import { CreditCard, Shield, Lock, CheckCircle, AlertCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { CreditCard, Shield, Lock, CheckCircle, AlertCircle, DollarSign, Loader2 } from 'lucide-react';
 import { PriceCalculation, BookingFormData } from '../../types';
+import { transactionService } from '../../lib/services/transaction-service';
+import { notificationService } from '../../lib/services/notification-service';
+import toast from 'react-hot-toast';
 
 interface PaymentSectionProps {
   priceCalculation: PriceCalculation;
   bookingData: BookingFormData;
+  onPaymentSuccess?: (transactionId: string) => void;
+  reservationId?: string;
 }
 
-export default function PaymentSection({ priceCalculation, bookingData }: PaymentSectionProps) {
+export default function PaymentSection({ 
+  priceCalculation, 
+  bookingData, 
+  onPaymentSuccess,
+  reservationId 
+}: PaymentSectionProps) {
   const [paymentMethod, setPaymentMethod] = useState('credit-card');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [marketingAccepted, setMarketingAccepted] = useState(false);
+  const navigate = useNavigate();
 
   const handlePayment = async () => {
+    if (!termsAccepted) {
+      toast.error('Lütfen kullanım şartlarını kabul edin');
+      return;
+    }
+
+    if (!bookingData.customerInfo) {
+      toast.error('Müşteri bilgileri eksik');
+      return;
+    }
+
     setIsProcessing(true);
     
-    // Simulate payment processing
-    setTimeout(() => {
+    try {
+      // Create transaction
+      const transaction = await transactionService.createTransaction({
+        reservationId: reservationId || 'temp_' + Date.now(),
+        amount: priceCalculation.totalPrice,
+        currency: 'USD',
+        customerInfo: bookingData.customerInfo,
+        reservationData: {
+          route: `${bookingData.transferType === 'airport-hotel' ? 'Airport → ' + bookingData.destination.name : bookingData.destination.name + ' → Airport'}`,
+          ...bookingData
+        },
+        paymentMethod: paymentMethod as 'credit-card' | 'bank-transfer',
+        successUrl: `${window.location.origin}/payment/success`,
+        failUrl: `${window.location.origin}/payment/fail`,
+      });
+
+      // Process payment
+      const result = await transactionService.processPayment(transaction.id, {
+        reservationId: reservationId || 'temp_' + Date.now(),
+        amount: priceCalculation.totalPrice,
+        currency: 'USD',
+        customerInfo: bookingData.customerInfo,
+        reservationData: {
+          route: `${bookingData.transferType === 'airport-hotel' ? 'Airport → ' + bookingData.destination.name : bookingData.destination.name + ' → Airport'}`,
+          ...bookingData
+        },
+        paymentMethod: paymentMethod as 'credit-card' | 'bank-transfer',
+        successUrl: `${window.location.origin}/payment/success`,
+        failUrl: `${window.location.origin}/payment/fail`,
+      });
+
+      if (result.success) {
+        if (paymentMethod === 'credit-card' && result.paymentUrl) {
+          // Redirect to PayTR for credit card payment
+          toast.success('Ödeme sayfasına yönlendiriliyorsunuz...');
+          window.location.href = result.paymentUrl;
+        } else if (paymentMethod === 'bank-transfer') {
+          // Show bank transfer success
+          toast.success('Havale bilgileri e-posta adresinize gönderildi');
+          
+          // Send notification emails
+          await notificationService.sendEmail('reservation-confirmation', {
+            recipient: {
+              email: bookingData.customerInfo.email,
+              name: `${bookingData.customerInfo.firstName} ${bookingData.customerInfo.lastName}`,
+            },
+            variables: {
+              customerName: `${bookingData.customerInfo.firstName} ${bookingData.customerInfo.lastName}`,
+              reservationId: reservationId || transaction.id,
+              route: `${bookingData.transferType === 'airport-hotel' ? 'Airport → ' + bookingData.destination.name : bookingData.destination.name + ' → Airport'}`,
+              pickupDate: bookingData.pickupDate,
+              pickupTime: bookingData.pickupTime,
+              passengerCount: bookingData.passengerCount.toString(),
+              vehicleType: bookingData.vehicleType,
+              totalAmount: priceCalculation.totalPrice.toFixed(2),
+              qrCode: 'QR-' + Date.now(),
+            },
+          });
+
+          // Navigate to success page with transaction info
+          navigate('/payment/success', { 
+            state: { 
+              transaction: result.transaction,
+              method: 'bank-transfer' 
+            } 
+          });
+        }
+
+        // Call success callback
+        if (onPaymentSuccess) {
+          onPaymentSuccess(transaction.id);
+        }
+      } else {
+        toast.error(result.error || 'Ödeme işlemi başarısız');
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+      toast.error('Ödeme işlemi sırasında hata oluştu');
+    } finally {
       setIsProcessing(false);
-      // Payment success will be handled by parent component
-    }, 3000);
+    }
   };
 
   return (
@@ -50,6 +150,29 @@ export default function PaymentSection({ priceCalculation, bookingData }: Paymen
                     <div>
                       <div className="font-semibold text-gray-800">Kredi/Banka Kartı</div>
                       <div className="text-sm text-gray-600">Visa, Mastercard, American Express</div>
+                    </div>
+                  </div>
+                </div>
+              </label>
+
+              <label className="relative">
+                <input
+                  type="radio"
+                  value="bank-transfer"
+                  checked={paymentMethod === 'bank-transfer'}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  className="sr-only"
+                />
+                <div className={`p-4 border-2 rounded-xl cursor-pointer transition-all duration-300 ${
+                  paymentMethod === 'bank-transfer'
+                    ? 'border-blue-600 bg-blue-50'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}>
+                  <div className="flex items-center space-x-3">
+                    <DollarSign className="h-6 w-6 text-green-600" />
+                    <div>
+                      <div className="font-semibold text-gray-800">Banka Havalesi</div>
+                      <div className="text-sm text-gray-600">EFT/Havale ile ödeme</div>
                     </div>
                   </div>
                 </div>
@@ -100,6 +223,25 @@ export default function PaymentSection({ priceCalculation, bookingData }: Paymen
             </div>
           )}
 
+          {/* Bank Transfer Info */}
+          {paymentMethod === 'bank-transfer' && (
+            <div className="bg-blue-50 rounded-2xl p-6">
+              <h4 className="font-bold text-blue-800 mb-4">Banka Hesap Bilgileri</h4>
+              <div className="space-y-2 text-sm">
+                <div><span className="font-medium">Banka:</span> Türkiye İş Bankası</div>
+                <div><span className="font-medium">Hesap Sahibi:</span> AYT Transfer Ltd. Şti.</div>
+                <div><span className="font-medium">IBAN:</span> TR12 0006 4000 0011 2345 6789 01</div>
+                <div><span className="font-medium">Açıklama:</span> {bookingData.customerInfo?.firstName} {bookingData.customerInfo?.lastName}</div>
+              </div>
+              <div className="mt-4 p-3 bg-yellow-100 rounded-xl">
+                <p className="text-sm text-yellow-800">
+                  <AlertCircle className="h-4 w-4 inline mr-2" />
+                  Havale/EFT sonrası dekont fotoğrafını WhatsApp ile gönderiniz: +90 242 123 45 67
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Security Info */}
           <div className="bg-green-50 border border-green-200 rounded-xl p-4">
             <div className="flex items-start space-x-3">
@@ -119,6 +261,8 @@ export default function PaymentSection({ priceCalculation, bookingData }: Paymen
             <label className="flex items-start space-x-3">
               <input
                 type="checkbox"
+                checked={termsAccepted}
+                onChange={(e) => setTermsAccepted(e.target.checked)}
                 className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                 required
               />
@@ -132,6 +276,8 @@ export default function PaymentSection({ priceCalculation, bookingData }: Paymen
             <label className="flex items-start space-x-3">
               <input
                 type="checkbox"
+                checked={marketingAccepted}
+                onChange={(e) => setMarketingAccepted(e.target.checked)}
                 className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
               />
               <span className="text-sm text-gray-700">
@@ -156,7 +302,7 @@ export default function PaymentSection({ priceCalculation, bookingData }: Paymen
               
               <div className="flex justify-between">
                 <span className="text-gray-600">Varış Noktası:</span>
-                <span className="font-semibold text-gray-800">{bookingData.destination}</span>
+                <span className="font-semibold text-gray-800">{bookingData.destination?.name || 'Bilinmiyor'}</span>
               </div>
               
               <div className="flex justify-between">
@@ -206,18 +352,25 @@ export default function PaymentSection({ priceCalculation, bookingData }: Paymen
           <button
             type="button"
             onClick={handlePayment}
-            disabled={isProcessing}
+            disabled={isProcessing || !termsAccepted}
             className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-8 rounded-xl font-bold text-lg hover:shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-3"
           >
             {isProcessing ? (
               <>
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                <span>Ödeme İşleniyor...</span>
+                <Loader2 className="h-5 w-5 animate-spin" />
+                <span>
+                  {paymentMethod === 'credit-card' ? 'Ödeme sayfasına yönlendiriliyor...' : 'İşleniyor...'}
+                </span>
               </>
             ) : (
               <>
                 <Lock className="h-5 w-5" />
-                <span>Güvenli Ödeme Yap - ${priceCalculation.totalPrice.toFixed(2)}</span>
+                <span>
+                  {paymentMethod === 'credit-card' 
+                    ? `Güvenli Ödeme Yap - $${priceCalculation.totalPrice.toFixed(2)}`
+                    : `Havale Bilgilerini Al - $${priceCalculation.totalPrice.toFixed(2)}`
+                  }
+                </span>
               </>
             )}
           </button>

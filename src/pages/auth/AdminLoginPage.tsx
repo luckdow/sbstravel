@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, Lock, User, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { authService } from '../../lib/services/auth-service';
 import toast from 'react-hot-toast';
 
 export default function AdminLoginPage() {
-  const [credentials, setCredentials] = useState({ email: '', password: '' });
+  const [credentials, setCredentials] = useState({ email: '', password: '', rememberMe: false });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -14,13 +15,19 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     try {
-      // Demo login - gerçek sistemde authentication yapılacak
-      if (credentials.email === 'sbstravelinfo@gmail.com' && credentials.password === 'admin123') {
-        localStorage.setItem('adminToken', 'demo-admin-token');
+      const result = await authService.login(credentials);
+
+      if (result.success && result.user) {
+        if (result.user.role !== 'admin') {
+          toast.error('Bu sayfaya erişim yetkiniz yok');
+          await authService.logout();
+          return;
+        }
+        
         toast.success('Admin girişi başarılı!');
-        navigate('/admin');
+        navigate(authService.getRedirectPath());
       } else {
-        toast.error('Geçersiz kullanıcı adı veya şifre');
+        toast.error(result.error || 'Giriş başarısız');
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -84,6 +91,25 @@ export default function AdminLoginPage() {
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={credentials.rememberMe}
+                  onChange={(e) => setCredentials({...credentials, rememberMe: e.target.checked})}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <span className="ml-2 text-sm text-gray-600">Beni hatırla</span>
+              </label>
+              <button
+                type="button"
+                className="text-sm text-blue-600 hover:underline"
+                onClick={() => toast.info('Şifre sıfırlama özelliği yakında eklenecek')}
+              >
+                Şifremi unuttum
+              </button>
             </div>
 
             <button
