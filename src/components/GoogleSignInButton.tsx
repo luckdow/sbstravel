@@ -4,7 +4,7 @@ import { signInWithGoogle } from '../lib/firebase/auth';
 import toast from 'react-hot-toast';
 
 interface GoogleSignInButtonProps {
-  onSuccess: (user: any, role: string) => void;
+  onSuccess: (user: unknown, role: string) => void;
   requiredRole?: 'admin' | 'driver' | 'customer';
   className?: string;
 }
