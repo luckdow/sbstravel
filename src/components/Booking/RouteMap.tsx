@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { MapPin, Navigation, Clock, Route } from 'lucide-react';
 import { googleMapsService } from '../../lib/google-maps';
+import { LocationData } from '../../types';
 
 interface RouteMapProps {
-  origin: string;
-  destination: string;
+  origin: string | LocationData;
+  destination: string | LocationData;
   onRouteCalculated?: (distance: number, duration: number) => void;
 }
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
+import { LocationData } from '../types';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useStore } from '../store/useStore';
@@ -23,7 +24,11 @@ import { MapPin, Calendar, Clock, Users, Luggage, ArrowRight, CheckCircle, Car, 
 const bookingSchema = yup.object({
   transferType: yup.string().required('Transfer türü seçiniz'),
   vehicleType: yup.string().required('Araç tipi seçiniz'),
-  destination: yup.string().required('Varış noktası gereklidir'),
+  destination: yup.object({
+    name: yup.string().required('Varış noktası gereklidir'),
+    lat: yup.number().required(),
+    lng: yup.number().required()
+  }).required('Varış noktası gereklidir'),
   pickupDate: yup.string().required('Transfer tarihi gereklidir'),
   pickupTime: yup.string().required('Transfer saati gereklidir'),
   passengerCount: yup.number().min(1, 'En az 1 yolcu').required('Yolcu sayısı gereklidir'),
@@ -60,6 +65,7 @@ export default function BookingPage() {
     defaultValues: {
       transferType: 'airport-hotel',
       vehicleType: 'standard',
+      destination: null,
       passengerCount: 2,
       baggageCount: 2,
       additionalServices: []
@@ -71,7 +77,7 @@ export default function BookingPage() {
   // Calculate price when destination or vehicle type changes
   useEffect(() => {
     const calculatePricing = async () => {
-      if (watchedValues.destination && watchedValues.vehicleType) {
+      if (watchedValues.destination && watchedValues.destination.lat !== 0 && watchedValues.vehicleType) {
         setIsCalculatingPrice(true);
         try {
           const calculatedDistance = await googleMapsService.getDistanceFromAirport(watchedValues.destination);
@@ -337,7 +343,7 @@ export default function BookingPage() {
 
                       {/* Destination */}
                       <LocationSearch
-                        value={watchedValues.destination || ''}
+                        value={watchedValues.destination}
                         onChange={(value) => setValue('destination', value)}
                         label={watchedValues.transferType === 'airport-hotel' ? 'Varış Noktası (Otel/Bölge)' : 'Kalkış Noktası (Otel/Bölge)'}
                         placeholder="Otel adı veya bölge girin (örn: Kemer, Belek, Side)"
@@ -512,7 +518,7 @@ export default function BookingPage() {
                         </div>
                         <div>
                           <p className="text-sm text-gray-600">Varış Noktası</p>
-                          <p className="font-semibold">{watchedValues.destination}</p>
+                          <p className="font-semibold">{watchedValues.destination?.name}</p>
                         </div>
                         <div>
                           <p className="text-sm text-gray-600">Tarih & Saat</p>
@@ -578,7 +584,7 @@ export default function BookingPage() {
                 
                 <button
                   type="submit"
-                  disabled={currentStep === 1 && (!watchedValues.destination || !watchedValues.vehicleType || totalPrice === 0)}
+                  disabled={currentStep === 1 && (!watchedValues.destination || watchedValues.destination.lat === 0 || !watchedValues.vehicleType || totalPrice === 0)}
                   className="ml-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span>{currentStep === 3 ? 'Ödemeye Geç' : 'Devam Et'}</span>

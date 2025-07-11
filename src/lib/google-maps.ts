@@ -1,5 +1,5 @@
 import { GOOGLE_MAPS_CONFIG, ANTALYA_AIRPORT, POPULAR_DESTINATIONS } from '../config/google-maps';
-import { RouteResult, Location } from '../types';
+import { RouteResult, Location, LocationData } from '../types';
 
 export class GoogleMapsService {
   private static instance: GoogleMapsService;
@@ -56,19 +56,30 @@ export class GoogleMapsService {
   }
 
   async calculateRoute(
-    origin: string | google.maps.LatLngLiteral,
-    destination: string | google.maps.LatLngLiteral
+    origin: string | google.maps.LatLngLiteral | LocationData,
+    destination: string | google.maps.LatLngLiteral | LocationData
   ): Promise<RouteResult | null> {
     try {
       await this.loadGoogleMapsAPI();
       
       const directionsService = new google.maps.DirectionsService();
       
+      // Convert LocationData to LatLngLiteral if needed
+      const processLocation = (location: string | google.maps.LatLngLiteral | LocationData) => {
+        if (typeof location === 'string') {
+          return location;
+        }
+        if ('name' in location) {
+          return { lat: location.lat, lng: location.lng };
+        }
+        return location;
+      };
+      
       const result = await new Promise<google.maps.DirectionsResult>((resolve, reject) => {
         directionsService.route(
           {
-            origin,
-            destination,
+            origin: processLocation(origin),
+            destination: processLocation(destination),
             travelMode: google.maps.TravelMode.DRIVING,
             unitSystem: google.maps.UnitSystem.METRIC,
           },
@@ -126,7 +137,7 @@ export class GoogleMapsService {
   }
 
   // Get distance from Antalya Airport to destination
-  async getDistanceFromAirport(destination: string): Promise<number> {
+  async getDistanceFromAirport(destination: LocationData): Promise<number> {
     try {
       const result = await this.calculateRoute(ANTALYA_AIRPORT, destination);
       return result?.distance || 0;
@@ -135,7 +146,7 @@ export class GoogleMapsService {
       
       // Fallback: Use predefined distances for popular destinations
       const popularDest = POPULAR_DESTINATIONS.find(dest => 
-        destination.toLowerCase().includes(dest.name.toLowerCase())
+        destination.name.toLowerCase().includes(dest.name.toLowerCase())
       );
       
       return popularDest?.distance || 50; // Default 50km if not found

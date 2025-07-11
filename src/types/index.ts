@@ -111,7 +111,7 @@ export interface Commission {
 
 export interface BookingFormData {
   transferType: 'airport-hotel' | 'hotel-airport';
-  destination: string;
+  destination: LocationData;
   pickupDate: string;
   pickupTime: string;
   passengerCount: number;
@@ -124,6 +124,13 @@ export interface BookingFormData {
     email: string;
     phone: string;
   };
+}
+
+export interface LocationData {
+  name: string;
+  formatted_address?: string;
+  lat: number;
+  lng: number;
 }
 
 export interface PriceCalculation {
