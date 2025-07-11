@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, DollarSign, Users, Car, TrendingUp, Clock } from 'lucide-react';
-import { transactionService } from '../../../lib/services/transaction-service';
 import { useStore } from '../../../store/useStore';
 
 interface StatData {
@@ -13,46 +12,40 @@ interface StatData {
 }
 
 export default function StatsCards() {
-  const { reservations, drivers } = useStore();
+  const { reservations, drivers, fetchReservations, fetchDrivers, getStats } = useStore();
   const [stats, setStats] = useState<StatData[]>([]);
 
   useEffect(() => {
+    // Fetch data when component mounts
+    fetchReservations();
+    fetchDrivers();
+  }, [fetchReservations, fetchDrivers]);
+
+  useEffect(() => {
     const calculateStats = () => {
-      const transactionStats = transactionService.getTransactionStats();
-      const today = new Date().toDateString();
-      
-      // Today's reservations
-      const todaysReservations = reservations.filter(r => 
-        new Date(r.createdAt || Date.now()).toDateString() === today
-      ).length;
+      const {
+        todayReservations,
+        totalRevenue,
+        activeDrivers,
+        vehiclesInUse,
+        pendingReservations
+      } = getStats();
 
-      // Daily revenue from completed transactions
-      const dailyRevenue = transactionStats.totalAmount;
-
-      // Active drivers
-      const activeDrivers = drivers.filter(d => d.status === 'available' || d.status === 'busy').length;
-
-      // Vehicles in use (drivers who are busy)
-      const vehiclesInUse = drivers.filter(d => d.status === 'busy').length;
-
-      // Monthly growth (simulated)
+      // Monthly growth (simulated - in real app this would come from historical data)
       const monthlyGrowth = 23;
-
-      // Pending tasks (pending reservations)
-      const pendingTasks = reservations.filter(r => r.status === 'pending').length;
 
       const newStats: StatData[] = [
         {
           title: 'Bugünkü Rezervasyonlar',
-          value: todaysReservations.toString(),
+          value: todayReservations.toString(),
           change: '+12%',
           changeType: 'increase',
           icon: Calendar,
           color: 'from-blue-500 to-blue-600'
         },
         {
-          title: 'Günlük Gelir',
-          value: `$${dailyRevenue.toFixed(0)}`,
+          title: 'Toplam Gelir',
+          value: `$${totalRevenue.toFixed(0)}`,
           change: '+8%',
           changeType: 'increase',
           icon: DollarSign,
@@ -83,10 +76,10 @@ export default function StatsCards() {
           color: 'from-pink-500 to-pink-600'
         },
         {
-          title: 'Bekleyen Görevler',
-          value: pendingTasks.toString(),
+          title: 'Bekleyen Rezervasyonlar',
+          value: pendingReservations.toString(),
           change: '-3',
-          changeType: pendingTasks === 0 ? 'neutral' : 'decrease',
+          changeType: pendingReservations === 0 ? 'neutral' : 'decrease',
           icon: Clock,
           color: 'from-indigo-500 to-indigo-600'
         }
@@ -96,7 +89,7 @@ export default function StatsCards() {
     };
 
     calculateStats();
-  }, [reservations, drivers]);
+  }, [reservations, drivers, getStats]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">

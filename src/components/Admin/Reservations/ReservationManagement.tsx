@@ -203,7 +203,9 @@ export default function ReservationManagement() {
                       >
                         <option value="">Şoför Seç</option>
                         {drivers.filter(d => d.status === 'available').map(driver => (
-                          <option key={driver.id} value={driver.id}>{driver.name}</option>
+                          <option key={driver.id} value={driver.id}>
+                            {driver.firstName} {driver.lastName}
+                          </option>
                         ))}
                       </select>
                     )}
