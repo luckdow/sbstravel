@@ -8,7 +8,7 @@ interface StatData {
   value: string;
   change: string;
   changeType: 'increase' | 'decrease' | 'neutral';
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<{ className?: string }>;
   color: string;
 }
 

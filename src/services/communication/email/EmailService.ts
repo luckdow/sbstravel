@@ -1,5 +1,3 @@
-import { EmailTemplate, NotificationMessage } from '../../../types';
-
 export interface EmailProvider {
   name: string;
   isAvailable(): boolean;
@@ -133,7 +131,7 @@ export class EmailService {
     for (const provider of this.providers) {
       try {
         results[provider.name] = await provider.verifyConnection();
-      } catch (error) {
+      } catch {
         results[provider.name] = false;
       }
     }

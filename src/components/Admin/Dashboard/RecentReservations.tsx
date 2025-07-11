@@ -1,54 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../../../store/useStore';
-import { useEffect } from 'react';
 import { Eye, Edit, Trash2, MapPin, Clock, User, Car, Loader2 } from 'lucide-react';
-
-const reservations = [
-  {
-    id: 'RES-001',
-    customer: 'Ahmet Yılmaz',
-    route: 'AYT → Kemer',
-    date: '2024-01-15',
-    time: '14:30',
-    vehicle: 'Premium',
-    price: '$85',
-    status: 'confirmed',
-    driver: 'Mehmet Demir'
-  },
-  {
-    id: 'RES-002',
-    customer: 'Sarah Johnson',
-    route: 'Belek → AYT',
-    date: '2024-01-15',
-    time: '16:00',
-    vehicle: 'Luxury',
-    price: '$120',
-    status: 'assigned',
-    driver: 'Ali Kaya'
-  },
-  {
-    id: 'RES-003',
-    customer: 'Hans Mueller',
-    route: 'AYT → Side',
-    date: '2024-01-15',
-    time: '18:15',
-    vehicle: 'Standard',
-    price: '$65',
-    status: 'pending',
-    driver: '-'
-  },
-  {
-    id: 'RES-004',
-    customer: 'Maria Garcia',
-    route: 'Alanya → AYT',
-    date: '2024-01-16',
-    time: '09:00',
-    vehicle: 'Premium',
-    price: '$95',
-    status: 'completed',
-  }
-];
 
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -137,32 +90,32 @@ export default function RecentReservations() {
                     <div className="text-sm font-medium text-gray-900">{reservation.id}</div>
                     <div className="text-sm text-gray-500 flex items-center">
                       <User className="h-3 w-3 mr-1" />
-                      {reservation.customer_name}
+                      {reservation.customerName}
                     </div>
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center text-sm text-gray-900">
                     <MapPin className="h-4 w-4 mr-2 text-gray-400" />
-                    {reservation.pickup_location} → {reservation.dropoff_location}
+                    {reservation.pickupLocation} → {reservation.dropoffLocation}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{reservation.pickup_date}</div>
+                  <div className="text-sm text-gray-900">{reservation.pickupDate}</div>
                   <div className="text-sm text-gray-500 flex items-center">
                     <Clock className="h-3 w-3 mr-1" />
-                    {reservation.pickup_time}
+                    {reservation.pickupTime}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-900 flex items-center">
                     <Car className="h-3 w-3 mr-1" />
-                    {reservation.vehicle_type}
+                    {reservation.vehicleType}
                   </div>
-                  <div className="text-sm text-gray-500">{reservation.driver_id || 'Atanmadı'}</div>
+                  <div className="text-sm text-gray-500">{reservation.driverId || 'Atanmadı'}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">${reservation.total_price}</div>
+                  <div className="text-sm font-medium text-gray-900">${reservation.totalPrice}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${statusColors[reservation.status as keyof typeof statusColors]}`}>

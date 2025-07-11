@@ -1,4 +1,4 @@
-import { SSLCertificate, SecurityHeaders, SecurityStatus } from '../types/security';
+import { SSLCertificate } from '../types/security';
 
 export const checkSSLCertificate = async (domain: string): Promise<SSLCertificate> => {
   try {
@@ -12,7 +12,7 @@ export const checkSSLCertificate = async (domain: string): Promise<SSLCertificat
       expiryDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days from now
       subject: domain
     };
-  } catch (error) {
+  } catch {
     return {
       isValid: false,
       issuer: 'Unknown',
