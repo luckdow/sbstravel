@@ -5,8 +5,13 @@ import { Toaster } from 'react-hot-toast';
 // Auth Pages
 import AdminLoginPage from './pages/auth/AdminLoginPage';
 import DriverLoginPage from './pages/auth/DriverLoginPage';
-import CustomerLoginPage from './pages/auth/CustomerLoginPage';
+// import CustomerLoginPage from './pages/auth/CustomerLoginPage';
 import CustomerRegisterPage from './pages/auth/CustomerRegisterPage';
+
+// Legal Pages
+import PrivacyPolicyPage from './pages/legal/PrivacyPolicyPage';
+import TermsOfServicePage from './pages/legal/TermsOfServicePage';
+import KVKKPolicyPage from './pages/legal/KVKKPolicyPage';
 
 // Simple placeholder components
 const SimplePage = ({ title }: { title: string }) => (
@@ -42,9 +47,9 @@ function App() {
         <Route path="/customer" element={<SimplePage title="Customer Dashboard" />} />
         
         {/* Legal Pages */}
-        <Route path="/privacy-policy" element={<SimplePage title="Privacy Policy" />} />
-        <Route path="/terms-of-service" element={<SimplePage title="Terms of Service" />} />
-        <Route path="/kvkk-policy" element={<SimplePage title="KVKK Policy" />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+        <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+        <Route path="/kvkk-policy" element={<KVKKPolicyPage />} />
       </Routes>
       
       {/* Toast Notifications */}
