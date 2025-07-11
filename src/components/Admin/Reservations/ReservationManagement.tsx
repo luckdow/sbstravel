@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useStore } from '../../../store/useStore';
 import { Search, Filter, Calendar, MapPin, User, Car, DollarSign, Eye, Edit, Trash2 } from 'lucide-react';
 import { getLocationString } from '../../../lib/utils/location';
+import { addReadableReservationNumbers, getDriverDisplayName } from '../../../utils/reservation';
 import ReservationDetailModal from './ReservationDetailModal';
 
 const statusColors = {
@@ -50,6 +51,9 @@ export default function ReservationManagement() {
     const matchesStatus = statusFilter === 'all' || reservation.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  // Add readable reservation numbers to filtered reservations
+  const reservationsWithReadableIds = addReadableReservationNumbers(filteredReservations);
 
   const handleAssignDriver = async (reservationId: string, driverId: string) => {
     await updateReservationStatus(reservationId, 'assigned', driverId);
@@ -150,11 +154,11 @@ export default function ReservationManagement() {
                   </td>
                 </tr>
               ) : (
-                filteredReservations.map((reservation) => (
+                reservationsWithReadableIds.map((reservation) => (
                 <tr key={reservation.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
-                      <div className="text-sm font-medium text-gray-900">{reservation.id || 'N/A'}</div>
+                      <div className="text-sm font-medium text-gray-900">{reservation.readableId}</div>
                       <div className="text-sm text-gray-500 flex items-center">
                         <User className="h-3 w-3 mr-1" />
                         {reservation.customerName || 'N/A'}
@@ -196,10 +200,12 @@ export default function ReservationManagement() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {reservation.driverId ? (
-                      <div className="text-sm text-gray-900">{reservation.driverId}</div>
+                      <div className="text-sm text-gray-900 font-medium">
+                        {getDriverDisplayName(reservation.driverId, drivers)}
+                      </div>
                     ) : (
                       <select 
-                        onChange={(e) => e.target.value && handleAssignDriver(reservation.id, e.target.value)}
+                        onChange={(e) => e.target.value && handleAssignDriver(reservation.id!, e.target.value)}
                         className="text-sm border border-gray-200 rounded px-2 py-1"
                         defaultValue=""
                       >

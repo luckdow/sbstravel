@@ -23,7 +23,6 @@ interface AdminSidebarProps {
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/admin' },
   { icon: Calendar, label: 'Rezervasyonlar', href: '/admin/reservations' },
-  { icon: UserCheck, label: 'Şoför Atama', href: '/admin/driver-assignment' },
   { icon: Users, label: 'Müşteriler', href: '/admin/customers' },
   { icon: Car, label: 'Araç Yönetimi', href: '/admin/vehicles' },
   { icon: UserCheck, label: 'Şoför Yönetimi', href: '/admin/drivers' },
