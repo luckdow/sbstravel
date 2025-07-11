@@ -31,6 +31,11 @@ import CustomerLoginPage from './pages/auth/CustomerLoginPage';
 // Payment Pages
 import PaymentSuccessPage from "./pages/payment/success";
 
+// Legal Pages
+import PrivacyPolicyPage from './pages/legal/PrivacyPolicyPage';
+import TermsOfServicePage from './pages/legal/TermsOfServicePage';
+import KVKKPolicyPage from './pages/legal/KVKKPolicyPage';
+
 // Quick Access Navigation
 import QuickAccess from './components/Navigation/QuickAccess';
 
@@ -105,6 +110,11 @@ function App() {
         
         {/* Payment Routes */}
         <Route path="/payment/success" element={<PaymentSuccessPage />} />
+
+        {/* Legal Pages */}
+        <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+        <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+        <Route path="/kvkk-policy" element={<KVKKPolicyPage />} />
       </Routes>
       
       {/* Quick Access Navigation */}
