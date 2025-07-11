@@ -116,71 +116,71 @@ export default function BookingPage() {
   }, [watchedValues.destination, watchedValues.vehicleType]);
 
   const onSubmit = async (data: BookingFormData) => {
-    console.log('🚀 Form submitted!');
+    console.log('🚀 FORM SUBMITTED - START');
     console.log('📍 Current step:', currentStep);
-    console.log('📋 Form data:', JSON.stringify(data, null, 2));
-    console.log('👀 Watched values:', JSON.stringify(watchedValues, null, 2));
-    console.log('🎯 Destination:', JSON.stringify(watchedValues.destination, null, 2));
+    console.log('📋 Form data received:', data);
+    console.log('👀 Watched values:', watchedValues);
+    console.log('🎯 Destination object:', watchedValues.destination);
     console.log('🚗 Vehicle type:', watchedValues.vehicleType);
     console.log('💰 Total price:', totalPrice);
     console.log('📏 Distance:', distance);
     
     try {
       if (currentStep === 1) {
-        console.log('✅ Step 1 validation starting...');
+        console.log('🔍 STEP 1 VALIDATION STARTING...');
         
         // Destination check
         if (!watchedValues.destination) {
-          console.log('❌ No destination object');
+          console.log('❌ VALIDATION FAILED: No destination object');
           toast.error('Lütfen varış noktasını seçin');
           return;
         }
         
         if (!watchedValues.destination.name) {
-          console.log('❌ No destination name');
+          console.log('❌ VALIDATION FAILED: No destination name');
           toast.error('Lütfen varış noktasını seçin');
           return;
         }
         
         if (watchedValues.destination.lat === 0) {
-          console.log('❌ Destination lat is 0');
+          console.log('❌ VALIDATION FAILED: Destination lat is 0');
           toast.error('Lütfen geçerli bir varış noktası seçin');
           return;
         }
         
         // Vehicle type check
         if (!watchedValues.vehicleType) {
-          console.log('❌ No vehicle type');
+          console.log('❌ VALIDATION FAILED: No vehicle type');
           toast.error('Lütfen araç tipini seçin');
           return;
         }
         
         // Date check
         if (!watchedValues.pickupDate) {
-          console.log('❌ No pickup date');
+          console.log('❌ VALIDATION FAILED: No pickup date');
           toast.error('Lütfen transfer tarihini seçin');
           return;
         }
         
         // Time check
         if (!watchedValues.pickupTime) {
-          console.log('❌ No pickup time');
+          console.log('❌ VALIDATION FAILED: No pickup time');
           toast.error('Lütfen transfer saatini seçin');
           return;
         }
         
         // Price check
         if (totalPrice === 0) {
-          console.log('❌ Total price is 0');
+          console.log('❌ VALIDATION FAILED: Total price is 0');
           toast.error('Fiyat hesaplanıyor, lütfen bekleyin');
           return;
         }
         
-        console.log('✅ All validations passed!');
-        console.log('🎯 Moving to step 2...');
+        console.log('✅ ALL VALIDATIONS PASSED!');
+        console.log('🎯 MOVING TO STEP 2...');
         console.log('📍 Current step before update:', currentStep);
         setCurrentStep(2);
-        console.log('📍 Step updated to 2');
+        console.log('📍 STEP UPDATED TO 2 - SUCCESS!');
         return;
       }
       
@@ -693,6 +693,15 @@ export default function BookingPage() {
                 
                 <button
                   type="submit"
+                  onClick={(e) => {
+                    console.log('🔘 SUBMIT BUTTON CLICKED!');
+                    console.log('📍 Current step:', currentStep);
+                    console.log('🎯 Destination:', watchedValues.destination);
+                    console.log('🚗 Vehicle:', watchedValues.vehicleType);
+                    console.log('📅 Date:', watchedValues.pickupDate);
+                    console.log('⏰ Time:', watchedValues.pickupTime);
+                    console.log('💰 Price:', totalPrice);
+                  }}
                   disabled={isCalculatingPrice || (currentStep === 1 && totalPrice === 0)}
                   className="ml-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
