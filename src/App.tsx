@@ -5,6 +5,7 @@ import ErrorBoundary from './components/Error/ErrorBoundary';
 
 // Test Component
 import SimpleTest from './components/SimpleTest';
+import LocationTest from './components/LocationTest';
 
 // Public Pages
 import HomePage from './pages/HomePage';
@@ -59,6 +60,7 @@ function App() {
       <Routes>
         {/* Test Route */}
         <Route path="/test" element={<SimpleTest />} />
+        <Route path="/location-test" element={<LocationTest />} />
         
         {/* Public Routes */}
         <Route path="/" element={<HomePage />} />
