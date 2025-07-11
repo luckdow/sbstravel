@@ -118,29 +118,10 @@ export default function RouteMap({ origin, destination, onRouteCalculated }: Rou
       {/* Map */}
       <div 
         ref={mapRef} 
-        className="w-full h-64"
-        style={{ minHeight: '256px' }}
+        className="w-full h-48 rounded-xl overflow-hidden"
+        style={{ minHeight: '192px' }}
       />
 
-      {/* Route Details */}
-      <div className="p-4 bg-gray-50">
-        <div className="space-y-3">
-          <div className="flex items-start space-x-3">
-            <div className="w-3 h-3 bg-green-500 rounded-full mt-2"></div>
-            <div>
-              <p className="font-medium text-gray-800">Kalkış</p>
-              <p className="text-sm text-gray-600">{origin}</p>
-            </div>
-          </div>
-          <div className="flex items-start space-x-3">
-            <div className="w-3 h-3 bg-red-500 rounded-full mt-2"></div>
-            <div>
-              <p className="font-medium text-gray-800">Varış</p>
-              <p className="text-sm text-gray-600">{destination}</p>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, Search, Navigation } from 'lucide-react';
+import { MapPin, Search, Navigation, Loader2 } from 'lucide-react';
 import { googleMapsService } from '../../lib/google-maps';
 
 interface LocationSearchProps {
@@ -96,7 +96,7 @@ export default function LocationSearch({ value, onChange, placeholder, label }: 
         />
         {isLoading && (
           <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+            <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
           </div>
         )}
       </div>
