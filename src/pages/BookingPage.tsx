@@ -4,6 +4,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useSearchParams } from 'react-router-dom';
 import { LocationData } from '../types';
+import { notificationService } from '../services/communication';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useStore } from '../store/useStore';
@@ -263,12 +264,68 @@ export default function BookingPage() {
       const reservationId = await createNewReservation(reservationData);
       
       if (reservationId) {
+        // Send booking confirmation notification
+        try {
+          const notificationData = {
+            customerName: `${watchedValues.customerInfo?.firstName} ${watchedValues.customerInfo?.lastName}`,
+            customerEmail: watchedValues.customerInfo?.email || '',
+            customerPhone: watchedValues.customerInfo?.phone || '',
+            bookingId: reservationId,
+            transferType: watchedValues.transferType === 'airport-hotel' ? 'Havalimanı → Otel' : 'Otel → Havalimanı',
+            pickupLocation: watchedValues.transferType === 'airport-hotel' ? 'Antalya Havalimanı' : watchedValues.destination?.name || '',
+            dropoffLocation: watchedValues.transferType === 'airport-hotel' ? watchedValues.destination?.name || '' : 'Antalya Havalimanı',
+            pickupDate: watchedValues.pickupDate || '',
+            pickupTime: watchedValues.pickupTime || '',
+            passengerCount: watchedValues.passengerCount?.toString() || '1',
+            vehicleType: watchedValues.vehicleType || 'standard',
+            totalPrice: (totalPrice * 1.18).toFixed(2),
+            qrCode: `SBS-QR-${reservationId}`
+          };
+
+          const notificationResult = await notificationService.sendBookingConfirmation(
+            'temp-customer-id', // In real app, this would be the actual customer ID
+            reservationId,
+            notificationData
+          );
+
+          if (notificationResult.success) {
+            console.log('📧 Booking confirmation notifications sent successfully');
+          } else {
+            console.error('📧 Failed to send notifications:', notificationResult.errors);
+          }
+        } catch (notificationError) {
+          console.error('📧 Notification error:', notificationError);
+          // Don't fail the whole booking process if notifications fail
+        }
+
         // Simulate PayTR payment process
         toast.success('Rezervasyon oluşturuldu! Ödeme sayfasına yönlendiriliyorsunuz...');
         
         // Simulate payment processing
-        setTimeout(() => {
+        setTimeout(async () => {
           toast.success('Ödeme başarılı! Rezervasyonunuz onaylandı.');
+          
+          // Send payment success notification
+          try {
+            const paymentData = {
+              customerName: `${watchedValues.customerInfo?.firstName} ${watchedValues.customerInfo?.lastName}`,
+              customerEmail: watchedValues.customerInfo?.email || '',
+              customerPhone: watchedValues.customerInfo?.phone || '',
+              bookingId: reservationId,
+              paymentId: `PAY-${Date.now()}`,
+              amount: (totalPrice * 1.18).toFixed(2),
+              paymentDate: new Date().toLocaleDateString('tr-TR')
+            };
+
+            await notificationService.sendPaymentSuccess(
+              'temp-customer-id',
+              reservationId,
+              paymentData
+            );
+          } catch (paymentNotificationError) {
+            console.error('📧 Payment notification error:', paymentNotificationError);
+          }
+
           navigate(`/payment/success?order_id=${reservationId}&amount=${(totalPrice * 1.18).toFixed(2)}&customer=${encodeURIComponent(watchedValues.customerInfo?.firstName + ' ' + watchedValues.customerInfo?.lastName)}`);
         }, 2000);
       }
