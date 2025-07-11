@@ -42,8 +42,8 @@ export default function ReservationManagement() {
   }, [fetchReservations, fetchDrivers]);
 
   const filteredReservations = reservations.filter(reservation => {
-    const matchesSearch = reservation.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         reservation.id.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (reservation.customerName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                         (reservation.id?.toLowerCase() || '').includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || reservation.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -151,49 +151,49 @@ export default function ReservationManagement() {
                 <tr key={reservation.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
-                      <div className="text-sm font-medium text-gray-900">{reservation.id}</div>
+                      <div className="text-sm font-medium text-gray-900">{reservation.id || 'N/A'}</div>
                       <div className="text-sm text-gray-500 flex items-center">
                         <User className="h-3 w-3 mr-1" />
-                        {reservation.customer_name}
+                        {reservation.customerName || 'N/A'}
                       </div>
-                      <div className="text-xs text-gray-400">{reservation.customer_phone}</div>
+                      <div className="text-xs text-gray-400">{reservation.customerPhone || 'N/A'}</div>
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-sm text-gray-900">
                       <div className="flex items-center mb-1">
                         <MapPin className="h-3 w-3 mr-1 text-green-500" />
-                        <span className="truncate max-w-32">{reservation.pickup_location}</span>
+                        <span className="truncate max-w-32">{reservation.pickupLocation || 'N/A'}</span>
                       </div>
                       <div className="flex items-center">
                         <MapPin className="h-3 w-3 mr-1 text-red-500" />
-                        <span className="truncate max-w-32">{reservation.dropoff_location}</span>
+                        <span className="truncate max-w-32">{reservation.dropoffLocation || 'N/A'}</span>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900 flex items-center">
                       <Calendar className="h-3 w-3 mr-1" />
-                      {reservation.pickup_date}
+                      {reservation.pickupDate || 'N/A'}
                     </div>
-                    <div className="text-sm text-gray-500">{reservation.pickup_time}</div>
+                    <div className="text-sm text-gray-500">{reservation.pickupTime || 'N/A'}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900 flex items-center">
                       <Car className="h-3 w-3 mr-1" />
-                      {reservation.vehicle_type}
+                      {reservation.vehicleType || 'N/A'}
                     </div>
                     <div className="text-xs text-gray-500">
-                      {reservation.passenger_count} kişi, {reservation.baggage_count} bagaj
+                      {reservation.passengerCount || 0} kişi, {reservation.baggageCount || 0} bagaj
                     </div>
                     <div className="text-sm font-medium text-green-600 flex items-center">
                       <DollarSign className="h-3 w-3 mr-1" />
-                      ${reservation.total_price}
+                      ${reservation.totalPrice || 0}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    {reservation.driver_id ? (
-                      <div className="text-sm text-gray-900">{reservation.driver_id}</div>
+                    {reservation.driverId ? (
+                      <div className="text-sm text-gray-900">{reservation.driverId}</div>
                     ) : (
                       <select 
                         onChange={(e) => e.target.value && handleAssignDriver(reservation.id, e.target.value)}
@@ -256,9 +256,9 @@ export default function ReservationManagement() {
               <div>
                 <h3 className="font-semibold text-gray-800 mb-3">Müşteri Bilgileri</h3>
                 <div className="bg-gray-50 rounded-xl p-4 space-y-2">
-                  <div><span className="font-medium">Ad:</span> {selectedReservation.customer_name}</div>
-                  <div><span className="font-medium">E-posta:</span> {selectedReservation.customer_email}</div>
-                  <div><span className="font-medium">Telefon:</span> {selectedReservation.customer_phone}</div>
+                  <div><span className="font-medium">Ad:</span> {selectedReservation.customerName || 'N/A'}</div>
+                  <div><span className="font-medium">E-posta:</span> {selectedReservation.customerEmail || 'N/A'}</div>
+                  <div><span className="font-medium">Telefon:</span> {selectedReservation.customerPhone || 'N/A'}</div>
                 </div>
               </div>
 
@@ -266,14 +266,14 @@ export default function ReservationManagement() {
               <div>
                 <h3 className="font-semibold text-gray-800 mb-3">Transfer Detayları</h3>
                 <div className="bg-gray-50 rounded-xl p-4 space-y-2">
-                  <div><span className="font-medium">Kalkış:</span> {selectedReservation.pickup_location}</div>
-                  <div><span className="font-medium">Varış:</span> {selectedReservation.dropoff_location}</div>
-                  <div><span className="font-medium">Tarih:</span> {selectedReservation.pickup_date}</div>
-                  <div><span className="font-medium">Saat:</span> {selectedReservation.pickup_time}</div>
-                  <div><span className="font-medium">Araç Tipi:</span> {selectedReservation.vehicle_type}</div>
-                  <div><span className="font-medium">Yolcu:</span> {selectedReservation.passenger_count} kişi</div>
-                  <div><span className="font-medium">Bagaj:</span> {selectedReservation.baggage_count} adet</div>
-                  <div><span className="font-medium">Fiyat:</span> ${selectedReservation.total_price}</div>
+                  <div><span className="font-medium">Kalkış:</span> {selectedReservation.pickupLocation || 'N/A'}</div>
+                  <div><span className="font-medium">Varış:</span> {selectedReservation.dropoffLocation || 'N/A'}</div>
+                  <div><span className="font-medium">Tarih:</span> {selectedReservation.pickupDate || 'N/A'}</div>
+                  <div><span className="font-medium">Saat:</span> {selectedReservation.pickupTime || 'N/A'}</div>
+                  <div><span className="font-medium">Araç Tipi:</span> {selectedReservation.vehicleType || 'N/A'}</div>
+                  <div><span className="font-medium">Yolcu:</span> {selectedReservation.passengerCount || 0} kişi</div>
+                  <div><span className="font-medium">Bagaj:</span> {selectedReservation.baggageCount || 0} adet</div>
+                  <div><span className="font-medium">Fiyat:</span> ${selectedReservation.totalPrice || 0}</div>
                 </div>
               </div>
 
