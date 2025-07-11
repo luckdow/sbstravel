@@ -1,4 +1,6 @@
-import crypto from 'crypto';
+// PayTR Payment Integration for Turkey
+// Using crypto-js for browser compatibility
+import CryptoJS from 'crypto-js';
 
 export interface PayTRConfig {
   merchantId: string;
@@ -68,10 +70,7 @@ export class PayTRService {
         this.config.merchantSalt
       ].join('');
 
-      const paytrToken = crypto
-        .createHmac('sha256', this.config.merchantKey)
-        .update(hashString)
-        .digest('base64');
+      const paytrToken = CryptoJS.HmacSHA256(hashString, this.config.merchantKey).toString(CryptoJS.enc.Base64);
 
       const postData = {
         merchant_id: this.config.merchantId,
@@ -137,10 +136,7 @@ export class PayTRService {
         callbackData.total_amount
       ].join('');
 
-      const calculatedHash = crypto
-        .createHmac('sha256', this.config.merchantKey)
-        .update(hashString)
-        .digest('base64');
+      const calculatedHash = CryptoJS.HmacSHA256(hashString, this.config.merchantKey).toString(CryptoJS.enc.Base64);
 
       return calculatedHash === callbackData.hash;
     } catch (error) {
@@ -172,10 +168,7 @@ export class PayTRService {
         this.config.merchantSalt
       ].join('');
 
-      const refundHash = crypto
-        .createHmac('sha256', this.config.merchantKey)
-        .update(hashString)
-        .digest('base64');
+      const refundHash = CryptoJS.HmacSHA256(hashString, this.config.merchantKey).toString(CryptoJS.enc.Base64);
 
       // In real implementation, make API call to PayTR refund endpoint
       console.log('Refund request:', { ...refundData, hash: refundHash });
