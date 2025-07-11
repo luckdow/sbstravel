@@ -692,7 +692,59 @@ export default function BookingPage() {
                 )}
                 
                 <button
-                  type="submit"
+                  type="button"
+                  onClick={() => {
+                    console.log('🚀 DIRECT BUTTON CLICK - BYPASSING FORM');
+                    console.log('📍 Current step before:', currentStep);
+                    
+                    if (currentStep === 1) {
+                      // Step 1 validation
+                      if (!watchedValues.destination?.name) {
+                        toast.error('Lütfen varış noktasını seçin');
+                        return;
+                      }
+                      if (!watchedValues.vehicleType) {
+                        toast.error('Lütfen araç tipini seçin');
+                        return;
+                      }
+                      if (!watchedValues.pickupDate) {
+                        toast.error('Lütfen transfer tarihini seçin');
+                        return;
+                      }
+                      if (!watchedValues.pickupTime) {
+                        toast.error('Lütfen transfer saatini seçin');
+                        return;
+                      }
+                      if (totalPrice === 0) {
+                        toast.error('Fiyat hesaplanıyor, lütfen bekleyin');
+                        return;
+                      }
+                      
+                      console.log('✅ Step 1 validation passed, moving to step 2');
+                      setCurrentStep(2);
+                      console.log('📍 Step updated to:', 2);
+                      return;
+                    }
+                    
+                    if (currentStep === 2) {
+                      // Step 2 validation
+                      if (!watchedValues.customerInfo?.firstName || !watchedValues.customerInfo?.lastName || 
+                          !watchedValues.customerInfo?.email || !watchedValues.customerInfo?.phone) {
+                        toast.error('Lütfen tüm zorunlu alanları doldurun');
+                        return;
+                      }
+                      
+                      console.log('✅ Step 2 validation passed, moving to step 3');
+                      setCurrentStep(3);
+                      console.log('📍 Step updated to:', 3);
+                      return;
+                    }
+                    
+                    if (currentStep === 3) {
+                      // Create reservation
+                      handleSubmit(onSubmit)();
+                    }
+                  }}
                   disabled={isCalculatingPrice || (currentStep === 1 && totalPrice === 0)}
                   className="ml-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
