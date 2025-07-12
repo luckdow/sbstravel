@@ -29,6 +29,7 @@ export default function AdminCustomersPage() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [showReservationModal, setShowReservationModal] = useState(false);
   const [loading, setLoading] = useState(false);
   
   const { 
