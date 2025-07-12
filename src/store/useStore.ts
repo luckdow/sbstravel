@@ -349,8 +349,7 @@ interface StoreState {
 }
 
 export const useStore = create<StoreState>()(
-  persist(
-    (set, get) => ({
+  persist((set, get) => ({
       reservations: [],
       drivers: [],
       customers: [],
@@ -362,8 +361,7 @@ export const useStore = create<StoreState>()(
 
       // ... all the implementation functions ...
 
-    }),
-    {
+    }), {
       name: 'sbs-travel-store',
       partialize: (state) => ({
         reservations: state.reservations,
