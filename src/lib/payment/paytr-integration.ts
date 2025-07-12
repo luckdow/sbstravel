@@ -186,5 +186,5 @@ export const paytrService = new PayTRService({
   merchantId: process.env.REACT_APP_PAYTR_MERCHANT_ID || 'demo_merchant',
   merchantKey: process.env.REACT_APP_PAYTR_MERCHANT_KEY || 'demo_key',
   merchantSalt: process.env.REACT_APP_PAYTR_MERCHANT_SALT || 'demo_salt',
-  testMode: process.env.NODE_ENV !== 'production'
+  testMode: !import.meta.env.PROD
 });
