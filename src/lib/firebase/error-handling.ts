@@ -51,11 +51,11 @@ export class FirebaseErrorHandler {
     return error.message || 'Bilinmeyen bir hata oluştu.';
   }
 
-  static async withRetry<T>(
+  static withRetry = async <T>(
     operation: () => Promise<T>,
     options: Partial<RetryOptions> = {},
     context: string = 'Firebase işlemi'
-  ): Promise<T> {
+  ): Promise<T> => {
     const config = { ...DEFAULT_RETRY_OPTIONS, ...options };
     let lastError: any;
     
@@ -94,11 +94,11 @@ export class FirebaseErrorHandler {
     throw lastError;
   }
 
-  static async withTimeout<T>(
+  static withTimeout = async <T>(
     operation: () => Promise<T>,
     timeoutMs: number = 10000,
     timeoutMessage: string = 'İşlem zaman aşımına uğradı'
-  ): Promise<T> {
+  ): Promise<T> => {
     const timeoutPromise = new Promise<never>((_, reject) => {
       setTimeout(() => reject(new Error(timeoutMessage)), timeoutMs);
     });

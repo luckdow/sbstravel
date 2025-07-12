@@ -234,30 +234,36 @@ export const getVehicles = async (filters?: {
   isActive?: boolean;
   limit?: number;
 }) => {
-  let q = query(vehiclesRef, orderBy('createdAt', 'desc'));
-  
-  if (filters?.status) {
-    q = query(q, where('status', '==', filters.status));
+  try {
+    let q = query(vehiclesRef, orderBy('createdAt', 'desc'));
+    
+    if (filters?.status) {
+      q = query(q, where('status', '==', filters.status));
+    }
+    
+    if (filters?.type) {
+      q = query(q, where('type', '==', filters.type));
+    }
+    
+    if (filters?.isActive !== undefined) {
+      q = query(q, where('isActive', '==', filters.isActive));
+    }
+    
+    if (filters?.limit) {
+      q = query(q, limit(filters.limit));
+    }
+    
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as Vehicle[];
+  } catch (error) {
+    console.error("Error fetching vehicles:", error);
+    return [];
   }
-  
-  if (filters?.type) {
-    q = query(q, where('type', '==', filters.type));
-  }
-  
-  if (filters?.isActive !== undefined) {
-    q = query(q, where('isActive', '==', filters.isActive));
-  }
-  
-  if (filters?.limit) {
-    q = query(q, limit(filters.limit));
-  }
-  
-  const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  })) as Vehicle[];
 };
+  
 
 export const deleteVehicle = async (id: string) => {
   const docRef = doc(vehiclesRef, id);

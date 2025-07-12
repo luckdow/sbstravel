@@ -29,7 +29,8 @@ export default function Dashboard() {
     fetchVehicles();
     
     // Initialize mock data if none exists
-    if (reservations.length === 0 && drivers.length === 0 && customers.length === 0 && vehicles.length === 0) {
+    // Sayfa yüklendiğinde her zaman mock data'yı başlat
+    if (true) {
       initializeMockData();
     }
   }, [fetchReservations, fetchDrivers, fetchCustomers, fetchVehicles, initializeMockData]);

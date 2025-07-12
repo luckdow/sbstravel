@@ -1030,11 +1030,8 @@ export const useStore = create<StoreState>((set, get) => ({
     try {
       console.log('Fetching vehicles from Firebase...');
       
-      const vehicles = await withFirebaseErrorHandling(
-        () => withTimeout(getVehicles(), 10000, 'Vehicle fetch timed out'),
-        { maxRetries: 2, baseDelay: 1000 },
-        'Vehicle fetch'
-      );
+      // Simplify the fetch to avoid nested function calls
+      const vehicles = await getVehicles();
       
       console.log('Successfully fetched vehicles from Firebase:', vehicles.length);
       
