@@ -183,8 +183,8 @@ export class PayTRService {
 
 // Initialize PayTR service
 export const paytrService = new PayTRService({
-  merchantId: process.env.REACT_APP_PAYTR_MERCHANT_ID || 'demo_merchant',
-  merchantKey: process.env.REACT_APP_PAYTR_MERCHANT_KEY || 'demo_key',
-  merchantSalt: process.env.REACT_APP_PAYTR_MERCHANT_SALT || 'demo_salt',
+  merchantId: import.meta.env.VITE_PAYTR_MERCHANT_ID || 'demo_merchant',
+  merchantKey: import.meta.env.VITE_PAYTR_MERCHANT_KEY || 'demo_key',
+  merchantSalt: import.meta.env.VITE_PAYTR_MERCHANT_SALT || 'demo_salt',
   testMode: true
 });

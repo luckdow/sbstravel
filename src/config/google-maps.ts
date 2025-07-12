@@ -1,6 +1,6 @@
 // Google Maps API configuration
 export const GOOGLE_MAPS_CONFIG = {
-  apiKey: "AIzaSyDa66vbuMgm_L4wdOgPutliu_PLzI3xqEw",
+  apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "AIzaSyDa66vbuMgm_L4wdOgPutliu_PLzI3xqEw",
   libraries: ["places", "geometry"] as const,
   region: "TR",
   language: "tr"

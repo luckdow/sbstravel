@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Mail, Phone, Plus, X } from 'lucide-react';
+import { User, Mail, Phone, Plus, X, Plane } from 'lucide-react';
 import { UseFormRegister, FieldErrors, UseFormSetValue } from 'react-hook-form';
 import { BookingFormData } from '../../types';
 import { useStore } from '../../store/useStore';

@@ -51,6 +51,12 @@ export default function AdminLoginPage() {
       } else {
         toast.error(result.error || 'Giriş başarısız');
       }
+        
+        toast.success('Admin girişi başarılı!');
+        navigate(authService.getRedirectPath());
+      } else {
+        toast.error(result.error || 'Giriş başarısız');
+      }
     } catch (error) {
       console.error('Login error:', error);
       toast.error('Giriş sırasında bir hata oluştu');

@@ -183,27 +183,14 @@ export default function VehicleSelection({
                 </div>
 
                 {/* Price */}
-                <div className="pt-4 border-t border-gray-100 text-center">
-                  <div className="text-lg font-semibold text-gray-800">
-                    ${vehicle.type === 'standard' ? '4.5' : vehicle.type === 'premium' ? '6.5' : '8.5'}/km
+                {/* Selection Indicator */}
+                {isSelected && (
+                  <div className="pt-4 border-t border-gray-100 text-center">
+                    <div className="text-sm font-semibold text-blue-600">
+                      ✓ Seçildi
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-500">KM başına</div>
-                </div>
-
-                {/* Select Button */}
-                <button
-                  type="button"
-                  disabled={!isSuitable}
-                  className={`w-full py-3 rounded-xl font-semibold transition-all duration-300 ${
-                    isSelected
-                      ? 'bg-blue-600 text-white'
-                      : isSuitable
-                      ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  }`}
-                >
-                  {isSelected ? 'Seçildi' : isSuitable ? 'Seç' : 'Uygun Değil'}
-                </button>
+                )}
               </div>
             </div>
           );
