@@ -12,6 +12,8 @@ import BookingPage from './pages/BookingPage';
 import AboutPage from './pages/AboutPage';
 import ServicesPage from './pages/ServicesPage';
 import ContactPage from './pages/ContactPage';
+import TransferInfoPage from './pages/TransferInfoPage';
+import FAQPage from './pages/FAQPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 
 // Admin Pages
@@ -67,6 +69,8 @@ function App() {
         <Route path="/about" element={<AboutPage />} />
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/contact" element={<ContactPage />} />
+        <Route path="/transfer-info" element={<TransferInfoPage />} />
+        <Route path="/faq" element={<FAQPage />} />
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
         
         {/* Admin Routes */}

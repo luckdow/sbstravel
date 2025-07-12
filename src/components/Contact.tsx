@@ -27,19 +27,19 @@ export default function Contact() {
     {
       icon: MapPin,
       title: "Merkez Ofis",
-      details: ["Maslak Mahallesi, Büyükdere Cad. No:123", "34485 Sarıyer/İstanbul"],
+      details: ["Adres bilgisi güncellenecek", "İstanbul/Türkiye"],
       color: "from-blue-500 to-blue-600"
     },
     {
       icon: Phone,
       title: "Telefon",
-      details: ["0850 123 45 67 (Ücretsiz)", "0212 345 67 89"],
+      details: ["0850 123 45 67 (Ücretsiz)", "Transfer Rezervasyon"],
       color: "from-green-500 to-green-600"
     },
     {
       icon: Mail,
       title: "E-posta",
-      details: ["info@premiumrent.com", "destek@premiumrent.com"],
+      details: ["sbstravelinfo@gmail.com", "Genel Bilgi & Rezervasyon"],
       color: "from-purple-500 to-purple-600"
     },
     {
@@ -73,7 +73,7 @@ export default function Contact() {
             Geçin
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Sorularınız, önerileriniz veya rezervasyon talepleriniz için 7/24 hizmetinizdeyiz. 
+            Transfer rezervasyonu, sorularınız veya önerileriniz için 7/24 hizmetinizdeyiz. 
             Size en iyi şekilde yardımcı olmak için buradayız.
           </p>
         </div>
@@ -84,7 +84,7 @@ export default function Contact() {
             <div>
               <h3 className="text-2xl font-bold text-gray-800 mb-6">İletişim Bilgileri</h3>
               <p className="text-gray-600 mb-8 leading-relaxed">
-                Müşteri memnuniyeti önceliğimiz. Size en hızlı şekilde dönüş yapabilmek için 
+                Müşteri memnuniyeti önceliğimiz. Transfer hizmetlerimiz hakkında size en hızlı şekilde dönüş yapabilmek için 
                 birden fazla iletişim kanalımız bulunmaktadır.
               </p>
             </div>
@@ -115,7 +115,7 @@ export default function Contact() {
               <div className="space-y-3">
                 <button className="w-full flex items-center space-x-3 p-3 bg-white rounded-xl hover:shadow-md transition-all duration-300 text-left">
                   <Calendar className="h-5 w-5 text-blue-600" />
-                  <span className="font-medium text-gray-700">Online Rezervasyon</span>
+                  <span className="font-medium text-gray-700">Transfer Rezervasyonu</span>
                 </button>
                 <button className="w-full flex items-center space-x-3 p-3 bg-white rounded-xl hover:shadow-md transition-all duration-300 text-left">
                   <Phone className="h-5 w-5 text-green-600" />
@@ -195,7 +195,7 @@ export default function Contact() {
                       className="w-full px-4 py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 bg-white"
                     >
                       <option value="">Konu seçin</option>
-                      <option value="reservation">Rezervasyon</option>
+                      <option value="reservation">Transfer Rezervasyonu</option>
                       <option value="support">Teknik Destek</option>
                       <option value="complaint">Şikayet</option>
                       <option value="suggestion">Öneri</option>
@@ -238,7 +238,7 @@ export default function Contact() {
           <div className="bg-gradient-to-r from-gray-100 to-gray-200 rounded-3xl p-8 text-center">
             <h3 className="text-2xl font-bold text-gray-800 mb-4">Bizi Ziyaret Edin</h3>
             <p className="text-gray-600 mb-6">
-              Merkez ofisimiz İstanbul Maslak'ta bulunmaktadır. Randevu alarak bizi ziyaret edebilirsiniz.
+              Merkez ofisimiz İstanbul'da bulunmaktadır. Transfer hizmetlerimiz hakkında detaylı bilgi için randevu alarak bizi ziyaret edebilirsiniz.
             </p>
             <div className="bg-white rounded-2xl p-4 shadow-lg">
               <div className="h-64 bg-gray-300 rounded-xl flex items-center justify-center">

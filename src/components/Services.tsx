@@ -4,49 +4,49 @@ import { Shield, Clock, MapPin, Headphones, CreditCard, Users, Award, Zap, Car, 
 const services = [
   {
     icon: Shield,
-    title: "Kapsamlı Sigorta",
-    description: "Tüm araçlarımız kasko ve trafik sigortası ile tam korumalı. Ek güvence için premium sigorta seçenekleri.",
+    title: "Güvenli Transfer",
+    description: "Tüm araçlarımız kasko ve trafik sigortası ile tam korumalı. Deneyimli şoförlerimizle güvenli yolculuk.",
     color: "from-blue-500 to-blue-600"
   },
   {
     icon: Clock,
     title: "7/24 Hizmet",
-    description: "Günün her saati rezervasyon, teslimat ve müşteri desteği. Acil durumlar için anında yardım.",
+    description: "Günün her saati transfer rezervasyonu ve müşteri desteği. Geç gelen uçaklar için bekletme hizmeti.",
     color: "from-purple-500 to-purple-600"
   },
   {
     icon: MapPin,
-    title: "Ücretsiz Teslimat",
-    description: "İstediğiniz adrese araç teslimatı tamamen ücretsiz. Havalimanı, otel veya evinize kadar getiriyoruz.",
+    title: "Kapıdan Kapıya",
+    description: "Havalimanından direkt otel girişinize veya otelden havalimanı terminaline kadar teslim.",
     color: "from-green-500 to-green-600"
   },
   {
     icon: Headphones,
     title: "Premium Destek",
-    description: "Deneyimli müşteri hizmetleri ekibimiz tüm sorularınız için 7/24 hizmetinizde.",
+    description: "Deneyimli müşteri hizmetleri ekibimiz tüm transfer sorularınız için 7/24 hizmetinizde.",
     color: "from-orange-500 to-orange-600"
   },
   {
     icon: CreditCard,
     title: "Esnek Ödeme",
-    description: "Nakit, kredi kartı, havale ve taksit seçenekleri. Kurumsal müşteriler için özel faturalama.",
+    description: "Naxit, kredi kartı, havale ve online ödeme seçenekleri. Peşin ödemede indirim fırsatları.",
     color: "from-pink-500 to-pink-600"
   },
   {
     icon: Users,
-    title: "Deneyimli Ekip",
-    description: "15+ yıllık sektör deneyimi ile profesyonel hizmet. Uzman ekibimiz her zaman yanınızda.",
+    title: "Deneyimli Şoförler",
+    description: "Bölgeyi çok iyi bilen, deneyimli ve güler yüzlü şoförlerimiz. İngilizce konuşabilen personel.",
     color: "from-indigo-500 to-indigo-600"
   }
 ];
 
 const features = [
-  "Ücretsiz araç değişimi",
-  "Sınırsız kilometre",
-  "24/7 yol yardımı",
-  "Ücretsiz ek sürücü",
+  "Bagaj taşıma dahil",
+  "Klimalı araçlar",
+  "Bekletme hizmeti",
+  "Uçak takibi",
   "Temizlik garantisi",
-  "Yakıt seçeneği"
+  "Sms bilgilendirme"
 ];
 
 export default function Services() {
@@ -67,11 +67,11 @@ export default function Services() {
           </div>
           <h2 className="text-5xl font-bold text-gray-800 mb-6">
             <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Neden PremiumRent?
+              Neden SBS TRAVEL?
             </span>
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Müşteri memnuniyetini ön planda tutarak, sektörün en kaliteli hizmetlerini sunuyoruz. 
+            Müşteri memnuniyetini ön planda tutarak, havalimanı transferlerinde sektörün en kaliteli hizmetlerini sunuyoruz. 
             Her detayda mükemmellik için çalışıyoruz.
           </p>
         </div>
@@ -106,7 +106,7 @@ export default function Services() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
               <h3 className="text-3xl font-bold text-gray-800 mb-6">
-                Tüm Kiralama Paketlerimizde 
+                Tüm Transfer Paketlerimizde 
                 <span className="text-blue-600"> Dahil Olan Özellikler</span>
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -121,15 +121,15 @@ export default function Services() {
               </div>
               <div className="mt-8">
                 <button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-2xl font-semibold hover:shadow-xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105">
-                  Detaylı Bilgi Al
+                  Transfer Rezervasyonu
                 </button>
               </div>
             </div>
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-br from-blue-200 to-purple-200 rounded-3xl blur-2xl opacity-30"></div>
               <img 
-                src="https://images.pexels.com/photos/1545743/pexels-photo-1545743.jpeg?auto=compress&cs=tinysrgb&w=800" 
-                alt="Premium araç hizmetleri"
+                src="https://images.pexels.com/photos/2026324/pexels-photo-2026324.jpeg?auto=compress&cs=tinysrgb&w=800" 
+                alt="Transfer hizmetleri"
                 className="relative rounded-3xl shadow-2xl w-full"
               />
             </div>
@@ -139,9 +139,9 @@ export default function Services() {
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-16">
           {[
-            { number: "500+", label: "Premium Araç", icon: Car },
-            { number: "50K+", label: "Mutlu Müşteri", icon: Users },
-            { number: "25+", label: "Şehir", icon: MapPin },
+            { number: "100+", label: "Transfer Araçları", icon: Car },
+            { number: "25K+", label: "Mutlu Müşteri", icon: Users },
+            { number: "15+", label: "Şehir", icon: MapPin },
             { number: "99%", label: "Memnuniyet", icon: Award }
           ].map((stat, index) => (
             <div key={index} className="text-center group">

@@ -42,10 +42,11 @@ export default function Header() {
           <nav className="hidden lg:flex items-center space-x-8">
             {[
               { name: 'Ana Sayfa', href: '/' },
-              { name: 'Araçlar', href: '/#cars' },
-              { name: 'Hizmetler', href: '/#services' },
-              { name: 'Hakkımızda', href: '/#about' },
-              { name: 'İletişim', href: '/#contact' }
+              { name: 'Hakkımızda', href: '/about' },
+              { name: 'Transfer Bilgileri', href: '/transfer-info' },
+              { name: 'SSS', href: '/faq' },
+              { name: 'KVKK/Gizlilik', href: '/kvkk-policy' },
+              { name: 'İletişim', href: '/contact' }
             ].map((item, index) => (
               <Link 
                 key={item}
@@ -92,10 +93,11 @@ export default function Header() {
             <nav className="p-6 space-y-4">
               {[
                 { name: 'Ana Sayfa', href: '/' },
-                { name: 'Araçlar', href: '/#cars' },
-                { name: 'Hizmetler', href: '/#services' },
-                { name: 'Hakkımızda', href: '/#about' },
-                { name: 'İletişim', href: '/#contact' }
+                { name: 'Hakkımızda', href: '/about' },
+                { name: 'Transfer Bilgileri', href: '/transfer-info' },
+                { name: 'SSS', href: '/faq' },
+                { name: 'KVKK/Gizlilik', href: '/kvkk-policy' },
+                { name: 'İletişim', href: '/contact' }
               ].map((item, index) => (
                 <Link 
                   key={item}

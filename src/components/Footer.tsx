@@ -24,14 +24,14 @@ export default function Footer() {
               </div>
               <div>
                 <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                  PremiumRent
+                  SBS TRAVEL
                 </h3>
-                <p className="text-sm text-gray-400">Luxury Car Rental</p>
+                <p className="text-sm text-gray-400">Transfer Hizmeti</p>
               </div>
             </div>
             <p className="text-gray-300 mb-6 leading-relaxed">
-              Türkiye'nin en güvenilir premium araç kiralama şirketi. 15+ yıllık deneyimle 
-              size en kaliteli hizmeti sunuyoruz.
+              Türkiye'nin en güvenilir transfer hizmeti. Havalimanı-otel ve otel-havalimanı 
+              transferlerinizde konforlu ve güvenli yolculuk deneyimi sunuyoruz.
             </p>
             
             {/* Trust Badges */}
@@ -80,11 +80,11 @@ export default function Footer() {
             <h4 className="text-lg font-bold mb-6 text-white">Hızlı Bağlantılar</h4>
             <ul className="space-y-3">
               {[
-                { name: 'Ana Sayfa', href: '#home' },
-                { name: 'Araç Filosu', href: '#cars' },
-                { name: 'Hizmetlerimiz', href: '#services' },
-                { name: 'Hakkımızda', href: '#about' },
-                { name: 'İletişim', href: '#contact' }
+                { name: 'Ana Sayfa', href: '/' },
+                { name: 'Hakkımızda', href: '/about' },
+                { name: 'Transfer Bilgileri', href: '/transfer-info' },
+                { name: 'SSS', href: '/faq' },
+                { name: 'İletişim', href: '/contact' }
               ].map((link, index) => (
                 <li key={index}>
                   <a 
@@ -99,17 +99,17 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Car Categories */}
+          {/* Transfer Services */}
           <div>
-            <h4 className="text-lg font-bold mb-6 text-white">Araç Kategorileri</h4>
+            <h4 className="text-lg font-bold mb-6 text-white">Transfer Hizmetlerimiz</h4>
             <ul className="space-y-3">
               {[
-                'Ekonomi Araçlar',
-                'Konfor Araçlar', 
-                'Lüks Sedan',
-                'SUV Araçlar',
-                'Elektrikli Araçlar',
-                'Ticari Araçlar'
+                'Havalimanı - Otel Transfer',
+                'Otel - Havalimanı Transfer', 
+                'Şehirler Arası Transfer',
+                'VIP Transfer Hizmeti',
+                'Grup Transfer',
+                '7/24 Transfer'
               ].map((category, index) => (
                 <li key={index}>
                   <a 
@@ -143,7 +143,7 @@ export default function Footer() {
                   <Mail className="h-5 w-5 text-green-400" />
                 </div>
                 <div>
-                  <p className="text-white font-semibold">info@premiumrent.com</p>
+                  <p className="text-white font-semibold">sbstravelinfo@gmail.com</p>
                   <p className="text-gray-400 text-sm">Genel Bilgi</p>
                 </div>
               </div>
@@ -154,15 +154,15 @@ export default function Footer() {
                 </div>
                 <div>
                   <p className="text-white font-semibold">İstanbul Merkez</p>
-                  <p className="text-gray-400 text-sm">Maslak, Büyükdere Cad. No:123</p>
+                  <p className="text-gray-400 text-sm">Adres bilgisi güncellenecek</p>
                 </div>
               </div>
             </div>
 
             {/* Newsletter */}
             <div className="mt-8 p-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-2xl border border-gray-700">
-              <h5 className="font-semibold text-white mb-2">Kampanyalardan Haberdar Olun</h5>
-              <p className="text-gray-400 text-sm mb-4">Özel fırsatları kaçırmayın!</p>
+              <h5 className="font-semibold text-white mb-2">Transfer Fırsatlarından Haberdar Olun</h5>
+              <p className="text-gray-400 text-sm mb-4">Özel transfer fırsatları kaçırmayın!</p>
               <div className="flex space-x-2">
                 <input 
                   type="email" 
@@ -182,10 +182,10 @@ export default function Footer() {
           <div className="flex flex-col lg:flex-row justify-between items-center space-y-4 lg:space-y-0">
             <div className="text-center lg:text-left">
               <p className="text-gray-400 text-sm">
-                © 2024 PremiumRent. Tüm hakları saklıdır.
+                © 2024 SBS TRAVEL. Tüm hakları saklıdır.
               </p>
               <p className="text-gray-500 text-xs mt-1">
-                Türkiye'nin en güvenilir araç kiralama platformu
+                Türkiye'nin en güvenilir transfer hizmeti platformu
               </p>
             </div>
             
