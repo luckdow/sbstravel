@@ -144,6 +144,8 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
             )}
           </div>
         </div>
+            )
+            }
       </div>
     </header>
   );
