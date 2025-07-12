@@ -10,6 +10,7 @@ import LocationSearch from '../components/Booking/LocationSearch';
 import VehicleSelection from '../components/Booking/VehicleSelection';
 import CustomerInfoForm from '../components/Booking/CustomerInfoForm';
 import PaymentSection from '../components/Payment/PaymentSection';
+import RouteMap from '../components/Booking/RouteMap';
 import { useStore } from '../store/useStore';
 import { calculatePrice } from '../utils/pricing';
 import { generateQRCode } from '../utils/qrCode';
@@ -295,6 +296,20 @@ export default function BookingPage() {
                       <p className="mt-2 text-sm text-red-600">{errors.destination.message}</p>
                     )}
                   </div>
+
+                  {/* Route Map */}
+                  {watchedValues.destination?.name && (
+                    <div>
+                      <RouteMap
+                        origin={watchedValues.transferType === 'airport-hotel' ? 'Antalya Airport' : watchedValues.destination.name}
+                        destination={watchedValues.transferType === 'airport-hotel' ? watchedValues.destination.name : 'Antalya Airport'}
+                        onRouteCalculated={(distance, duration) => {
+                          // Update pricing calculation when route is calculated
+                          console.log('Route calculated:', { distance, duration });
+                        }}
+                      />
+                    </div>
+                  )}
 
                   {/* Date and Time */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

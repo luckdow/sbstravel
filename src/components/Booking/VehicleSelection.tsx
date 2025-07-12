@@ -19,7 +19,7 @@ interface VehicleSelectionProps {
   onVehicleSelect: (vehicleType: 'standard' | 'premium' | 'luxury') => void;
   passengerCount?: number;
   baggageCount?: number;
-  vehicles?: any[];
+  vehicles: any[];
 }
 
 const vehicles: VehicleOption[] = [
@@ -63,29 +63,22 @@ export default function VehicleSelection({
   baggageCount = 1,
   vehicles: providedVehicles
 }: VehicleSelectionProps) {
-  const isVehicleSuitable = (vehicle: VehicleOption) => {
-    return vehicle.passengerCapacity >= (passengerCount || 1) && vehicle.baggageCapacity >= (baggageCount || 1);
-  };
+  // Use provided vehicles from admin panel, fallback to default vehicles if not available
+  const vehiclesToDisplay = providedVehicles && providedVehicles.length > 0 ? providedVehicles : vehicles;
 
-  const getVehiclePrice = (vehicleType: string) => {
-    const prices = {
-      standard: 4.5,
-      premium: 6.5,
-      luxury: 8.5
-    };
-    
-    return prices[vehicleType as keyof typeof prices];
+  const isVehicleSuitable = (vehicle: any) => {
+    return vehicle.passengerCapacity >= (passengerCount || 1) && vehicle.baggageCapacity >= (baggageCount || 1);
   };
 
   return (
     <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
       <h2 className="text-2xl font-bold text-gray-800 mb-6">Araç Seçimi</h2>
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {vehicles.map((vehicle) => {
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {vehiclesToDisplay.map((vehicle: any) => {
           const isSuitable = isVehicleSuitable(vehicle);
-          const isSelected = selectedVehicle === vehicle.type;
-          const vehiclePrice = getVehiclePrice(vehicle.type) || 0;
+          const isSelected = selectedVehicle === vehicle.type || selectedVehicle === vehicle.id;
+          const vehiclePrice = vehicle.pricePerKm || 0;
 
           return (
             <div
@@ -97,7 +90,7 @@ export default function VehicleSelection({
                   ? 'border-gray-200 hover:border-blue-300 hover:shadow-md'
                   : 'border-gray-200 opacity-50 cursor-not-allowed'
               }`}
-              onClick={() => isSuitable && onVehicleSelect(vehicle.type)}
+              onClick={() => isSuitable && onVehicleSelect(vehicle.type || vehicle.id)}
             >
               {/* Badges */}
               <div className="absolute top-4 left-4 z-10 flex flex-col space-y-2">
