@@ -121,8 +121,7 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
                       </p>
                       <p className="text-sm text-gray-600">
                         {currentUser?.email || 'admin@sbstravel.com'}
-                  <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-green-600 rounded-full flex items-center justify-center">
-                    </div>
+                      </p>
                   </div>
                 </div>
                 <div className="p-2">
