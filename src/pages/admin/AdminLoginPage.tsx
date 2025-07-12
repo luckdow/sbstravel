@@ -35,7 +35,7 @@ export default function AdminLoginPage() {
               <Shield className="h-8 w-8 text-white" />
             </div>
             <h1 className="text-2xl font-bold text-gray-800 mb-2">Admin Paneli</h1>
-            <p className="text-gray-600">AYT Transfer Yönetim Sistemi</p>
+            <p className="text-gray-600">SBS TRAVEL Yönetim Sistemi</p>
           </div>
 
           {/* Login Form */}
