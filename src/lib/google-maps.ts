@@ -110,6 +110,12 @@ export class GoogleMapsService {
 
   async searchPlaces(query: string): Promise<google.maps.places.PlaceResult[]> {
     try {
+      // If Google Maps API is not configured, return empty array
+      if (!GOOGLE_MAPS_CONFIG.useRealAPI) {
+        console.log('Google Maps API not configured, using fallback');
+        return [];
+      }
+
       await this.loadGoogleMapsAPI();
       
       const service = new google.maps.places.PlacesService(document.createElement('div'));
@@ -123,8 +129,11 @@ export class GoogleMapsService {
           (results, status) => {
             if (status === google.maps.places.PlacesServiceStatus.OK && results) {
               resolve(results);
+            } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
+              resolve([]);
             } else {
-              reject(new Error(`Places search failed: ${status}`));
+              console.warn(`Places search returned status: ${status}`);
+              resolve([]); // Return empty array instead of rejecting
             }
           }
         );

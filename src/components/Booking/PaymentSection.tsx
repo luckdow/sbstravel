@@ -4,6 +4,8 @@ import { CreditCard, Shield, Lock, CheckCircle, AlertCircle, DollarSign, Loader2
 import { PriceCalculation, BookingFormData } from '../../types';
 import { transactionService } from '../../lib/services/transaction-service';
 import { notificationService } from '../../lib/services/notification-service';
+import { paytrConfig } from '../../lib/paytr-integration';
+import { createReservation } from '../../lib/firebase/collections';
 import toast from 'react-hot-toast';
 
 interface PaymentSectionProps {
@@ -39,9 +41,44 @@ export default function PaymentSection({
     setIsProcessing(true);
     
     try {
+      // For bank transfer, create reservation immediately
+      let finalReservationId = reservationId;
+      
+      if (paymentMethod === 'bank-transfer') {
+        // Create real-time reservation in Firebase
+        const reservationId = await createReservation({
+          customerId: bookingData.customerInfo.email, // Use email as temp customer ID
+          customerName: `${bookingData.customerInfo.firstName} ${bookingData.customerInfo.lastName}`,
+          customerEmail: bookingData.customerInfo.email,
+          customerPhone: bookingData.customerInfo.phone,
+          transferType: bookingData.transferType,
+          pickupLocation: bookingData.transferType === 'airport-hotel' ? 'Antalya Airport' : bookingData.destination.name,
+          dropoffLocation: bookingData.transferType === 'airport-hotel' ? bookingData.destination.name : 'Antalya Airport',
+          pickupDate: bookingData.pickupDate,
+          pickupTime: bookingData.pickupTime,
+          passengerCount: bookingData.passengerCount,
+          baggageCount: bookingData.baggageCount || bookingData.passengerCount,
+          vehicleType: bookingData.vehicleType,
+          distance: priceCalculation.distance,
+          basePrice: priceCalculation.basePrice,
+          additionalServices: (bookingData.additionalServices || []).map((id, index) => ({
+            id,
+            name: `Service ${index + 1}`,
+            price: 0
+          })),
+          totalPrice: priceCalculation.totalPrice,
+          status: 'pending',
+          paymentStatus: 'pending',
+          qrCode: `QR-${Date.now()}`
+        });
+        
+        finalReservationId = reservationId;
+        console.log('Reservation created:', finalReservationId);
+      }
+
       // Create transaction
       const transaction = await transactionService.createTransaction({
-        reservationId: reservationId || 'temp_' + Date.now(),
+        reservationId: finalReservationId || 'temp_' + Date.now(),
         amount: priceCalculation.totalPrice,
         currency: 'USD',
         customerInfo: bookingData.customerInfo,
@@ -56,7 +93,7 @@ export default function PaymentSection({
 
       // Process payment
       const result = await transactionService.processPayment(transaction.id, {
-        reservationId: reservationId || 'temp_' + Date.now(),
+        reservationId: finalReservationId || 'temp_' + Date.now(),
         amount: priceCalculation.totalPrice,
         currency: 'USD',
         customerInfo: bookingData.customerInfo,
@@ -71,37 +108,47 @@ export default function PaymentSection({
 
       if (result.success) {
         if (paymentMethod === 'credit-card' && result.paymentUrl) {
-          // Redirect to PayTR for credit card payment
-          toast.success('Ödeme sayfasına yönlendiriliyorsunuz...');
+          // Show appropriate message based on PayTR configuration
+          if (paytrConfig.isConfigured) {
+            toast.success('Ödeme sayfasına yönlendiriliyorsunuz...');
+          } else {
+            toast.success('Demo mod: Ödeme sayfasına yönlendiriliyorsunuz...');
+          }
           window.location.href = result.paymentUrl;
         } else if (paymentMethod === 'bank-transfer') {
           // Show bank transfer success
-          toast.success('Havale bilgileri e-posta adresinize gönderildi');
+          toast.success('Rezervasyon oluşturuldu! Havale bilgileri e-posta adresinize gönderildi');
           
           // Send notification emails
-          await notificationService.sendEmail('reservation-confirmation', {
-            recipient: {
-              email: bookingData.customerInfo.email,
-              name: `${bookingData.customerInfo.firstName} ${bookingData.customerInfo.lastName}`,
-            },
-            variables: {
-              customerName: `${bookingData.customerInfo.firstName} ${bookingData.customerInfo.lastName}`,
-              reservationId: reservationId || transaction.id,
-              route: `${bookingData.transferType === 'airport-hotel' ? 'Airport → ' + bookingData.destination.name : bookingData.destination.name + ' → Airport'}`,
-              pickupDate: bookingData.pickupDate,
-              pickupTime: bookingData.pickupTime,
-              passengerCount: bookingData.passengerCount.toString(),
-              vehicleType: bookingData.vehicleType,
-              totalAmount: priceCalculation.totalPrice.toFixed(2),
-              qrCode: 'QR-' + Date.now(),
-            },
-          });
+          try {
+            await notificationService.sendEmail('reservation-confirmation', {
+              recipient: {
+                email: bookingData.customerInfo.email,
+                name: `${bookingData.customerInfo.firstName} ${bookingData.customerInfo.lastName}`,
+              },
+              variables: {
+                customerName: `${bookingData.customerInfo.firstName} ${bookingData.customerInfo.lastName}`,
+                reservationId: finalReservationId || transaction.id,
+                route: `${bookingData.transferType === 'airport-hotel' ? 'Airport → ' + bookingData.destination.name : bookingData.destination.name + ' → Airport'}`,
+                pickupDate: bookingData.pickupDate,
+                pickupTime: bookingData.pickupTime,
+                passengerCount: bookingData.passengerCount.toString(),
+                vehicleType: bookingData.vehicleType,
+                totalAmount: priceCalculation.totalPrice.toFixed(2),
+                qrCode: 'QR-' + Date.now(),
+              },
+            });
+          } catch (emailError) {
+            console.warn('Email notification failed:', emailError);
+            // Don't fail the whole process if email fails
+          }
 
           // Navigate to success page with transaction info
           navigate('/payment/success', { 
             state: { 
               transaction: result.transaction,
-              method: 'bank-transfer' 
+              method: 'bank-transfer',
+              reservationId: finalReservationId
             } 
           });
         }
@@ -183,6 +230,21 @@ export default function PaymentSection({
           {/* Credit Card Form */}
           {paymentMethod === 'credit-card' && (
             <div className="space-y-4">
+              {/* PayTR Configuration Status */}
+              {!paytrConfig.isConfigured && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                  <div className="flex items-start space-x-3">
+                    <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
+                    <div>
+                      <h4 className="font-semibold text-yellow-800">Demo Mod</h4>
+                      <p className="text-sm text-yellow-700 mt-1">
+                        PayTR API bilgileri yapılandırılmamış. Gerçek ödeme işlemi için environment değişkenlerini ayarlayın.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Kart Numarası</label>
                 <input

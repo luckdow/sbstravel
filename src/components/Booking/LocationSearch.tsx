@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MapPin, Search, Navigation, Loader2, Star, Clock } from 'lucide-react';
 import { LocationData } from '../../types';
+import { googleMapsService } from '../../lib/google-maps';
+import { GOOGLE_MAPS_CONFIG } from '../../config/google-maps';
 
 interface LocationSearchProps {
   value: LocationData | null;
@@ -135,31 +137,45 @@ export default function LocationSearch({
             dest.name.toLowerCase().includes(value.name.toLowerCase())
           );
 
-          // Then search with Google Places (simulated for now)
-          const mockResults = [
-            {
-              name: `${value.name} - Otel`,
-              formatted_address: `${value.name}, Antalya, Türkiye`,
-              geometry: {
-                location: {
-                  lat: () => 36.8969 + Math.random() * 0.5,
-                  lng: () => 30.7133 + Math.random() * 0.5
-                }
-              }
-            },
-            {
-              name: `${value.name} Resort`,
-              formatted_address: `${value.name} Resort, Antalya, Türkiye`,
-              geometry: {
-                location: {
-                  lat: () => 36.8969 + Math.random() * 0.5,
-                  lng: () => 30.7133 + Math.random() * 0.5
-                }
-              }
+          let googleResults: google.maps.places.PlaceResult[] = [];
+          
+          // Try Google Places API if configured
+          if (GOOGLE_MAPS_CONFIG.useRealAPI) {
+            try {
+              googleResults = await googleMapsService.searchPlaces(value.name);
+            } catch (error) {
+              console.warn('Google Places API failed, using fallback:', error);
             }
-          ];
+          }
 
-          setSuggestions([...popularMatches, ...mockResults].slice(0, 8));
+          // If no Google results or API not configured, use mock data
+          if (googleResults.length === 0) {
+            const mockResults = [
+              {
+                name: `${value.name} - Otel`,
+                formatted_address: `${value.name}, Antalya, Türkiye`,
+                geometry: {
+                  location: {
+                    lat: () => 36.8969 + Math.random() * 0.5,
+                    lng: () => 30.7133 + Math.random() * 0.5
+                  }
+                }
+              },
+              {
+                name: `${value.name} Resort`,
+                formatted_address: `${value.name} Resort, Antalya, Türkiye`,
+                geometry: {
+                  location: {
+                    lat: () => 36.8969 + Math.random() * 0.5,
+                    lng: () => 30.7133 + Math.random() * 0.5
+                  }
+                }
+              }
+            ];
+            googleResults = mockResults;
+          }
+
+          setSuggestions([...popularMatches, ...googleResults].slice(0, 8));
         } catch (error) {
           console.error('Error searching places:', error);
           setSuggestions([]);

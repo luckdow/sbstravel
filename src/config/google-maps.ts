@@ -1,9 +1,14 @@
 // Google Maps API configuration
+const isProduction = import.meta.env.NODE_ENV === 'production';
+const hasApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY && import.meta.env.VITE_GOOGLE_MAPS_API_KEY !== 'your_google_maps_api_key';
+
 export const GOOGLE_MAPS_CONFIG = {
   apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "AIzaSyDa66vbuMgm_L4wdOgPutliu_PLzI3xqEw",
   libraries: ["places", "geometry"] as const,
   region: "TR",
-  language: "tr"
+  language: "tr",
+  isConfigured: hasApiKey,
+  useRealAPI: hasApiKey || isProduction
 };
 
 // Antalya Airport coordinates

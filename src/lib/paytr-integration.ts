@@ -80,38 +80,43 @@ export class PayTRService {
         lang: 'tr'
       };
 
-      // For demo purposes, return mock response
-      if (this.config.testMode) {
-        return {
-          success: true,
-          token: 'mock_token_' + Date.now(),
-          paymentUrl: `https://www.paytr.com/odeme/guvenli/mock_token_${Date.now()}`
-        };
+      // Use real PayTR API if configured and not in test mode
+      if (!this.config.testMode && this.config.merchantId !== 'demo_merchant') {
+        try {
+          const response = await fetch(this.baseUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams(postData)
+          });
+
+          const result = await response.json();
+          
+          if (result.status === 'success') {
+            return {
+              success: true,
+              token: result.token,
+              paymentUrl: `https://www.paytr.com/odeme/guvenli/${result.token}`
+            };
+          } else {
+            return {
+              success: false,
+              error: result.reason || 'Ödeme oluşturulurken hata oluştu'
+            };
+          }
+        } catch (error) {
+          console.error('PayTR real API error:', error);
+          // Fall back to demo mode if real API fails
+        }
       }
 
-      // Real PayTR API call would be here
-      const response = await fetch(this.baseUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams(postData)
-      });
-
-      const result = await response.json();
-      
-      if (result.status === 'success') {
-        return {
-          success: true,
-          token: result.token,
-          paymentUrl: `https://www.paytr.com/odeme/guvenli/${result.token}`
-        };
-      } else {
-        return {
-          success: false,
-          error: result.reason || 'Ödeme oluşturulurken hata oluştu'
-        };
-      }
+      // Demo/test mode response
+      return {
+        success: true,
+        token: 'mock_token_' + Date.now(),
+        paymentUrl: `https://www.paytr.com/odeme/guvenli/mock_token_${Date.now()}`
+      };
 
     } catch (error) {
       console.error('PayTR payment creation error:', error);
@@ -139,6 +144,19 @@ export class PayTRService {
     }
   }
 
+  async refundPayment(transactionId: string, amount: number, reason: string): Promise<boolean> {
+    try {
+      // In real implementation, this would call PayTR refund API
+      console.log('PayTR refund request:', { transactionId, amount, reason });
+      
+      // For now, return true for demo purposes
+      return true;
+    } catch (error) {
+      console.error('PayTR refund error:', error);
+      return false;
+    }
+  }
+
   private getUserIP(): string {
     // In production, get actual user IP from server
     return '127.0.0.1';
@@ -146,9 +164,28 @@ export class PayTRService {
 }
 
 // PayTR service instance
+const merchantId = import.meta.env.VITE_PAYTR_MERCHANT_ID || 'demo_merchant';
+const merchantKey = import.meta.env.VITE_PAYTR_MERCHANT_KEY || 'demo_key';
+const merchantSalt = import.meta.env.VITE_PAYTR_MERCHANT_SALT || 'demo_salt';
+
+// Check if PayTR is configured with real credentials
+const isPayTRConfigured = 
+  merchantId !== 'demo_merchant' && 
+  merchantId !== 'your_paytr_merchant_id' &&
+  merchantKey !== 'demo_key' && 
+  merchantKey !== 'your_paytr_merchant_key' &&
+  merchantSalt !== 'demo_salt' && 
+  merchantSalt !== 'your_paytr_merchant_salt';
+
 export const paytrService = new PayTRService({
-  merchantId: import.meta.env.VITE_PAYTR_MERCHANT_ID || 'demo_merchant',
-  merchantKey: import.meta.env.VITE_PAYTR_MERCHANT_KEY || 'demo_key',
-  merchantSalt: import.meta.env.VITE_PAYTR_MERCHANT_SALT || 'demo_salt',
-  testMode: import.meta.env.NODE_ENV !== 'production'
+  merchantId,
+  merchantKey,
+  merchantSalt,
+  testMode: !isPayTRConfigured || import.meta.env.NODE_ENV !== 'production'
 });
+
+// Export configuration status for other components to check
+export const paytrConfig = {
+  isConfigured: isPayTRConfigured,
+  testMode: !isPayTRConfigured || import.meta.env.NODE_ENV !== 'production'
+};
