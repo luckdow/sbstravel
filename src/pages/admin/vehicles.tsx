@@ -167,20 +167,48 @@ export default function AdminVehiclesPage() {
   };
 
   const handleAddVehicle = async () => {
-    if (!vehicleForm.name || !vehicleForm.model || !vehicleForm.licensePlate) {
-      toast.error('Lütfen zorunlu alanları doldurun');
+    // Enhanced validation
+    if (!vehicleForm.name.trim()) {
+      toast.error('Araç adı gereklidir');
+      return;
+    }
+    if (!vehicleForm.model.trim()) {
+      toast.error('Araç modeli gereklidir');
+      return;
+    }
+    if (!vehicleForm.licensePlate.trim()) {
+      toast.error('Plaka bilgisi gereklidir');
+      return;
+    }
+    if (vehicleForm.passengerCapacity < 1 || vehicleForm.passengerCapacity > 12) {
+      toast.error('Yolcu kapasitesi 1-12 arasında olmalıdır');
+      return;
+    }
+    if (vehicleForm.baggageCapacity < 1 || vehicleForm.baggageCapacity > 12) {
+      toast.error('Bagaj kapasitesi 1-12 arasında olmalıdır');
+      return;
+    }
+    if (vehicleForm.pricePerKm <= 0) {
+      toast.error('Kilometre başı fiyat pozitif bir değer olmalıdır');
+      return;
+    }
+
+    // Validate license plate format (basic Turkish format)
+    const plateRegex = /^[0-9]{2}\s[A-Z]{1,3}\s[0-9]{3,4}$/;
+    if (!plateRegex.test(vehicleForm.licensePlate.trim())) {
+      toast.error('Plaka formatı hatalı. Örnek: 07 ABC 123');
       return;
     }
 
     setLoading(true);
     try {
-      await addVehicle({
-        name: vehicleForm.name,
+      const vehicleData = {
+        name: vehicleForm.name.trim(),
         type: vehicleForm.type,
-        model: vehicleForm.model,
+        model: vehicleForm.model.trim(),
         image: vehicleForm.imageUrls[0] || '/api/placeholder/300/200',
         images: vehicleForm.imageUrls,
-        licensePlate: vehicleForm.licensePlate,
+        licensePlate: vehicleForm.licensePlate.trim().toUpperCase(),
         passengerCapacity: vehicleForm.passengerCapacity,
         baggageCapacity: vehicleForm.baggageCapacity,
         pricePerKm: vehicleForm.pricePerKm,
@@ -190,14 +218,14 @@ export default function AdminVehiclesPage() {
         isActive: vehicleForm.status === 'active',
         totalKilometers: 0,
         lastMaintenance: new Date()
-      });
+      };
 
+      await addVehicle(vehicleData);
       setShowAddModal(false);
       resetForm();
-      toast.success('Araç başarıyla eklendi!');
     } catch (error) {
       console.error('Error adding vehicle:', error);
-      toast.error('Araç eklenirken hata oluştu');
+      // Error handling is done in the store
     } finally {
       setLoading(false);
     }
@@ -206,30 +234,62 @@ export default function AdminVehiclesPage() {
   const handleEditVehicle = async () => {
     if (!editingVehicle?.id) return;
 
+    // Enhanced validation
+    if (!vehicleForm.name.trim()) {
+      toast.error('Araç adı gereklidir');
+      return;
+    }
+    if (!vehicleForm.model.trim()) {
+      toast.error('Araç modeli gereklidir');
+      return;
+    }
+    if (!vehicleForm.licensePlate.trim()) {
+      toast.error('Plaka bilgisi gereklidir');
+      return;
+    }
+    if (vehicleForm.passengerCapacity < 1 || vehicleForm.passengerCapacity > 12) {
+      toast.error('Yolcu kapasitesi 1-12 arasında olmalıdır');
+      return;
+    }
+    if (vehicleForm.baggageCapacity < 1 || vehicleForm.baggageCapacity > 12) {
+      toast.error('Bagaj kapasitesi 1-12 arasında olmalıdır');
+      return;
+    }
+    if (vehicleForm.pricePerKm <= 0) {
+      toast.error('Kilometre başı fiyat pozitif bir değer olmalıdır');
+      return;
+    }
+
+    // Validate license plate format (basic Turkish format)
+    const plateRegex = /^[0-9]{2}\s[A-Z]{1,3}\s[0-9]{3,4}$/;
+    if (!plateRegex.test(vehicleForm.licensePlate.trim())) {
+      toast.error('Plaka formatı hatalı. Örnek: 07 ABC 123');
+      return;
+    }
+
     setLoading(true);
     try {
-      await editVehicle(editingVehicle.id, {
-        name: vehicleForm.name,
+      const updates = {
+        name: vehicleForm.name.trim(),
         type: vehicleForm.type,
-        model: vehicleForm.model,
-        licensePlate: vehicleForm.licensePlate,
+        model: vehicleForm.model.trim(),
+        licensePlate: vehicleForm.licensePlate.trim().toUpperCase(),
         passengerCapacity: vehicleForm.passengerCapacity,
         baggageCapacity: vehicleForm.baggageCapacity,
         pricePerKm: vehicleForm.pricePerKm,
         features: vehicleForm.features,
         extraServices: vehicleForm.extraServices,
         status: vehicleForm.status,
-        images: vehicleForm.imageUrls,
-        updatedAt: new Date()
-      });
+        images: vehicleForm.imageUrls
+      };
 
+      await editVehicle(editingVehicle.id, updates);
       setShowEditModal(false);
       setEditingVehicle(null);
       resetForm();
-      toast.success('Araç başarıyla güncellendi!');
     } catch (error) {
       console.error('Error editing vehicle:', error);
-      toast.error('Araç güncellenirken hata oluştu');
+      // Error handling is done in the store
     } finally {
       setLoading(false);
     }
@@ -493,7 +553,7 @@ export default function AdminVehiclesPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-green-600">{formatPrice(vehicle.pricePerKm)}/km</div>
-                      <div className="text-sm text-gray-500">{vehicle.totalKm.toLocaleString()} km</div>
+                      <div className="text-sm text-gray-500">{(vehicle.totalKm || 0).toLocaleString()} km</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${statusColors[vehicle.status as keyof typeof statusColors]}`}>
@@ -961,7 +1021,7 @@ export default function AdminVehiclesPage() {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">Toplam KM:</span>
-                        <span className="font-medium">{viewingVehicle.totalKm?.toLocaleString()} km</span>
+                        <span className="font-medium">{(viewingVehicle.totalKm || 0).toLocaleString()} km</span>
                       </div>
                       {viewingVehicle.driverName && (
                         <div className="flex justify-between">

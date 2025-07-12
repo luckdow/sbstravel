@@ -133,25 +133,28 @@ export default function AddDriverModal({ isOpen, onClose, onDriverAdded }: AddDr
 
     setIsSubmitting(true);
     try {
-      // Create driver object
-      const newDriver = {
-        id: `DRV-${Date.now()}`,
+      // Create driver object with Firebase-compatible structure
+      const driverData = {
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
         phone: formData.phoneNumber,
+        licenseNumber: formData.licenseNumber,
+        vehicleType: formData.vehicleTypes[0] || 'standard', // Use first selected type as primary
+        status: 'available' as const,
+        rating: 5.0,
+        totalEarnings: 0,
+        completedTrips: 0,
+        isActive: true,
+        // Additional fields
         identityNumber: formData.identityNumber,
         dateOfBirth: formData.dateOfBirth,
         address: formData.address,
-        licenseNumber: formData.licenseNumber,
         licenseExpiry: formData.licenseExpiry,
         experienceYears: formData.experienceYears,
         vehicleTypes: formData.vehicleTypes,
         username: formData.username,
-        status: 'available',
-        rating: 5.0,
-        completedTrips: 0,
-        joinDate: new Date().toISOString().split('T')[0],
+        joinDate: new Date(),
         documents: {
           licensePhoto: formData.licensePhoto?.name || null,
           identityPhoto: formData.identityPhoto?.name || null,
@@ -159,11 +162,8 @@ export default function AddDriverModal({ isOpen, onClose, onDriverAdded }: AddDr
         }
       };
 
-      // In real app, this would upload files and save to database
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      onDriverAdded(newDriver);
-      toast.success('Şoför başarıyla kaydedildi!');
+      // Call the onDriverAdded callback which uses the store
+      await onDriverAdded(driverData);
       
       // Reset form
       setFormData(initialFormData);
@@ -171,7 +171,8 @@ export default function AddDriverModal({ isOpen, onClose, onDriverAdded }: AddDr
       setErrors({});
       onClose();
     } catch (error) {
-      toast.error('Kayıt sırasında hata oluştu');
+      console.error('Error submitting driver form:', error);
+      // Error handling is done in the store
     } finally {
       setIsSubmitting(false);
     }
