@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import AdminLayout from '../../components/Admin/Layout/AdminLayout';
 import { Search, Filter, Car, Users, Luggage, DollarSign, Eye, Edit, Trash2, Plus, Upload, X, Loader2, Settings } from 'lucide-react';
 import { useStore } from '../../store/useStore';
+import { formatPrice } from '../../lib/utils/pricing';
 import toast from 'react-hot-toast';
 
 const mockVehicles = [
@@ -374,7 +375,7 @@ export default function AdminVehiclesPage() {
               </div>
               <div>
                 <div className="text-2xl font-bold text-gray-800">
-                  ₺{(mockVehicles.reduce((sum, v) => sum + v.pricePerKm, 0) / mockVehicles.length).toFixed(1)}
+                  {formatPrice((vehicles.reduce((sum, v) => sum + v.pricePerKm, 0) / Math.max(vehicles.length, 1)))} /km
                 </div>
                 <div className="text-sm text-gray-600">Ortalama Fiyat/KM</div>
               </div>
@@ -491,7 +492,7 @@ export default function AdminVehiclesPage() {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-green-600">₺{vehicle.pricePerKm}/km</div>
+                      <div className="text-sm font-medium text-green-600">{formatPrice(vehicle.pricePerKm)}/km</div>
                       <div className="text-sm text-gray-500">{vehicle.totalKm.toLocaleString()} km</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -616,7 +617,7 @@ export default function AdminVehiclesPage() {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Fiyat (₺/km)</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Fiyat ($/km)</label>
                       <input
                         type="number"
                         step="0.1"
@@ -827,7 +828,7 @@ export default function AdminVehiclesPage() {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Fiyat (₺/km)</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Fiyat ($/km)</label>
                       <input
                         type="number"
                         step="0.1"

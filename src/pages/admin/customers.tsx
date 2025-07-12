@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import AdminLayout from '../../components/Admin/Layout/AdminLayout';
 import { Search, Filter, User, Mail, Phone, Calendar, Eye, Edit, Trash2, Plus, Loader2, ArrowUpDown, TrendingDown, TrendingUp } from 'lucide-react';
 import { useStore } from '../../store/useStore';
+import { formatPrice } from '../../lib/utils/pricing';
 import toast from 'react-hot-toast';
 
 interface Customer {
@@ -291,7 +292,7 @@ export default function AdminCustomersPage() {
                 <Mail className="h-6 w-6 text-purple-600" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-gray-800">₺{Math.round(totalRevenue)}</div>
+                <div className="text-2xl font-bold text-gray-800">{formatPrice(Math.round(totalRevenue))}</div>
                 <div className="text-sm text-gray-600">Toplam Gelir</div>
               </div>
             </div>
@@ -303,7 +304,7 @@ export default function AdminCustomersPage() {
                 <User className="h-6 w-6 text-orange-600" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-gray-800">₺{Math.round(averageSpending)}</div>
+                <div className="text-2xl font-bold text-gray-800">{formatPrice(Math.round(averageSpending))}</div>
                 <div className="text-sm text-gray-600">Ortalama Harcama</div>
               </div>
             </div>
@@ -471,7 +472,7 @@ export default function AdminCustomersPage() {
                         <div className="text-sm text-gray-500">rezervasyon</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-green-600">₺{Math.round(customer.totalSpent)}</div>
+                        <div className="text-sm font-medium text-green-600">{formatPrice(Math.round(customer.totalSpent))}</div>
                         <div className="text-sm text-gray-500">toplam</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">

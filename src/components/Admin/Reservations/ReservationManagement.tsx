@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useStore } from '../../../store/useStore';
 import { Search, Filter, Calendar, MapPin, User, Car, DollarSign, Eye, Edit, Trash2 } from 'lucide-react';
 import { getLocationString } from '../../../lib/utils/location';
+import { formatPrice } from '../../../lib/utils/pricing';
 import { addReadableReservationNumbers, getDriverDisplayName } from '../../../utils/reservation';
 import ReservationDetailModal from './ReservationDetailModal';
 import AddReservationModal from './AddReservationModal';
@@ -207,7 +208,7 @@ export default function ReservationManagement() {
                     </div>
                     <div className="text-sm font-medium text-green-600 flex items-center">
                       <DollarSign className="h-3 w-3 mr-1" />
-                      ₺{Math.round(reservation.totalPrice || 0)}
+                      {formatPrice(Math.round(reservation.totalPrice || 0))}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">

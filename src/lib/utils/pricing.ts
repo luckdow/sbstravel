@@ -39,3 +39,15 @@ export const ADDITIONAL_SERVICES: AdditionalService[] = [
   { id: 'wifi', name: 'Araç İçi WiFi', price: 8 },
   { id: 'phone-charger', name: 'Telefon Şarj Aleti', price: 3 }
 ];
+
+// Currency formatting utility
+export function formatCurrency(amount: number, currency: 'USD' | 'TRY' = 'USD'): string {
+  if (currency === 'USD') {
+    return `$${amount.toFixed(2)}`;
+  } else {
+    return `₺${amount.toFixed(2)}`;
+  }
+}
+
+// Format currency for display (shorthand)
+export const formatPrice = (amount: number): string => formatCurrency(amount, 'USD');
