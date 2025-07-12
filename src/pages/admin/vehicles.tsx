@@ -1,22 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../../components/Admin/Layout/AdminLayout';
-import { Search, Filter, Plus, Edit, Trash2, Car, Calendar, Clock, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Car, Loader2 } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import toast from 'react-hot-toast';
-
-interface VehicleFormData {
-  type: 'standard' | 'premium' | 'luxury';
-  name: string;
-  model: string;
-  image: string;
-  licensePlate: string;
-  passengerCapacity: number;
-  baggageCapacity: number;
-  pricePerKm: number;
-  features: string[];
-  status: 'active' | 'maintenance' | 'inactive';
-  isActive: boolean;
-}
 
 export default function AdminVehiclesPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -31,12 +17,11 @@ export default function AdminVehiclesPage() {
     fetchVehicles, 
     addVehicle, 
     editVehicle, 
-    deleteVehicle,
-    initializeMockData
+    deleteVehicle
   } = useStore();
 
   // Form state for adding/editing vehicles
-  const [vehicleForm, setVehicleForm] = useState<VehicleFormData>({
+  const [vehicleForm, setVehicleForm] = useState({
     type: 'standard',
     name: '',
     model: '',
@@ -44,7 +29,7 @@ export default function AdminVehiclesPage() {
     licensePlate: '',
     passengerCapacity: 4,
     baggageCapacity: 4,
-    pricePerKm: 1.8,
+    pricePerKm: 4.5,
     features: ['Klima', 'Müzik Sistemi'],
     status: 'active',
     isActive: true
@@ -58,9 +43,7 @@ export default function AdminVehiclesPage() {
 
   useEffect(() => {
     fetchVehicles();
-    // Initialize mock data to ensure we have something to display
-    initializeMockData();
-  }, [fetchVehicles, initializeMockData]);
+  }, [fetchVehicles]);
 
   const filteredVehicles = vehicles.filter(vehicle => {
     const matchesSearch = vehicle.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -80,10 +63,7 @@ export default function AdminVehiclesPage() {
     try {
       await addVehicle({
         ...vehicleForm,
-        images: [vehicleForm.image],
-        extraServices: [],
-        lastMaintenance: new Date(),
-        totalKilometers: 0
+        images: [vehicleForm.image]
       });
       
       setShowAddModal(false);
@@ -107,8 +87,7 @@ export default function AdminVehiclesPage() {
     try {
       await editVehicle(selectedVehicle.id, {
         ...vehicleForm,
-        images: [vehicleForm.image],
-        updatedAt: new Date()
+        images: [vehicleForm.image]
       });
       
       setShowEditModal(false);
@@ -161,7 +140,7 @@ export default function AdminVehiclesPage() {
       licensePlate: '',
       passengerCapacity: 4,
       baggageCapacity: 4,
-      pricePerKm: 1.8,
+      pricePerKm: 4.5,
       features: ['Klima', 'Müzik Sistemi'],
       status: 'active',
       isActive: true
@@ -225,11 +204,6 @@ export default function AdminVehiclesPage() {
                 <option value="maintenance">Bakımda</option>
                 <option value="inactive">Pasif</option>
               </select>
-
-              <button className="flex items-center space-x-2 px-4 py-3 border border-gray-200 rounded-xl hover:bg-gray-50">
-                <Filter className="h-4 w-4" />
-                <span>Filtreler</span>
-              </button>
             </div>
           </div>
         </div>

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Calendar, DollarSign, Users, Car, Clock, TrendingUp, Save, Trash2 } from 'lucide-react';
+import { Calendar, DollarSign, Users, Car, Clock, TrendingUp } from 'lucide-react';
 import { useStore } from '../../../store/useStore';
 import { getSafeLocationStrings } from '../../../lib/utils/location';
 
@@ -8,65 +8,18 @@ export default function Dashboard() {
   const { 
     reservations, 
     drivers, 
-    customers,
-    vehicles,
     fetchReservations, 
     fetchDrivers, 
-    fetchCustomers,
-    fetchVehicles,
-    getStats,
-    saveDemoDataToFirebase,
-    clearAllDemoData,
-    initializeMockData,
-    loading
+    getStats
   } = useStore();
 
   useEffect(() => {
     // Fetch data when component mounts
     fetchReservations();
     fetchDrivers();
-    fetchCustomers();
-    fetchVehicles();
-    
-    // Always initialize mock data for consistent experience
-    initializeMockData();
-  }, [fetchReservations, fetchDrivers, fetchCustomers, fetchVehicles, initializeMockData]);
+  }, [fetchReservations, fetchDrivers]);
 
   const stats = getStats();
-
-  const handleSaveDemoData = async () => {
-    if (window.confirm('Tüm demo verileri Firebase\'e kaydetmek istediğinizden emin misiniz?')) {
-      await saveDemoDataToFirebase();
-    }
-  };
-
-  const handleClearDemoData = async () => {
-    if (window.confirm('Tüm demo verileri temizlemek istediğinizden emin misiniz?')) {
-      await clearAllDemoData();
-    }
-  };
-
-  // Quick action buttons
-  const quickActions = [
-    {
-      title: 'Rezervasyon Ekle',
-      icon: Calendar,
-      href: '/admin/reservations',
-      color: 'from-blue-500 to-blue-600'
-    },
-    {
-      title: 'Araç Ekle',
-      icon: Car,
-      href: '/admin/vehicles',
-      color: 'from-green-500 to-green-600'
-    },
-    {
-      title: 'Şoför Ekle',
-      icon: Users,
-      href: '/admin/drivers',
-      color: 'from-purple-500 to-purple-600'
-    }
-  ];
 
   // Core metrics
   const coreMetrics = [
@@ -105,53 +58,6 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Quick Action Buttons */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">Hızlı İşlemler</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {quickActions.map((action, index) => (
-            <Link
-              key={index}
-              to={action.href}
-              className={`flex items-center justify-center space-x-3 bg-gradient-to-r ${action.color} text-white py-3 px-4 rounded-xl font-medium hover:shadow-lg transition-all duration-300 text-sm`}
-            >
-              <action.icon className="h-5 w-5" />
-              <span>{action.title}</span>
-              <Plus className="h-4 w-4" />
-            </Link>
-          ))}
-        </div>
-      </div>
-
-      {/* Demo Data Management */}
-      <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl shadow-sm border border-gray-100 p-6">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">Demo Veri Yönetimi</h2>
-        <p className="text-gray-600 mb-4">
-          Sistemdeki demo verileri Firebase'e kaydedin veya temizleyin.
-        </p>
-        <div className="flex flex-wrap gap-3">
-          <button
-            onClick={handleSaveDemoData}
-            disabled={loading}
-            className="flex items-center space-x-2 bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg transition-all duration-300 disabled:opacity-50"
-          >
-            <Save className="h-5 w-5" />
-            <span>{loading ? 'Kaydediliyor...' : 'Demo Verileri Firebase\'e Kaydet'}</span>
-          </button>
-          <button
-            onClick={handleClearDemoData}
-            disabled={loading}
-            className="flex items-center space-x-2 bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg transition-all duration-300 disabled:opacity-50"
-          >
-            <Trash2 className="h-5 w-5" />
-            <span>Demo Verileri Temizle</span>
-          </button>
-        </div>
-        <div className="mt-4 text-sm text-gray-500">
-          Mevcut veriler: {reservations.length} rezervasyon, {drivers.length} şoför, {customers.length} müşteri, {vehicles.length} araç
-        </div>
-      </div>
-
       {/* Core Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {coreMetrics.map((metric, index) => (
@@ -174,11 +80,13 @@ export default function Dashboard() {
 
       {/* Overview Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Activity */}
+        {/* Recent Reservations */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-800">Son Aktiviteler</h2>
-            <TrendingUp className="h-5 w-5 text-gray-400" />
+            <h2 className="text-xl font-bold text-gray-800">Son Rezervasyonlar</h2>
+            <Link to="/admin/reservations" className="text-blue-600 hover:text-blue-700 font-medium">
+              Tümünü Gör
+            </Link>
           </div>
           
           {recentReservations.length > 0 ? (
@@ -204,23 +112,11 @@ export default function Dashboard() {
                 </div>
                 );
               })}
-              <Link 
-                to="/admin/reservations"
-                className="block w-full text-center bg-gray-100 text-gray-600 py-2 px-4 rounded-xl hover:bg-gray-200 transition-colors text-sm font-medium"
-              >
-                Tüm Rezervasyonları Gör
-              </Link>
             </div>
           ) : (
             <div className="text-center py-8">
               <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500">Henüz rezervasyon bulunmuyor</p>
-              <Link 
-                to="/admin/reservations"
-                className="inline-block mt-2 text-blue-600 hover:text-blue-700 text-sm font-medium"
-              >
-                İlk rezervasyonu oluştur
-              </Link>
             </div>
           )}
         </div>
@@ -229,7 +125,9 @@ export default function Dashboard() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-800">Aktif Şoförler</h2>
-            <Users className="h-5 w-5 text-gray-400" />
+            <Link to="/admin/drivers" className="text-blue-600 hover:text-blue-700 font-medium">
+              Tümünü Gör
+            </Link>
           </div>
           
           {activeDrivers.length > 0 ? (
@@ -257,23 +155,11 @@ export default function Dashboard() {
                   </div>
                 </div>
               ))}
-              <Link 
-                to="/admin/drivers"
-                className="block w-full text-center bg-gray-100 text-gray-600 py-2 px-4 rounded-xl hover:bg-gray-200 transition-colors text-sm font-medium"
-              >
-                Tüm Şoförleri Gör
-              </Link>
             </div>
           ) : (
             <div className="text-center py-8">
               <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500">Henüz aktif şoför bulunmuyor</p>
-              <Link 
-                to="/admin/drivers"
-                className="inline-block mt-2 text-blue-600 hover:text-blue-700 text-sm font-medium"
-              >
-                İlk şoförü ekle
-              </Link>
             </div>
           )}
         </div>

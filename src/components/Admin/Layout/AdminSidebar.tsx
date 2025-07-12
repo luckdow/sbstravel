@@ -1,19 +1,16 @@
 import React from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Calendar, 
   Users, 
   Car, 
-  UserCheck, 
-  DollarSign, 
-  Settings, 
   LogOut,
   X,
   Plane, 
-  Bell,
   MapPin,
-  Tag
+  Tag,
+  Settings
 } from 'lucide-react';
 import { authService } from '../../../lib/services/auth-service';
 import toast from 'react-hot-toast';
@@ -28,23 +25,19 @@ const menuItems = [
   { icon: Calendar, label: 'Rezervasyonlar', href: '/admin/reservations' },
   { icon: MapPin, label: 'Lokasyonlar', href: '/admin/locations' },
   { icon: Tag, label: 'Ek Hizmetler', href: '/admin/extra-services' },
-  { icon: Users, label: 'Müşteriler', href: '/admin/customers' },
-  { icon: Car, label: 'Araç Yönetimi', href: '/admin/vehicles' },
-  { icon: UserCheck, label: 'Şoför Yönetimi', href: '/admin/drivers' },
-  { icon: DollarSign, label: 'Ödemeler', href: '/admin/payments' },
-  { icon: Bell, label: 'Bildirimler', href: '/admin/notifications' },
+  { icon: Users, label: 'Şoförler', href: '/admin/drivers' },
+  { icon: Car, label: 'Araçlar', href: '/admin/vehicles' },
   { icon: Settings, label: 'Ayarlar', href: '/admin/settings' }
 ];
 
 export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   const location = useLocation();
-  const navigate = useNavigate();
 
   const handleLogout = async () => {
     try {
       await authService.logout();
       toast.success('Başarıyla çıkış yapıldı');
-      navigate('/admin/login');
+      window.location.href = '/admin/login';
     } catch (error) {
       toast.error('Çıkış sırasında bir hata oluştu');
     }

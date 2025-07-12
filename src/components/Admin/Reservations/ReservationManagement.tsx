@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../../../store/useStore';
-import { Search, Filter, Calendar, MapPin, User, Car, DollarSign, Eye, Edit, Trash2 } from 'lucide-react';
+import { Search, Filter, Calendar, MapPin, User, Car, DollarSign, Eye, Edit, Trash2, Plus } from 'lucide-react';
 import { getLocationString } from '../../../lib/utils/location';
 import { formatPrice } from '../../../lib/utils/pricing';
 import { addReadableReservationNumbers, getDriverDisplayName } from '../../../utils/reservation';
@@ -38,15 +38,12 @@ export default function ReservationManagement() {
     fetchDrivers,
     updateReservationStatus,
     deleteReservation,
-    initializeMockData,
     loading 
   } = useStore();
 
   useEffect(() => {
     fetchReservations();
     fetchDrivers();
-    // Initialize mock data to ensure we have something to display
-    initializeMockData();
   }, [fetchReservations, fetchDrivers]);
 
   const filteredReservations = reservations.filter(reservation => {
@@ -84,6 +81,7 @@ export default function ReservationManagement() {
           onClick={() => setShowAddModal(true)}
           className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300"
         >
+          <Plus className="h-5 w-5 inline mr-2" />
           Yeni Rezervasyon
         </button>
       </div>
@@ -118,11 +116,6 @@ export default function ReservationManagement() {
               <option value="completed">Tamamlandı</option>
               <option value="cancelled">İptal Edildi</option>
             </select>
-
-            <button className="flex items-center space-x-2 px-4 py-3 border border-gray-200 rounded-xl hover:bg-gray-50">
-              <Filter className="h-4 w-4" />
-              <span>Filtreler</span>
-            </button>
           </div>
         </div>
       </div>

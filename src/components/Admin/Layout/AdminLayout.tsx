@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import AdminSidebar from './AdminSidebar';
 import AdminHeader from './AdminHeader';
 import { useStore } from '../../../store/useStore';
@@ -14,7 +13,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const { initializeMockData } = useStore();
   
   useEffect(() => {
-    // Always initialize mock data for admin panel to ensure consistent experience
+    // Initialize mock data for consistent experience
     try {
       initializeMockData();
     } catch (error) {
