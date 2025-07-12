@@ -533,7 +533,7 @@ export default function CustomerPanel() {
                       </div>
                       <p className="text-green-700 mb-4">Sorularınızı e-posta ile gönderebilirsiniz.</p>
                       <a
-                        href="mailto:info@ayttransfer.com"
+                        href="mailto:sbstravelinfo@gmail.com"
                         className="bg-green-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-green-700 transition-colors inline-block"
                       >
                         E-posta Gönder

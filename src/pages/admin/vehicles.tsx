@@ -370,7 +370,7 @@ export default function AdminVehiclesPage() {
               </div>
               <div>
                 <div className="text-2xl font-bold text-gray-800">
-                  ${(mockVehicles.reduce((sum, v) => sum + v.pricePerKm, 0) / mockVehicles.length).toFixed(1)}
+                  ₺{(mockVehicles.reduce((sum, v) => sum + v.pricePerKm, 0) / mockVehicles.length).toFixed(1)}
                 </div>
                 <div className="text-sm text-gray-600">Ortalama Fiyat/KM</div>
               </div>
@@ -487,7 +487,7 @@ export default function AdminVehiclesPage() {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-green-600">${vehicle.pricePerKm}/km</div>
+                      <div className="text-sm font-medium text-green-600">₺{vehicle.pricePerKm}/km</div>
                       <div className="text-sm text-gray-500">{vehicle.totalKm.toLocaleString()} km</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -612,7 +612,7 @@ export default function AdminVehiclesPage() {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Fiyat ($/km)</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Fiyat (₺/km)</label>
                       <input
                         type="number"
                         step="0.1"
@@ -823,7 +823,7 @@ export default function AdminVehiclesPage() {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Fiyat ($/km)</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Fiyat (₺/km)</label>
                       <input
                         type="number"
                         step="0.1"

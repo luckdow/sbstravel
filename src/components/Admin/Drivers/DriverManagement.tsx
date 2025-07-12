@@ -44,7 +44,7 @@ const mockDrivers: Driver[] = [
     vehicleTypes: ['Standard', 'Premium'],
     joinDate: '2023-06-15',
     location: 'Antalya Merkez',
-    earnings: '$2,340',
+    earnings: '₺2,340',
     experienceYears: 8,
     isProblemDriver: false,
     financials: {
@@ -73,7 +73,7 @@ const mockDrivers: Driver[] = [
     vehicleTypes: ['Luxury', 'VIP'],
     joinDate: '2023-03-20',
     location: 'Kemer',
-    earnings: '$3,120',
+    earnings: '₺3,120',
     experienceYears: 12,
     isProblemDriver: false,
     financials: {
@@ -102,7 +102,7 @@ const mockDrivers: Driver[] = [
     vehicleTypes: ['Standard'],
     joinDate: '2023-09-10',
     location: 'Belek',
-    earnings: '$1,890',
+    earnings: '₺1,890',
     experienceYears: 5,
     isProblemDriver: true,
     problemNotes: 'Müşteri şikayeti - geç gelme problemi',
@@ -132,7 +132,7 @@ const mockDrivers: Driver[] = [
     vehicleTypes: ['Premium', 'Minibus'],
     joinDate: '2023-07-05',
     location: 'Side',
-    earnings: '$2,560',
+    earnings: '₺2,560',
     experienceYears: 7,
     isProblemDriver: false,
     financials: {
@@ -152,7 +152,6 @@ const mockDrivers: Driver[] = [
 ];
 
 export default function DriverManagement() {
-  const [drivers, setDrivers] = useState<Driver[]>(mockDrivers);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -162,7 +161,12 @@ export default function DriverManagement() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const { addDriver, editDriver, deleteDriver } = useStore();
+  const { drivers, addDriver, editDriver, deleteDriver, fetchDrivers } = useStore();
+
+  // Fetch drivers on component mount
+  useEffect(() => {
+    fetchDrivers();
+  }, [fetchDrivers]);
 
   const [editForm, setEditForm] = useState({
     firstName: '',
@@ -184,7 +188,7 @@ export default function DriverManagement() {
     return matchesSearch && matchesStatus;
   });
 
-  const handleAddDriver = (newDriver: any) => {
+  const handleAddDriver = async (newDriver: any) => {
     const driverWithFinancials = {
       ...newDriver,
       financials: {
@@ -196,14 +200,17 @@ export default function DriverManagement() {
         monthlyEarnings: {}
       }
     };
-    setDrivers(prev => [...prev, driverWithFinancials]);
-    toast.success('Şoför başarıyla eklendi!');
+    
+    // Use the store addDriver function
+    const result = await addDriver(driverWithFinancials);
+    if (result) {
+      setIsAddModalOpen(false);
+    }
   };
 
-  const handleDeleteDriver = (driverId: string) => {
+  const handleDeleteDriver = async (driverId: string) => {
     if (window.confirm('Bu şoförü silmek istediğinizden emin misiniz?')) {
-      setDrivers(prev => prev.filter(d => d.id !== driverId));
-      toast.success('Şoför başarıyla silindi');
+      await deleteDriver(driverId);
       setShowActionMenu(null);
     }
   };
@@ -234,13 +241,10 @@ export default function DriverManagement() {
         ...editForm
       };
 
-      setDrivers(prev => prev.map(d => 
-        d.id === selectedDriver.id ? updatedDriver : d
-      ));
+      await editDriver(selectedDriver.id, editForm);
 
       setShowEditModal(false);
       setSelectedDriver(null);
-      toast.success('Şoför bilgileri güncellendi!');
     } catch (error) {
       console.error('Error updating driver:', error);
       toast.error('Güncelleme sırasında hata oluştu');
@@ -255,12 +259,11 @@ export default function DriverManagement() {
     setShowActionMenu(null);
   };
 
-  const toggleProblemStatus = (driverId: string, isProblem: boolean, notes?: string) => {
-    setDrivers(prev => prev.map(d => 
-      d.id === driverId 
-        ? { ...d, isProblemDriver: isProblem, problemNotes: notes || '' }
-        : d
-    ));
+  const toggleProblemStatus = async (driverId: string, isProblem: boolean, notes?: string) => {
+    await editDriver(driverId, { 
+      isProblemDriver: isProblem, 
+      problemNotes: notes || '' 
+    });
     toast.success(isProblem ? 'Şoför problemli olarak işaretlendi' : 'Problem işareti kaldırıldı');
   };
 
@@ -479,7 +482,7 @@ export default function DriverManagement() {
                     <div className="text-xs text-gray-500">Bu ay</div>
                     {driver.financials && (
                       <div className={`text-xs ${driver.financials.currentBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        Bakiye: ${driver.financials.currentBalance}
+                        Bakiye: ₺{Math.round(driver.financials.currentBalance)}
                       </div>
                     )}
                   </td>
@@ -660,7 +663,7 @@ export default function DriverManagement() {
                           <div className="bg-green-50 p-4 rounded-lg">
                             <div className="text-green-600 text-sm">Toplam Kazanç</div>
                             <div className="text-xl font-bold text-green-700">
-                              ${selectedDriver.financials.totalEarnings.toLocaleString()}
+                              ₺{selectedDriver.financials.totalEarnings.toLocaleString()}
                             </div>
                           </div>
                           <div className={`p-4 rounded-lg ${
@@ -674,7 +677,7 @@ export default function DriverManagement() {
                             <div className={`text-xl font-bold ${
                               selectedDriver.financials.currentBalance >= 0 ? 'text-blue-700' : 'text-red-700'
                             }`}>
-                              ${selectedDriver.financials.currentBalance}
+                              ₺{Math.round(selectedDriver.financials.currentBalance)}
                             </div>
                           </div>
                         </div>
@@ -684,13 +687,13 @@ export default function DriverManagement() {
                             <div className="flex justify-between">
                               <span className="text-gray-600">Alacaklar:</span>
                               <span className="font-medium text-green-600">
-                                ${selectedDriver.financials.receivables}
+                                ₺{Math.round(selectedDriver.financials.receivables)}
                               </span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-600">Borçlar:</span>
                               <span className="font-medium text-red-600">
-                                ${selectedDriver.financials.payables}
+                                ₺{Math.round(selectedDriver.financials.payables)}
                               </span>
                             </div>
                             <div className="flex justify-between">
@@ -725,7 +728,7 @@ export default function DriverManagement() {
                                     month: 'long' 
                                   })}
                                 </span>
-                                <span className="text-green-600 font-semibold">${earnings}</span>
+                                <span className="text-green-600 font-semibold">₺{Math.round(earnings)}</span>
                               </div>
                             ))}
                           </div>

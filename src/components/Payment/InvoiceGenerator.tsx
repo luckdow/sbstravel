@@ -132,7 +132,7 @@ export default function InvoiceGenerator({
               <DollarSign className="h-4 w-4 text-green-600" />
               <span className="font-semibold text-gray-800">Toplam Tutar</span>
             </div>
-            <div className="text-lg font-bold text-green-600">${invoiceData.total.toFixed(2)}</div>
+            <div className="text-lg font-bold text-green-600">${invoiceData.total.toFixed(0)}</div>
           </div>
         </div>
 
@@ -167,10 +167,10 @@ export default function InvoiceGenerator({
                       {item.quantity}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      ${item.unitPrice.toFixed(2)}
+                      ${item.unitPrice.toFixed(0)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
-                      ${item.total.toFixed(2)}
+                      ${item.total.toFixed(0)}
                     </td>
                   </tr>
                 ))}
@@ -185,17 +185,17 @@ export default function InvoiceGenerator({
           <div className="space-y-4">
             <div className="flex justify-between items-center p-4 bg-gray-50 rounded-xl">
               <span className="text-gray-600">Ara Toplam:</span>
-              <span className="font-semibold">${invoiceData.subtotal.toFixed(2)}</span>
+              <span className="font-semibold">${invoiceData.subtotal.toFixed(0)}</span>
             </div>
             
             <div className="flex justify-between items-center p-4 bg-gray-50 rounded-xl">
               <span className="text-gray-600">KDV (%18):</span>
-              <span className="font-semibold">${invoiceData.tax.toFixed(2)}</span>
+              <span className="font-semibold">${invoiceData.tax.toFixed(0)}</span>
             </div>
             
             <div className="flex justify-between items-center p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl border-2 border-green-200">
               <span className="text-lg font-bold text-gray-800">GENEL TOPLAM:</span>
-              <span className="text-2xl font-bold text-green-600">${invoiceData.total.toFixed(2)}</span>
+              <span className="text-2xl font-bold text-green-600">${invoiceData.total.toFixed(0)}</span>
             </div>
           </div>
 
@@ -229,8 +229,8 @@ export default function InvoiceGenerator({
               <h4 className="font-bold text-gray-800 mb-2">İletişim</h4>
               <div className="text-sm text-gray-600 space-y-1">
                 <div>Tel: +90 242 123 45 67</div>
-                <div>E-posta: info@ayttransfer.com</div>
-                <div>Web: www.ayttransfer.com</div>
+                <div>E-posta: sbstravelinfo@gmail.com</div>
+                <div>Web: www.sbstravel.com</div>
               </div>
             </div>
           </div>

@@ -35,11 +35,11 @@ export interface InvoiceData {
 export class InvoiceService {
   private static instance: InvoiceService;
   private companyInfo = {
-    name: 'AYT Transfer Ltd. Şti.',
+    name: 'SBS TRAVEL Ltd. Şti.',
     address: 'Muratpaşa Mah. Atatürk Cad. No:123/A Muratpaşa/ANTALYA',
     taxNumber: '1234567890',
     phone: '+90 242 123 45 67',
-    email: 'info@ayttransfer.com'
+    email: 'sbstravelinfo@gmail.com'
   };
 
   public static getInstance(): InvoiceService {
@@ -175,9 +175,9 @@ ${invoiceData.items.map(item =>
   `${item.description} - ${item.quantity} x $${item.unitPrice} = $${item.total}`
 ).join('\n')}
 
-ARA TOPLAM: $${invoiceData.subtotal.toFixed(2)}
-KDV (%18): $${invoiceData.tax.toFixed(2)}
-GENEL TOPLAM: $${invoiceData.total.toFixed(2)}
+ARA TOPLAM: $${invoiceData.subtotal.toFixed(0)}
+KDV (%18): $${invoiceData.tax.toFixed(0)}
+GENEL TOPLAM: $${invoiceData.total.toFixed(0)}
 
 QR Kod: ${invoiceData.qrCode}
     `;
@@ -207,9 +207,9 @@ QR Kod: ${invoiceData.qrCode}
       // like Twilio, Nexmo, or a local Turkish SMS provider
       
       const message = `
-AYT Transfer Faturanız Hazır!
+SBS TRAVEL Faturanız Hazır!
 Fatura No: ${invoiceData.invoiceNumber}
-Tutar: $${invoiceData.total.toFixed(2)}
+Tutar: $${invoiceData.total.toFixed(0)}
 QR Kod: ${invoiceData.qrCode}
 Detaylar için: ${process.env.REACT_APP_BASE_URL}/invoice/${invoiceData.invoiceNumber}
       `;

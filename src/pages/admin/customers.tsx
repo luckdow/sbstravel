@@ -28,7 +28,6 @@ export default function AdminCustomersPage() {
   const [sortBy, setSortBy] = useState<SortOption>('alphabetical');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [showAddModal, setShowAddModal] = useState(false);
-  const [showReservationModal, setShowReservationModal] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [loading, setLoading] = useState(false);
   
@@ -48,19 +47,6 @@ export default function AdminCustomersPage() {
     lastName: '',
     email: '',
     phone: ''
-  });
-
-  // Form state for creating reservation along with customer
-  const [reservationForm, setReservationForm] = useState({
-    transferType: 'airport-hotel' as 'airport-hotel' | 'hotel-airport',
-    pickupLocation: '',
-    dropoffLocation: '',
-    pickupDate: '',
-    pickupTime: '',
-    passengerCount: 1,
-    baggageCount: 1,
-    vehicleType: 'standard' as 'standard' | 'premium' | 'luxury',
-    notes: ''
   });
 
   useEffect(() => {
@@ -269,13 +255,6 @@ export default function AdminCustomersPage() {
               <Plus className="h-5 w-5" />
               <span>Yeni Müşteri</span>
             </button>
-            <button
-              onClick={() => setShowReservationModal(true)}
-              className="bg-gradient-to-r from-green-600 to-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 flex items-center space-x-2"
-            >
-              <Plus className="h-5 w-5" />
-              <span>Müşteri + Rezervasyon</span>
-            </button>
           </div>
         </div>
 
@@ -311,7 +290,7 @@ export default function AdminCustomersPage() {
                 <Mail className="h-6 w-6 text-purple-600" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-gray-800">${totalRevenue.toFixed(0)}</div>
+                <div className="text-2xl font-bold text-gray-800">₺{Math.round(totalRevenue)}</div>
                 <div className="text-sm text-gray-600">Toplam Gelir</div>
               </div>
             </div>
@@ -323,7 +302,7 @@ export default function AdminCustomersPage() {
                 <User className="h-6 w-6 text-orange-600" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-gray-800">${averageSpending.toFixed(0)}</div>
+                <div className="text-2xl font-bold text-gray-800">₺{Math.round(averageSpending)}</div>
                 <div className="text-sm text-gray-600">Ortalama Harcama</div>
               </div>
             </div>
@@ -491,7 +470,7 @@ export default function AdminCustomersPage() {
                         <div className="text-sm text-gray-500">rezervasyon</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-green-600">${customer.totalSpent.toFixed(2)}</div>
+                        <div className="text-sm font-medium text-green-600">₺{Math.round(customer.totalSpent)}</div>
                         <div className="text-sm text-gray-500">toplam</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">

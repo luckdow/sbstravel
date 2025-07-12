@@ -24,7 +24,7 @@ export default function DriverLoginPage() {
 
     try {
       // Demo login - gerçek sistemde authentication yapılacak
-      if (credentials.email === 'sofor@ayttransfer.com' && credentials.password === 'sofor123') {
+      if (credentials.email === 'sofor@sbstravel.com' && credentials.password === 'sofor123') {
         localStorage.setItem('driverToken', 'demo-driver-token');
         toast.success('Şoför girişi başarılı!');
         navigate('/driver');
@@ -65,7 +65,7 @@ export default function DriverLoginPage() {
                   value={credentials.email}
                   onChange={(e) => setCredentials({...credentials, email: e.target.value})}
                   className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="sofor@ayttransfer.com"
+                  placeholder="sofor@sbstravel.com"
                   required
                 />
               </div>
