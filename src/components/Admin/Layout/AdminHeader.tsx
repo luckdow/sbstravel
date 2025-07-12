@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Menu, Search, User, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../../../lib/services/auth-service';
-import NotificationCenter from '../../Communication/NotificationCenter';
 import toast from 'react-hot-toast';
 
 interface AdminHeaderProps {
@@ -76,7 +75,7 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
         {/* Right side */}
         <div className="flex items-center space-x-4">
           {/* Search */}
-          <div className="hidden md:flex relative">
+          <div className="hidden lg:flex relative">
             <form onSubmit={handleSearch} className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
@@ -88,17 +87,14 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
               />
             </form>
           </div>
-          
-          {/* Notifications */}
-          <NotificationCenter />
-          
+                    
           {/* Profile */}
           <div className="relative dropdown-container">
             <button 
               onClick={() => setShowProfile(!showProfile)}
               className="flex items-center space-x-3 hover:bg-gray-50 rounded-lg p-2"
             >
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
+              <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-green-600 rounded-full flex items-center justify-center">
                 <User className="h-4 w-4 text-white" />
               </div>
               <div className="hidden md:block text-left">
@@ -125,7 +121,7 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
                       </p>
                       <p className="text-sm text-gray-600">
                         {currentUser?.email || 'admin@sbstravel.com'}
-                      </p>
+                  <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-green-600 rounded-full flex items-center justify-center">
                     </div>
                   </div>
                 </div>

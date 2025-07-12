@@ -172,7 +172,7 @@ export default function AdminVehiclesPage() {
           </div>
           <button
             onClick={() => setShowAddModal(true)}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 flex items-center space-x-2"
+            className="bg-gradient-to-r from-purple-600 to-green-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 flex items-center space-x-2"
           >
             <Plus className="h-5 w-5" />
             <span>Yeni Araç Ekle</span>
@@ -189,7 +189,7 @@ export default function AdminVehiclesPage() {
                 placeholder="Araç adı, model veya plaka ara..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
 
@@ -197,7 +197,7 @@ export default function AdminVehiclesPage() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
               >
                 <option value="all">Tüm Durumlar</option>
                 <option value="active">Aktif</option>
@@ -212,7 +212,7 @@ export default function AdminVehiclesPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {loading ? (
             <div className="col-span-full flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-blue-600 mr-3" />
+              <Loader2 className="h-8 w-8 animate-spin text-purple-600 mr-3" />
               <span className="text-gray-600">Araçlar yükleniyor...</span>
             </div>
           ) : filteredVehicles.length === 0 ? (
@@ -263,7 +263,7 @@ export default function AdminVehiclesPage() {
                   
                   <div className="flex flex-wrap gap-1 mb-4">
                     {vehicle.features.slice(0, 3).map((feature, index) => (
-                      <span key={index} className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-lg">
+                      <span key={index} className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-lg">
                         {feature}
                       </span>
                     ))}
@@ -279,7 +279,7 @@ export default function AdminVehiclesPage() {
                     <div className="flex space-x-2">
                       <button
                         onClick={() => openEditModal(vehicle)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
                       >
                         <Edit className="h-5 w-5" />
                       </button>
@@ -311,7 +311,7 @@ export default function AdminVehiclesPage() {
                     <select
                       value={vehicleForm.type}
                       onChange={(e) => setVehicleForm({...vehicleForm, type: e.target.value as any})}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                     >
                       <option value="standard">Standart</option>
                       <option value="premium">Premium</option>
@@ -323,7 +323,7 @@ export default function AdminVehiclesPage() {
                     <select
                       value={vehicleForm.status}
                       onChange={(e) => setVehicleForm({...vehicleForm, status: e.target.value as any})}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                     >
                       <option value="active">Aktif</option>
                       <option value="maintenance">Bakımda</option>
@@ -339,7 +339,7 @@ export default function AdminVehiclesPage() {
                       type="text"
                       value={vehicleForm.name}
                       onChange={(e) => setVehicleForm({...vehicleForm, name: e.target.value})}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                       placeholder="Örn: Mercedes Vito"
                     />
                   </div>
@@ -349,7 +349,7 @@ export default function AdminVehiclesPage() {
                       type="text"
                       value={vehicleForm.model}
                       onChange={(e) => setVehicleForm({...vehicleForm, model: e.target.value})}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                       placeholder="Örn: 2023 Model"
                     />
                   </div>
@@ -361,7 +361,7 @@ export default function AdminVehiclesPage() {
                     type="text"
                     value={vehicleForm.licensePlate}
                     onChange={(e) => setVehicleForm({...vehicleForm, licensePlate: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                     placeholder="Örn: 07 ABC 123"
                   />
                 </div>
@@ -373,7 +373,7 @@ export default function AdminVehiclesPage() {
                       type="number"
                       value={vehicleForm.passengerCapacity}
                       onChange={(e) => setVehicleForm({...vehicleForm, passengerCapacity: parseInt(e.target.value)})}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                       min="1"
                       max="20"
                     />
@@ -384,7 +384,7 @@ export default function AdminVehiclesPage() {
                       type="number"
                       value={vehicleForm.baggageCapacity}
                       onChange={(e) => setVehicleForm({...vehicleForm, baggageCapacity: parseInt(e.target.value)})}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                       min="1"
                       max="20"
                     />
@@ -397,7 +397,7 @@ export default function AdminVehiclesPage() {
                     type="number"
                     value={vehicleForm.pricePerKm}
                     onChange={(e) => setVehicleForm({...vehicleForm, pricePerKm: parseFloat(e.target.value)})}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                     min="0.1"
                     step="0.1"
                   />
@@ -409,7 +409,7 @@ export default function AdminVehiclesPage() {
                     type="text"
                     value={vehicleForm.image}
                     onChange={(e) => setVehicleForm({...vehicleForm, image: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                     placeholder="https://example.com/image.jpg"
                   />
                 </div>
@@ -423,7 +423,7 @@ export default function AdminVehiclesPage() {
                           type="checkbox"
                           checked={vehicleForm.features.includes(feature)}
                           onChange={() => toggleFeature(feature)}
-                          className="h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
+                          className="h-4 w-4 text-purple-600 rounded focus:ring-purple-500"
                         />
                         <span className="text-sm font-medium text-gray-900">{feature}</span>
                       </label>
@@ -441,7 +441,7 @@ export default function AdminVehiclesPage() {
                 <button
                   onClick={handleAddVehicle}
                   disabled={loading}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center"
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-green-600 text-white rounded-xl hover:shadow-lg disabled:opacity-50 flex items-center justify-center"
                 >
                   {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Ekle'}
                 </button>
@@ -464,7 +464,7 @@ export default function AdminVehiclesPage() {
                     <select
                       value={vehicleForm.type}
                       onChange={(e) => setVehicleForm({...vehicleForm, type: e.target.value as any})}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                     >
                       <option value="standard">Standart</option>
                       <option value="premium">Premium</option>
@@ -476,7 +476,7 @@ export default function AdminVehiclesPage() {
                     <select
                       value={vehicleForm.status}
                       onChange={(e) => setVehicleForm({...vehicleForm, status: e.target.value as any})}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                     >
                       <option value="active">Aktif</option>
                       <option value="maintenance">Bakımda</option>
@@ -492,7 +492,7 @@ export default function AdminVehiclesPage() {
                       type="text"
                       value={vehicleForm.name}
                       onChange={(e) => setVehicleForm({...vehicleForm, name: e.target.value})}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                     />
                   </div>
                   <div>
@@ -501,7 +501,7 @@ export default function AdminVehiclesPage() {
                       type="text"
                       value={vehicleForm.model}
                       onChange={(e) => setVehicleForm({...vehicleForm, model: e.target.value})}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                     />
                   </div>
                 </div>
@@ -512,7 +512,7 @@ export default function AdminVehiclesPage() {
                     type="text"
                     value={vehicleForm.licensePlate}
                     onChange={(e) => setVehicleForm({...vehicleForm, licensePlate: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
                 
@@ -523,7 +523,7 @@ export default function AdminVehiclesPage() {
                       type="number"
                       value={vehicleForm.passengerCapacity}
                       onChange={(e) => setVehicleForm({...vehicleForm, passengerCapacity: parseInt(e.target.value)})}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                       min="1"
                       max="20"
                     />
@@ -534,7 +534,7 @@ export default function AdminVehiclesPage() {
                       type="number"
                       value={vehicleForm.baggageCapacity}
                       onChange={(e) => setVehicleForm({...vehicleForm, baggageCapacity: parseInt(e.target.value)})}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                       min="1"
                       max="20"
                     />
@@ -547,7 +547,7 @@ export default function AdminVehiclesPage() {
                     type="number"
                     value={vehicleForm.pricePerKm}
                     onChange={(e) => setVehicleForm({...vehicleForm, pricePerKm: parseFloat(e.target.value)})}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                     min="0.1"
                     step="0.1"
                   />
@@ -559,7 +559,7 @@ export default function AdminVehiclesPage() {
                     type="text"
                     value={vehicleForm.image}
                     onChange={(e) => setVehicleForm({...vehicleForm, image: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
                 
@@ -572,7 +572,7 @@ export default function AdminVehiclesPage() {
                           type="checkbox"
                           checked={vehicleForm.features.includes(feature)}
                           onChange={() => toggleFeature(feature)}
-                          className="h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
+                          className="h-4 w-4 text-purple-600 rounded focus:ring-purple-500"
                         />
                         <span className="text-sm font-medium text-gray-900">{feature}</span>
                       </label>
@@ -590,7 +590,7 @@ export default function AdminVehiclesPage() {
                 <button
                   onClick={handleEditVehicle}
                   disabled={loading}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center"
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-green-600 text-white rounded-xl hover:shadow-lg disabled:opacity-50 flex items-center justify-center"
                 >
                   {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Güncelle'}
                 </button>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../../../store/useStore';
-import { Search, Filter, Calendar, MapPin, User, Car, DollarSign, Eye, Edit, Trash2, Plus } from 'lucide-react';
+import { Search, Filter, CalendarCheck, MapPin, User, Car, DollarSign, Eye, Edit, Trash2, Plus } from 'lucide-react';
 import { getLocationString } from '../../../lib/utils/location';
 import { formatPrice } from '../../../lib/utils/pricing';
 import { addReadableReservationNumbers, getDriverDisplayName } from '../../../utils/reservation';
@@ -79,7 +79,7 @@ export default function ReservationManagement() {
         </div>
         <button 
           onClick={() => setShowAddModal(true)}
-          className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300"
+          className="bg-gradient-to-r from-purple-600 to-green-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300"
         >
           <Plus className="h-5 w-5 inline mr-2" />
           Yeni Rezervasyon
@@ -97,7 +97,7 @@ export default function ReservationManagement() {
               placeholder="Rezervasyon ID veya müşteri adı ara..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             />
           </div>
 
@@ -106,7 +106,7 @@ export default function ReservationManagement() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
             >
               <option value="all">Tüm Durumlar</option>
               <option value="pending">Beklemede</option>
@@ -189,7 +189,7 @@ export default function ReservationManagement() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900 flex items-center">
-                      <Calendar className="h-3 w-3 mr-1" />
+                      <CalendarCheck className="h-3 w-3 mr-1" />
                       {reservation.pickupDate || 'N/A'}
                     </div>
                     <div className="text-sm text-gray-500">{reservation.pickupTime || 'N/A'}</div>
@@ -236,7 +236,7 @@ export default function ReservationManagement() {
                     <div className="flex space-x-2">
                       <button 
                         onClick={() => setSelectedReservation(reservation)}
-                        className="text-blue-600 hover:text-blue-900"
+                        className="text-purple-600 hover:text-purple-900"
                       >
                         <Eye className="h-4 w-4" />
                       </button>

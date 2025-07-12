@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, DollarSign, Users, Car, Clock, TrendingUp } from 'lucide-react';
+import { CalendarCheck, DollarSign, Users, Car, Clock, TrendingUp } from 'lucide-react';
 import { useStore } from '../../../store/useStore';
 import { getSafeLocationStrings } from '../../../lib/utils/location';
 
@@ -26,8 +26,8 @@ export default function Dashboard() {
     {
       title: 'Bugünkü Rezervasyonlar',
       value: stats.todayReservations,
-      icon: Calendar,
-      color: 'from-blue-500 to-blue-600',
+      icon: CalendarCheck,
+      color: 'from-purple-500 to-purple-600',
       change: '+12%'
     },
     {
@@ -41,20 +41,20 @@ export default function Dashboard() {
       title: 'Aktif Şoförler',
       value: stats.activeDrivers,
       icon: Users,
-      color: 'from-purple-500 to-purple-600',
+      color: 'from-purple-500 to-green-600',
       change: '+2'
     },
     {
       title: 'Kullanımdaki Araçlar',
       value: stats.vehiclesInUse,
       icon: Car,
-      color: 'from-orange-500 to-orange-600',
+      color: 'from-green-500 to-purple-600',
       change: `${drivers.length > 0 ? Math.round((stats.vehiclesInUse / drivers.length) * 100) : 0}%`
     }
   ];
 
-  const recentReservations = reservations.slice(0, 3);
-  const activeDrivers = drivers.filter(d => d.status === 'available' || d.status === 'busy').slice(0, 3);
+  const recentReservations = reservations.slice(0, 5);
+  const activeDrivers = drivers.filter(d => d.status === 'available' || d.status === 'busy').slice(0, 5);
 
   return (
     <div className="space-y-6">
@@ -84,7 +84,7 @@ export default function Dashboard() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-800">Son Rezervasyonlar</h2>
-            <Link to="/admin/reservations" className="text-blue-600 hover:text-blue-700 font-medium">
+            <Link to="/admin/reservations" className="text-purple-600 hover:text-purple-700 font-medium">
               Tümünü Gör
             </Link>
           </div>
@@ -95,8 +95,8 @@ export default function Dashboard() {
                 const { pickup, dropoff } = getSafeLocationStrings(reservation.pickupLocation, reservation.dropoffLocation);
                 return (
                 <div key={index} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-xl">
-                  <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                    <Calendar className="h-5 w-5 text-white" />
+                  <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-green-500 rounded-full flex items-center justify-center">
+                    <CalendarCheck className="h-5 w-5 text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium text-gray-800 truncate">
@@ -115,7 +115,7 @@ export default function Dashboard() {
             </div>
           ) : (
             <div className="text-center py-8">
-              <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+              <CalendarCheck className="h-12 w-12 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500">Henüz rezervasyon bulunmuyor</p>
             </div>
           )}
@@ -125,7 +125,7 @@ export default function Dashboard() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-800">Aktif Şoförler</h2>
-            <Link to="/admin/drivers" className="text-blue-600 hover:text-blue-700 font-medium">
+            <Link to="/admin/drivers" className="text-purple-600 hover:text-purple-700 font-medium">
               Tümünü Gör
             </Link>
           </div>
@@ -135,11 +135,11 @@ export default function Dashboard() {
               {activeDrivers.map((driver, index) => (
                 <div key={index} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-xl">
                   <div className="relative">
-                    <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                    <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
                       {driver.firstName?.[0]}{driver.lastName?.[0]}
                     </div>
                     <div className={`absolute -bottom-1 -right-1 w-4 h-4 ${
-                      driver.status === 'available' ? 'bg-green-500' : 'bg-blue-500'
+                      driver.status === 'available' ? 'bg-green-500' : 'bg-purple-500'
                     } rounded-full border-2 border-white`} />
                   </div>
                   <div className="flex-1 min-w-0">

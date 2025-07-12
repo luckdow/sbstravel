@@ -2,15 +2,15 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
-  Calendar, 
+  CalendarCheck, 
   Users, 
   Car, 
   LogOut,
   X,
-  Plane, 
+  Plane,
   MapPin,
-  Tag,
-  Settings
+  Settings,
+  DollarSign
 } from 'lucide-react';
 import { authService } from '../../../lib/services/auth-service';
 import toast from 'react-hot-toast';
@@ -22,12 +22,13 @@ interface AdminSidebarProps {
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/admin' },
-  { icon: Calendar, label: 'Rezervasyonlar', href: '/admin/reservations' },
-  { icon: MapPin, label: 'Lokasyonlar', href: '/admin/locations' },
-  { icon: Tag, label: 'Ek Hizmetler', href: '/admin/extra-services' },
-  { icon: Users, label: 'Şoförler', href: '/admin/drivers' },
+  { icon: CalendarCheck, label: 'Rezervasyonlar', href: '/admin/reservations' },
+  { icon: Users, label: 'Müşteriler', href: '/admin/customers' },
   { icon: Car, label: 'Araçlar', href: '/admin/vehicles' },
-  { icon: Settings, label: 'Ayarlar', href: '/admin/settings' }
+  { icon: Users, label: 'Şoförler', href: '/admin/drivers' },
+  { icon: MapPin, label: 'Lokasyonlar', href: '/admin/locations' },
+  { icon: DollarSign, label: 'Ödemeler', href: '/admin/payments' },
+  { icon: Settings, label: 'Sistem Ayarları', href: '/admin/settings' }
 ];
 
 export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
@@ -62,12 +63,12 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
           <div className="flex items-center space-x-3">
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl blur opacity-75"></div>
-              <div className="relative bg-gradient-to-r from-blue-600 to-purple-600 p-2 rounded-xl">
+              <div className="relative bg-gradient-to-r from-purple-600 to-green-600 p-2 rounded-xl">
                 <Plane className="h-6 w-6 text-white" />
               </div>
             </div>
             <div>
-              <h1 className="text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <h1 className="text-lg font-bold bg-gradient-to-r from-purple-600 to-green-600 bg-clip-text text-transparent">
                 SBS TRAVEL
               </h1>
               <p className="text-xs text-gray-500">Admin Panel</p>
@@ -88,9 +89,9 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
               key={index}
               to={item.href}
               onClick={onClose}
-              className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+              className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 ${
                 location.pathname === item.href
-                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg' 
+                  ? 'bg-gradient-to-r from-purple-600 to-green-600 text-white shadow-lg' 
                   : 'text-gray-700 hover:bg-gray-100'
               }`}
             >

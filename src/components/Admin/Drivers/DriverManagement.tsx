@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, User, Car, Star, Phone, MapPin, Edit, Trash2, Eye, Loader2 } from 'lucide-react';
+import { Search, Plus, User, Car, Star, Phone, MapPin, Edit, Trash2, Loader2 } from 'lucide-react';
 import { useStore } from '../../../store/useStore';
 import toast from 'react-hot-toast';
 
@@ -166,7 +166,7 @@ export default function DriverManagement() {
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 flex items-center space-x-2"
+          className="bg-gradient-to-r from-purple-600 to-green-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 flex items-center space-x-2"
         >
           <Plus className="h-5 w-5" />
           <span>Yeni Şoför Ekle</span>
@@ -184,7 +184,7 @@ export default function DriverManagement() {
               placeholder="Şoför adı, telefon veya ID ara..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             />
           </div>
 
@@ -193,7 +193,7 @@ export default function DriverManagement() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
             >
               <option value="all">Tüm Durumlar</option>
               <option value="available">Müsait</option>
@@ -242,7 +242,7 @@ export default function DriverManagement() {
                 <tr key={driver.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
+                      <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-green-500 rounded-full flex items-center justify-center text-white font-semibold">
                         {driver.firstName[0]}{driver.lastName[0]}
                       </div>
                       <div>
@@ -285,7 +285,7 @@ export default function DriverManagement() {
                     <div className="flex space-x-2">
                       <button
                         onClick={() => openEditModal(driver)}
-                        className="text-blue-600 hover:text-blue-900"
+                        className="text-purple-600 hover:text-purple-900"
                       >
                         <Edit className="h-4 w-4" />
                       </button>
@@ -320,7 +320,7 @@ export default function DriverManagement() {
                     type="text"
                     value={driverForm.firstName}
                     onChange={(e) => setDriverForm({...driverForm, firstName: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
                 <div>
@@ -329,7 +329,7 @@ export default function DriverManagement() {
                     type="text"
                     value={driverForm.lastName}
                     onChange={(e) => setDriverForm({...driverForm, lastName: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
               </div>
@@ -339,7 +339,7 @@ export default function DriverManagement() {
                   type="email"
                   value={driverForm.email}
                   onChange={(e) => setDriverForm({...driverForm, email: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                 />
               </div>
               <div>
@@ -348,7 +348,7 @@ export default function DriverManagement() {
                   type="tel"
                   value={driverForm.phone}
                   onChange={(e) => setDriverForm({...driverForm, phone: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                 />
               </div>
               <div>
@@ -357,7 +357,7 @@ export default function DriverManagement() {
                   type="text"
                   value={driverForm.licenseNumber}
                   onChange={(e) => setDriverForm({...driverForm, licenseNumber: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                 />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -366,7 +366,7 @@ export default function DriverManagement() {
                   <select
                     value={driverForm.vehicleType}
                     onChange={(e) => setDriverForm({...driverForm, vehicleType: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                   >
                     <option value="standard">Standart</option>
                     <option value="premium">Premium</option>
@@ -378,7 +378,7 @@ export default function DriverManagement() {
                   <select
                     value={driverForm.status}
                     onChange={(e) => setDriverForm({...driverForm, status: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                   >
                     <option value="available">Müsait</option>
                     <option value="busy">Meşgul</option>
@@ -392,7 +392,7 @@ export default function DriverManagement() {
                   type="text"
                   value={driverForm.currentLocation}
                   onChange={(e) => setDriverForm({...driverForm, currentLocation: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                 />
               </div>
             </div>
@@ -406,7 +406,7 @@ export default function DriverManagement() {
               <button
                 onClick={handleAddDriver}
                 disabled={loading}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center"
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-green-600 text-white rounded-xl hover:shadow-lg disabled:opacity-50 flex items-center justify-center"
               >
                 {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Ekle'}
               </button>
@@ -430,7 +430,7 @@ export default function DriverManagement() {
                     type="text"
                     value={driverForm.firstName}
                     onChange={(e) => setDriverForm({...driverForm, firstName: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
                 <div>
@@ -439,7 +439,7 @@ export default function DriverManagement() {
                     type="text"
                     value={driverForm.lastName}
                     onChange={(e) => setDriverForm({...driverForm, lastName: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
               </div>
@@ -449,7 +449,7 @@ export default function DriverManagement() {
                   type="email"
                   value={driverForm.email}
                   onChange={(e) => setDriverForm({...driverForm, email: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                 />
               </div>
               <div>
@@ -458,7 +458,7 @@ export default function DriverManagement() {
                   type="tel"
                   value={driverForm.phone}
                   onChange={(e) => setDriverForm({...driverForm, phone: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                 />
               </div>
               <div>
@@ -467,7 +467,7 @@ export default function DriverManagement() {
                   type="text"
                   value={driverForm.licenseNumber}
                   onChange={(e) => setDriverForm({...driverForm, licenseNumber: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                 />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -476,7 +476,7 @@ export default function DriverManagement() {
                   <select
                     value={driverForm.vehicleType}
                     onChange={(e) => setDriverForm({...driverForm, vehicleType: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                   >
                     <option value="standard">Standart</option>
                     <option value="premium">Premium</option>
@@ -488,7 +488,7 @@ export default function DriverManagement() {
                   <select
                     value={driverForm.status}
                     onChange={(e) => setDriverForm({...driverForm, status: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                   >
                     <option value="available">Müsait</option>
                     <option value="busy">Meşgul</option>
@@ -502,7 +502,7 @@ export default function DriverManagement() {
                   type="text"
                   value={driverForm.currentLocation}
                   onChange={(e) => setDriverForm({...driverForm, currentLocation: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                 />
               </div>
             </div>
@@ -516,7 +516,7 @@ export default function DriverManagement() {
               <button
                 onClick={handleEditDriver}
                 disabled={loading}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center"
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-green-600 text-white rounded-xl hover:shadow-lg disabled:opacity-50 flex items-center justify-center"
               >
                 {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Güncelle'}
               </button>
