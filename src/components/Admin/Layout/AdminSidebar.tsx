@@ -10,8 +10,10 @@ import {
   Settings, 
   LogOut,
   X,
-  Plane,
-  Bell
+  Plane, 
+  Bell,
+  MapPin,
+  Tag
 } from 'lucide-react';
 import { authService } from '../../../lib/services/auth-service';
 import toast from 'react-hot-toast';
@@ -24,6 +26,8 @@ interface AdminSidebarProps {
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/admin' },
   { icon: Calendar, label: 'Rezervasyonlar', href: '/admin/reservations' },
+  { icon: MapPin, label: 'Lokasyonlar', href: '/admin/locations' },
+  { icon: Tag, label: 'Ek Hizmetler', href: '/admin/extra-services' },
   { icon: Users, label: 'Müşteriler', href: '/admin/customers' },
   { icon: Car, label: 'Araç Yönetimi', href: '/admin/vehicles' },
   { icon: UserCheck, label: 'Şoför Yönetimi', href: '/admin/drivers' },

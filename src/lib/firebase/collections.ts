@@ -14,7 +14,7 @@ import {
   onSnapshot
 } from 'firebase/firestore';
 import { db } from '../../config/firebase';
-import { Reservation, Driver, Vehicle, Customer, Commission } from '../../types';
+import { Reservation, Driver, Vehicle, Customer, Commission, Location } from '../../types';
 
 // Collection References
 export const reservationsRef = collection(db, 'reservations');
@@ -22,6 +22,8 @@ export const driversRef = collection(db, 'drivers');
 export const vehiclesRef = collection(db, 'vehicles');
 export const customersRef = collection(db, 'customers');
 export const commissionsRef = collection(db, 'commissions');
+export const locationsRef = collection(db, 'locations');
+export const settingsRef = collection(db, 'settings');
 
 // Reservation Operations
 export const createReservation = async (reservationData: Omit<Reservation, 'id' | 'createdAt' | 'updatedAt'>) => {
@@ -275,6 +277,77 @@ export const subscribeToVehicles = (callback: (vehicles: Vehicle[]) => void) => 
     })) as Vehicle[];
     callback(vehicles);
   });
+};
+
+// Location Operations
+export const createLocation = async (locationData: Omit<Location, 'id'>) => {
+  const docRef = await addDoc(locationsRef, locationData);
+  return docRef.id;
+};
+
+export const getLocations = async () => {
+  const querySnapshot = await getDocs(locationsRef);
+  return querySnapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  })) as Location[];
+};
+
+export const getLocationsByRegion = async (region: string) => {
+  const q = query(locationsRef, where('region', '==', region));
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  })) as Location[];
+};
+
+export const updateLocation = async (id: string, updates: Partial<Location>) => {
+  const docRef = doc(locationsRef, id);
+  await updateDoc(docRef, updates);
+};
+
+export const deleteLocation = async (id: string) => {
+  const docRef = doc(locationsRef, id);
+  await deleteDoc(docRef);
+};
+
+// Settings Operations
+export const getSettings = async (key: string) => {
+  const docRef = doc(settingsRef, key);
+  const docSnap = await getDoc(docRef);
+  if (docSnap.exists()) {
+    return docSnap.data();
+  }
+  return null;
+};
+
+export const updateSettings = async (key: string, value: any) => {
+  const docRef = doc(settingsRef, key);
+  const docSnap = await getDoc(docRef);
+  
+  if (docSnap.exists()) {
+    await updateDoc(docRef, { value, updatedAt: Timestamp.now() });
+  } else {
+    await addDoc(settingsRef, { 
+      key, 
+      value, 
+      createdAt: Timestamp.now(), 
+      updatedAt: Timestamp.now() 
+    });
+  }
+};
+
+export const getAllSettings = async () => {
+  const querySnapshot = await getDocs(settingsRef);
+  const settings: Record<string, any> = {};
+  
+  querySnapshot.docs.forEach(doc => {
+    const data = doc.data();
+    settings[data.key] = data.value;
+  });
+  
+  return settings;
 };
 
 // Enhanced Driver Operations

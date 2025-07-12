@@ -26,6 +26,8 @@ import AdminVehiclesPage from './pages/admin/vehicles';
 import AdminPaymentsPage from './pages/admin/payments';
 import AdminSettingsPage from './pages/admin/settings';
 import AdminNotificationsPage from './pages/admin/notifications';
+import AdminLocationsPage from './pages/admin/locations';
+import AdminExtraServicesPage from './pages/admin/extra-services';
 
 // Driver Pages
 import DriverLoginPage from './pages/auth/DriverLoginPage';
@@ -98,6 +100,16 @@ function App() {
         <Route path="/admin/vehicles" element={
           <ProtectedRoute requiredRole="admin">
             <AdminVehiclesPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/locations" element={
+          <ProtectedRoute requiredRole="admin">
+            <AdminLocationsPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/extra-services" element={
+          <ProtectedRoute requiredRole="admin">
+            <AdminExtraServicesPage />
           </ProtectedRoute>
         } />
         <Route path="/admin/payments" element={
