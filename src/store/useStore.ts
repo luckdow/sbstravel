@@ -24,8 +24,9 @@ import { db } from '../config/firebase';
 import { generateQRCode } from '../utils/qrCode';
 import toast from 'react-hot-toast';
 
-// Flag to prevent auto-initialization on every load
-let hasInitialized = false;
+// Use localStorage to track initialization
+const isInitialized = () => localStorage.getItem('sbs_initialized') === 'true';
+const setInitialized = () => localStorage.setItem('sbs_initialized', 'true');
 
 // Collection references
 const reservationsRef = collection(db, 'reservations');
@@ -252,7 +253,9 @@ export const useStore = create<StoreState>((set, get) => ({
   fetchDrivers: async () => {
     set({ loading: true });
     try {
-      const querySnapshot = await getDocs(driversRef);
+      // Only get active drivers
+      const q = query(driversRef, where('isActive', '==', true));
+      const querySnapshot = await getDocs(q);
       const drivers = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
@@ -323,9 +326,13 @@ export const useStore = create<StoreState>((set, get) => ({
   // Delete Driver
   deleteDriver: async (id) => {
     try {
-      // Delete from Firestore
+      // Instead of deleting, mark as inactive
       const docRef = doc(db, 'drivers', id);
-      await deleteDoc(docRef);
+      await updateDoc(docRef, {
+        isActive: false,
+        status: 'offline',
+        updatedAt: Timestamp.now()
+      });
       
       // Update local state
       set(state => ({
@@ -439,7 +446,9 @@ export const useStore = create<StoreState>((set, get) => ({
   fetchVehicles: async () => {
     set({ loading: true });
     try {
-      const querySnapshot = await getDocs(vehiclesRef);
+      // Only get active vehicles
+      const q = query(vehiclesRef, where('isActive', '==', true));
+      const querySnapshot = await getDocs(q);
       const vehicles = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
@@ -515,9 +524,13 @@ export const useStore = create<StoreState>((set, get) => ({
   // Delete Vehicle
   deleteVehicle: async (id) => {
     try {
-      // Delete from Firestore
+      // Instead of deleting, mark as inactive
       const docRef = doc(db, 'vehicles', id);
-      await deleteDoc(docRef);
+      await updateDoc(docRef, {
+        isActive: false,
+        status: 'inactive',
+        updatedAt: Timestamp.now()
+      });
       
       // Update local state
       set(state => ({
@@ -535,7 +548,9 @@ export const useStore = create<StoreState>((set, get) => ({
   fetchExtraServices: async () => {
     set({ loading: true });
     try {
-      const querySnapshot = await getDocs(extraServicesRef);
+      // Only get active services
+      const q = query(extraServicesRef, where('isActive', '==', true));
+      const querySnapshot = await getDocs(q);
       const extraServices = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
@@ -611,9 +626,12 @@ export const useStore = create<StoreState>((set, get) => ({
   // Delete Extra Service
   deleteExtraService: async (id) => {
     try {
-      // Delete from Firestore
+      // Instead of deleting, mark as inactive
       const docRef = doc(db, 'extraServices', id);
-      await deleteDoc(docRef);
+      await updateDoc(docRef, {
+        isActive: false,
+        updatedAt: Timestamp.now()
+      });
       
       // Update local state
       set(state => ({
@@ -697,9 +715,22 @@ export const useStore = create<StoreState>((set, get) => ({
   // Delete Location
   deleteLocation: async (id) => {
     try {
-      // Delete from Firestore
+      // Instead of deleting, mark as deleted in a separate collection
       const docRef = doc(db, 'locations', id);
-      await deleteDoc(docRef);
+      
+      // First get the location data
+      const locationDoc = await getDoc(docRef);
+      if (locationDoc.exists()) {
+        // Save to deleted_locations collection
+        await addDoc(collection(db, 'deleted_locations'), {
+          ...locationDoc.data(),
+          originalId: id,
+          deletedAt: Timestamp.now()
+        });
+        
+        // Then delete the original
+        await deleteDoc(docRef);
+      }
       
       // Update local state
       set(state => ({
@@ -745,7 +776,7 @@ export const useStore = create<StoreState>((set, get) => ({
   // Initialize Mock Data
   initializeMockData: async () => {
     // Prevent multiple initializations
-    if (hasInitialized) {
+    if (isInitialized()) {
       console.log('Mock data already initialized, skipping...');
       return;
     }
@@ -1014,7 +1045,7 @@ export const useStore = create<StoreState>((set, get) => ({
     }
     
     // Mark as initialized
-    hasInitialized = true;
+    setInitialized();
     
     // Fetch all data after initialization
     get().fetchReservations();
