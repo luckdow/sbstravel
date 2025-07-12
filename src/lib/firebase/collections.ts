@@ -318,6 +318,33 @@ export const deleteLocation = async (id: string) => {
   await deleteDoc(docRef);
 };
 
+// Extra Services Operations
+export const getExtraServices = async () => {
+  const querySnapshot = await getDocs(extraServicesRef);
+  return querySnapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  })) as ExtraService[];
+};
+
+export const createExtraService = async (serviceData: Omit<ExtraService, 'id'>) => {
+  const docRef = await addDoc(extraServicesRef, serviceData);
+  return docRef.id;
+};
+
+export const updateExtraService = async (id: string, updates: Partial<ExtraService>) => {
+  const docRef = doc(extraServicesRef, id);
+  await updateDoc(docRef, updates);
+};
+
+export const deleteExtraService = async (id: string) => {
+  const docRef = doc(extraServicesRef, id);
+  await deleteDoc(docRef);
+};
+
+// Collection reference for extra services
+export const extraServicesRef = collection(db, 'extraServices');
+
 // Settings Operations
 export const getSettings = async (key: string) => {
   const docRef = doc(settingsRef, key);
