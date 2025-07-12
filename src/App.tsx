@@ -41,6 +41,9 @@ import CustomerLoginPage from './pages/auth/CustomerLoginPage';
 // Payment Pages
 import PaymentSuccessPage from "./pages/payment/success";
 
+// Booking Pages  
+import BookingSuccessPage from './pages/BookingSuccessPage';
+
 // Legal Pages
 import PrivacyPolicyPage from './pages/legal/PrivacyPolicyPage';
 import TermsOfServicePage from './pages/legal/TermsOfServicePage';
@@ -68,6 +71,7 @@ function App() {
         {/* Public Routes */}
         <Route path="/" element={<HomePage />} />
         <Route path="/booking" element={<BookingPage />} />
+        <Route path="/booking-success/:reservationId" element={<BookingSuccessPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/contact" element={<ContactPage />} />

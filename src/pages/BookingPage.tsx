@@ -41,7 +41,9 @@ const bookingSchema = z.object({
     specialRequests: z.string().optional()
   }),
   extraServices: z.array(z.string()).default([]),
-  paymentMethod: z.enum(['credit-card', 'bank-transfer'])
+  paymentMethod: z.enum(['credit-card', 'bank-transfer']),
+  termsAccepted: z.boolean().refine(val => val === true, 'Kullanım şartlarını kabul etmelisiniz'),
+  marketingAccepted: z.boolean().optional()
 });
 
 type BookingFormData = z.infer<typeof bookingSchema>;
@@ -70,7 +72,9 @@ export default function BookingPage() {
       passengerCount: 1,
       luggageCount: 1,
       extraServices: [],
-      paymentMethod: 'credit-card'
+      paymentMethod: 'credit-card',
+      termsAccepted: false,
+      marketingAccepted: false
     }
   });
 
@@ -391,13 +395,143 @@ export default function BookingPage() {
 
               {/* Step 3: Payment */}
               {currentStep === 3 && (
-                <PaymentSection
-                  priceCalculation={priceCalculation}
-                  bookingData={watchedValues}
-                  onPaymentSuccess={(transactionId) => {
-                    console.log('Payment successful, transaction ID:', transactionId);
-                  }}
-                />
+                <div className="space-y-6">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Rezervasyon Özeti ve Ödeme</h2>
+                  
+                  {/* Order Summary */}
+                  <div className="bg-gray-50 rounded-2xl p-6">
+                    <h3 className="text-lg font-bold text-gray-800 mb-4">Rezervasyon Özeti</h3>
+                    
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Transfer Türü:</span>
+                        <span className="font-semibold text-gray-800">
+                          {watchedValues.transferType === 'airport-hotel' ? 'Havalimanı → Otel' : 'Otel → Havalimanı'}
+                        </span>
+                      </div>
+                      
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Varış Noktası:</span>
+                        <span className="font-semibold text-gray-800">{watchedValues.destination?.name || 'Bilinmiyor'}</span>
+                      </div>
+                      
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Tarih & Saat:</span>
+                        <span className="font-semibold text-gray-800">
+                          {watchedValues.pickupDate} - {watchedValues.pickupTime}
+                        </span>
+                      </div>
+                      
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Yolcu Sayısı:</span>
+                        <span className="font-semibold text-gray-800">{watchedValues.passengerCount} Kişi</span>
+                      </div>
+                      
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Araç Tipi:</span>
+                        <span className="font-semibold text-gray-800 capitalize">{watchedValues.vehicleType}</span>
+                      </div>
+                      
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Müşteri:</span>
+                        <span className="font-semibold text-gray-800">
+                          {watchedValues.customerInfo?.firstName} {watchedValues.customerInfo?.lastName}
+                        </span>
+                      </div>
+                      
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Email:</span>
+                        <span className="font-semibold text-gray-800">{watchedValues.customerInfo?.email}</span>
+                      </div>
+                      
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Telefon:</span>
+                        <span className="font-semibold text-gray-800">{watchedValues.customerInfo?.phone}</span>
+                      </div>
+                      
+                      {priceCalculation && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Mesafe:</span>
+                          <span className="font-semibold text-gray-800">{priceCalculation.distance?.toFixed(1)} km</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {priceCalculation && (
+                      <div className="border-t border-gray-200 mt-4 pt-4">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Transfer Ücreti:</span>
+                          <span className="font-semibold text-gray-800">${priceCalculation.basePrice?.toFixed(2)}</span>
+                        </div>
+                        
+                        {priceCalculation.additionalServicesCost > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Ek Hizmetler:</span>
+                            <span className="font-semibold text-gray-800">+${priceCalculation.additionalServicesCost?.toFixed(2)}</span>
+                          </div>
+                        )}
+                        
+                        <div className="flex justify-between text-lg font-bold text-gray-800 mt-2 pt-2 border-t border-gray-200">
+                          <span>Toplam:</span>
+                          <span className="text-blue-600">${priceCalculation.totalPrice?.toFixed(2)}</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Payment Info */}
+                  <div className="bg-blue-50 rounded-2xl p-6">
+                    <h4 className="font-bold text-blue-800 mb-4">Ödeme Bilgileri</h4>
+                    <div className="space-y-3 text-sm">
+                      <p className="text-blue-700">
+                        <CheckCircle className="h-4 w-4 inline mr-2" />
+                        Rezervasyonunuz oluşturulduktan sonra ödeme seçenekleri sunulacaktır.
+                      </p>
+                      <p className="text-blue-700">
+                        <CreditCard className="h-4 w-4 inline mr-2" />
+                        Kredi kartı ile güvenli ödeme (PayTR)
+                      </p>
+                      <p className="text-blue-700">
+                        <DollarSign className="h-4 w-4 inline mr-2" />
+                        Banka havalesi seçeneği
+                      </p>
+                      <p className="text-blue-700">
+                        <Shield className="h-4 w-4 inline mr-2" />
+                        256-bit SSL şifreleme ile güvenli işlem
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Terms and Conditions */}
+                  <div className="space-y-3">
+                    <label className="flex items-start space-x-3">
+                      <input
+                        type="checkbox"
+                        {...register('termsAccepted', { required: 'Kullanım şartlarını kabul etmelisiniz' })}
+                        className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">
+                        <a href="/terms" target="_blank" className="text-blue-600 hover:underline">Kullanım Şartları</a> ve{' '}
+                        <a href="/privacy" target="_blank" className="text-blue-600 hover:underline">Gizlilik Politikası</a>'nı 
+                        okudum ve kabul ediyorum.
+                      </span>
+                    </label>
+                    {errors.termsAccepted && (
+                      <p className="text-sm text-red-600">{errors.termsAccepted.message}</p>
+                    )}
+                    
+                    <label className="flex items-start space-x-3">
+                      <input
+                        type="checkbox"
+                        {...register('marketingAccepted')}
+                        className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">
+                        Kampanya ve promosyonlardan haberdar olmak istiyorum.
+                      </span>
+                    </label>
+                  </div>
+                </div>
               )}
 
               {/* Navigation Buttons */}
@@ -453,7 +587,8 @@ export default function BookingPage() {
                     }
                     
                     if (currentStep === 3) {
-                      handlePayTRPayment();
+                      // Use form submission for final payment and reservation creation
+                      handleSubmit(onSubmit)();
                     }
                   }}
                   disabled={isCalculatingPrice || isLoading || (currentStep === 1 && totalPrice === 0)}
