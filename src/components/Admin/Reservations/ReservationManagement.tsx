@@ -38,12 +38,15 @@ export default function ReservationManagement() {
     fetchDrivers,
     updateReservationStatus,
     deleteReservation,
+    initializeMockData,
     loading 
   } = useStore();
 
   useEffect(() => {
     fetchReservations();
     fetchDrivers();
+    // Initialize mock data to ensure we have something to display
+    initializeMockData();
   }, [fetchReservations, fetchDrivers]);
 
   const filteredReservations = reservations.filter(reservation => {

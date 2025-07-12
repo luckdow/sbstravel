@@ -1,12 +1,91 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, Edit, Trash2, Tag, Loader2, CheckCircle, XCircle } from 'lucide-react';
-import { collection, addDoc, updateDoc, deleteDoc, getDocs, doc, Timestamp } from 'firebase/firestore';
-import { db } from '../../../config/firebase';
-import { ExtraService } from '../../../lib/types';
 import toast from 'react-hot-toast';
 
+interface ExtraService {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  category: 'comfort' | 'assistance' | 'special';
+  isActive: boolean;
+  applicableVehicleTypes: ('standard' | 'premium' | 'luxury')[];
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+// Mock extra services data
+const mockExtraServices: ExtraService[] = [
+  {
+    id: 'svc-001',
+    name: 'Bebek Koltuğu',
+    description: 'Bebekler için güvenli koltuk',
+    price: 10,
+    category: 'comfort',
+    isActive: true,
+    applicableVehicleTypes: ['standard', 'premium', 'luxury'],
+    createdAt: new Date('2023-12-01'),
+    updatedAt: new Date('2023-12-01')
+  },
+  {
+    id: 'svc-002',
+    name: 'Yükseltici Koltuk',
+    description: 'Çocuklar için yükseltici koltuk',
+    price: 8,
+    category: 'comfort',
+    isActive: true,
+    applicableVehicleTypes: ['standard', 'premium', 'luxury'],
+    createdAt: new Date('2023-12-01'),
+    updatedAt: new Date('2023-12-01')
+  },
+  {
+    id: 'svc-003',
+    name: 'Karşılama Tabelası',
+    description: 'İsminizle karşılama tabelası',
+    price: 15,
+    category: 'assistance',
+    isActive: true,
+    applicableVehicleTypes: ['premium', 'luxury'],
+    createdAt: new Date('2023-12-01'),
+    updatedAt: new Date('2023-12-01')
+  },
+  {
+    id: 'svc-004',
+    name: 'Ek Durak',
+    description: 'Rota üzerinde ek durak',
+    price: 20,
+    category: 'special',
+    isActive: true,
+    applicableVehicleTypes: ['standard', 'premium', 'luxury'],
+    createdAt: new Date('2023-12-01'),
+    updatedAt: new Date('2023-12-01')
+  },
+  {
+    id: 'svc-005',
+    name: 'Bekleme Süresi',
+    description: 'Her 30 dakika için bekleme ücreti',
+    price: 25,
+    category: 'special',
+    isActive: true,
+    applicableVehicleTypes: ['standard', 'premium', 'luxury'],
+    createdAt: new Date('2023-12-01'),
+    updatedAt: new Date('2023-12-01')
+  },
+  {
+    id: 'svc-006',
+    name: 'Premium Su İkramı',
+    description: 'Yolculuk boyunca premium su ikramı',
+    price: 5,
+    category: 'comfort',
+    isActive: false,
+    applicableVehicleTypes: ['premium', 'luxury'],
+    createdAt: new Date('2023-12-01'),
+    updatedAt: new Date('2023-12-01')
+  }
+];
+
 export default function ExtraServiceManagement() {
-  const [services, setServices] = useState<ExtraService[]>([]);
+  const [services, setServices] = useState<ExtraService[]>(mockExtraServices);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -21,29 +100,6 @@ export default function ExtraServiceManagement() {
     applicableVehicleTypes: ['standard', 'premium', 'luxury']
   });
 
-  const extraServicesRef = collection(db, 'extraServices');
-
-  useEffect(() => {
-    fetchServices();
-  }, []);
-
-  const fetchServices = async () => {
-    setLoading(true);
-    try {
-      const querySnapshot = await getDocs(extraServicesRef);
-      const servicesData = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as ExtraService[];
-      setServices(servicesData);
-    } catch (error) {
-      console.error('Error fetching services:', error);
-      toast.error('Ek hizmetler yüklenirken hata oluştu');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleAddService = async () => {
     if (!formData.name || !formData.description || formData.price <= 0) {
       toast.error('Lütfen tüm alanları doldurun');
@@ -52,17 +108,25 @@ export default function ExtraServiceManagement() {
 
     setLoading(true);
     try {
-      const now = Timestamp.now();
-      await addDoc(extraServicesRef, {
-        ...formData,
-        createdAt: now,
-        updatedAt: now
-      });
+      // Create a new service with a unique ID
+      const newService: ExtraService = {
+        id: `svc-${Date.now()}`,
+        name: formData.name,
+        description: formData.description,
+        price: formData.price,
+        category: formData.category,
+        isActive: formData.isActive,
+        applicableVehicleTypes: formData.applicableVehicleTypes,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      // Add to local state
+      setServices([...services, newService]);
       
       toast.success('Ek hizmet başarıyla eklendi');
       setShowAddModal(false);
       resetForm();
-      fetchServices();
     } catch (error) {
       console.error('Error adding service:', error);
       toast.error('Ek hizmet eklenirken hata oluştu');
@@ -79,16 +143,20 @@ export default function ExtraServiceManagement() {
 
     setLoading(true);
     try {
-      const serviceRef = doc(db, 'extraServices', selectedService.id!);
-      await updateDoc(serviceRef, {
-        ...formData,
-        updatedAt: Timestamp.now()
-      });
+      // Update service in local state
+      setServices(services.map(service => 
+        service.id === selectedService.id 
+          ? {
+              ...service,
+              ...formData,
+              updatedAt: new Date()
+            }
+          : service
+      ));
       
       toast.success('Ek hizmet başarıyla güncellendi');
       setShowEditModal(false);
       resetForm();
-      fetchServices();
     } catch (error) {
       console.error('Error updating service:', error);
       toast.error('Ek hizmet güncellenirken hata oluştu');
@@ -101,9 +169,10 @@ export default function ExtraServiceManagement() {
     if (window.confirm('Bu ek hizmeti silmek istediğinizden emin misiniz?')) {
       setLoading(true);
       try {
-        await deleteDoc(doc(db, 'extraServices', id));
+        // Remove service from local state
+        setServices(services.filter(service => service.id !== id));
+        
         toast.success('Ek hizmet başarıyla silindi');
-        fetchServices();
       } catch (error) {
         console.error('Error deleting service:', error);
         toast.error('Ek hizmet silinirken hata oluştu');

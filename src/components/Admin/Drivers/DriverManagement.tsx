@@ -161,11 +161,20 @@ export default function DriverManagement() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const { drivers, addDriver, editDriver, deleteDriver, fetchDrivers } = useStore();
+  const { 
+    drivers, 
+    addDriver,
+    editDriver,
+    deleteDriver,
+    fetchDrivers,
+    initializeMockData
+  } = useStore();
 
   // Fetch drivers on component mount
   useEffect(() => {
     fetchDrivers();
+    // Initialize mock data to ensure we have something to display
+    initializeMockData();
   }, [fetchDrivers]);
 
   const [editForm, setEditForm] = useState({

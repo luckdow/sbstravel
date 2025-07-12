@@ -133,28 +133,35 @@ export default function AddDriverModal({ isOpen, onClose, onDriverAdded }: AddDr
 
     setIsSubmitting(true);
     try {
-      // Create driver object with Firebase-compatible structure
+      // Create driver object with all required fields
       const driverData = {
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
         phone: formData.phoneNumber,
         licenseNumber: formData.licenseNumber,
-        vehicleType: formData.vehicleTypes[0] || 'standard', // Use first selected type as primary
+        vehicleType: formData.vehicleTypes[0] || 'standard',
         status: 'available' as const,
         rating: 5.0,
         totalEarnings: 0,
         completedTrips: 0,
         isActive: true,
-        // Additional fields
+        vehicleTypes: formData.vehicleTypes,
         identityNumber: formData.identityNumber,
         dateOfBirth: formData.dateOfBirth,
         address: formData.address,
         licenseExpiry: formData.licenseExpiry,
         experienceYears: formData.experienceYears,
-        vehicleTypes: formData.vehicleTypes,
         username: formData.username,
         joinDate: new Date(),
+        financials: {
+          totalEarnings: 0,
+          currentBalance: 0,
+          receivables: 0,
+          payables: 0,
+          pendingPayments: 0,
+          monthlyEarnings: {}
+        },
         documents: {
           licensePhoto: formData.licensePhoto?.name || null,
           identityPhoto: formData.identityPhoto?.name || null,

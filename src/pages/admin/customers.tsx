@@ -40,7 +40,8 @@ export default function AdminCustomersPage() {
     addCustomer, 
     editCustomer, 
     deleteCustomer,
-    fetchReservations 
+    fetchReservations,
+    initializeMockData
   } = useStore();
 
   // Form state for adding/editing customers
@@ -53,6 +54,8 @@ export default function AdminCustomersPage() {
 
   useEffect(() => {
     fetchCustomers();
+    // Initialize mock data to ensure we have something to display
+    initializeMockData();
     fetchReservations();
   }, [fetchCustomers, fetchReservations]);
 

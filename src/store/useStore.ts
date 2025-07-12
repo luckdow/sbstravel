@@ -103,6 +103,143 @@ export const useStore = create<StoreState>((set, get) => ({
   initializeMockData: () => {
     console.log('Initializing mock data for all entities...');
     
+    // Mock drivers data with enhanced information
+    const mockDrivers = [
+      {
+        id: 'DRV-001',
+        firstName: 'Mehmet',
+        lastName: 'Demir',
+        email: 'mehmet@sbstravel.com',
+        phone: '+90 532 111 2233',
+        licenseNumber: 'ABC123',
+        vehicleType: 'premium' as const,
+        status: 'available' as const,
+        currentLocation: 'Antalya Merkez',
+        rating: 4.8,
+        totalEarnings: 2340, // USD
+        completedTrips: 156,
+        isActive: true,
+        isProblemDriver: false,
+        vehicleTypes: ['standard', 'premium'],
+        experienceYears: 8,
+        joinDate: new Date('2023-06-15'),
+        financials: {
+          totalEarnings: 25600,
+          currentBalance: 1200,
+          receivables: 800,
+          payables: 200,
+          lastPayment: new Date('2024-01-05'),
+          pendingPayments: 3,
+          monthlyEarnings: {
+            '2024-01': 2340,
+            '2023-12': 2100,
+            '2023-11': 1950
+          }
+        },
+        createdAt: new Date('2023-01-15')
+      },
+      {
+        id: 'DRV-002',
+        firstName: 'Ali',
+        lastName: 'Kaya',
+        email: 'ali@sbstravel.com',
+        phone: '+90 533 222 3344',
+        licenseNumber: 'DEF456',
+        vehicleType: 'luxury' as const,
+        status: 'busy' as const,
+        currentLocation: 'Kemer',
+        rating: 4.9,
+        totalEarnings: 3120, // USD
+        completedTrips: 203,
+        isActive: true,
+        isProblemDriver: false,
+        vehicleTypes: ['luxury', 'VIP'],
+        experienceYears: 12,
+        joinDate: new Date('2023-03-20'),
+        financials: {
+          totalEarnings: 38400,
+          currentBalance: 2100,
+          receivables: 1200,
+          payables: 0,
+          lastPayment: new Date('2024-01-08'),
+          pendingPayments: 1,
+          monthlyEarnings: {
+            '2024-01': 3120,
+            '2023-12': 2800,
+            '2023-11': 2900
+          }
+        },
+        createdAt: new Date('2023-01-01')
+      },
+      {
+        id: 'DRV-003',
+        firstName: 'Osman',
+        lastName: 'Çelik',
+        email: 'osman@sbstravel.com',
+        phone: '+90 534 333 4455',
+        licenseNumber: 'GHI789',
+        vehicleType: 'standard' as const,
+        status: 'available' as const,
+        currentLocation: 'Belek',
+        rating: 4.7,
+        totalEarnings: 1890, // USD
+        completedTrips: 89,
+        isActive: true,
+        isProblemDriver: true,
+        problemNotes: 'Müşteri şikayeti - geç gelme problemi',
+        vehicleTypes: ['standard'],
+        experienceYears: 5,
+        joinDate: new Date('2023-09-10'),
+        financials: {
+          totalEarnings: 15200,
+          currentBalance: -300,
+          receivables: 500,
+          payables: 800,
+          lastPayment: new Date('2023-12-28'),
+          pendingPayments: 2,
+          monthlyEarnings: {
+            '2024-01': 1890,
+            '2023-12': 1650,
+            '2023-11': 1400
+          }
+        },
+        createdAt: new Date('2023-06-01')
+      },
+      {
+        id: 'DRV-004',
+        firstName: 'Fatih',
+        lastName: 'Özkan',
+        email: 'fatih@sbstravel.com',
+        phone: '+90 535 444 5566',
+        licenseNumber: 'JKL012',
+        vehicleType: 'premium' as const,
+        status: 'offline' as const,
+        currentLocation: 'Side',
+        rating: 4.6,
+        totalEarnings: 2560, // USD
+        completedTrips: 134,
+        isActive: true,
+        isProblemDriver: false,
+        vehicleTypes: ['premium', 'minibus'],
+        experienceYears: 7,
+        joinDate: new Date('2023-07-05'),
+        financials: {
+          totalEarnings: 22800,
+          currentBalance: 950,
+          receivables: 600,
+          payables: 150,
+          lastPayment: new Date('2024-01-03'),
+          pendingPayments: 2,
+          monthlyEarnings: {
+            '2024-01': 2560,
+            '2023-12': 2200,
+            '2023-11': 2000
+          }
+        },
+        createdAt: new Date('2023-02-15')
+      }
+    ];
+    
     // Mock customers data
     const mockCustomers = [
       {
@@ -112,7 +249,7 @@ export const useStore = create<StoreState>((set, get) => ({
         email: 'ahmet@email.com',
         phone: '+90 532 123 4567',
         totalReservations: 3,
-        totalSpent: 310,
+        totalSpent: 310.00,
         lastActivity: new Date(),
         lastReservationDate: new Date(),
         status: 'active' as const,
@@ -127,7 +264,7 @@ export const useStore = create<StoreState>((set, get) => ({
         email: 'sarah@email.com',
         phone: '+1 555 123 4567',
         totalReservations: 1,
-        totalSpent: 120,
+        totalSpent: 120.00,
         lastActivity: new Date(),
         lastReservationDate: new Date(),
         status: 'active' as const,
@@ -142,7 +279,7 @@ export const useStore = create<StoreState>((set, get) => ({
         email: 'mustafa@email.com',
         phone: '+90 533 987 6543',
         totalReservations: 2,
-        totalSpent: 165,
+        totalSpent: 165.00,
         lastActivity: new Date(),
         lastReservationDate: new Date(),
         status: 'active' as const,
@@ -215,10 +352,139 @@ export const useStore = create<StoreState>((set, get) => ({
         updatedAt: new Date()
       }
     ];
+    
+    // Enhanced mock reservations
+    const mockReservations = [
+      {
+        id: 'RES-001',
+        customerId: 'CUST-001',
+        customerName: 'Ahmet Yılmaz',
+        customerEmail: 'ahmet@email.com',
+        customerPhone: '+90 532 123 4567',
+        transferType: 'airport-hotel' as const,
+        pickupLocation: 'Antalya Havalimanı (AYT)',
+        dropoffLocation: 'Kemer - Club Med Palmiye',
+        pickupDate: new Date().toISOString().split('T')[0], // Today's date
+        pickupTime: '14:30',
+        passengerCount: 4,
+        baggageCount: 3,
+        vehicleType: 'premium' as const,
+        distance: 45,
+        basePrice: 85.00, // USD
+        additionalServices: [],
+        totalPrice: 95.00, // USD
+        status: 'pending' as const,
+        qrCode: 'QR-001',
+        paymentStatus: 'completed' as const,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: 'RES-002',
+        customerId: 'CUST-002',
+        customerName: 'Sarah Johnson',
+        customerEmail: 'sarah@email.com',
+        customerPhone: '+1 555 123 4567',
+        transferType: 'hotel-airport' as const,
+        pickupLocation: 'Belek - Regnum Carya',
+        dropoffLocation: 'Antalya Havalimanı (AYT)',
+        pickupDate: new Date().toISOString().split('T')[0], // Today's date
+        pickupTime: '16:00',
+        passengerCount: 2,
+        baggageCount: 2,
+        vehicleType: 'luxury' as const,
+        distance: 35,
+        basePrice: 110.00, // USD
+        additionalServices: [],
+        totalPrice: 120.00, // USD
+        status: 'assigned' as const,
+        driverId: 'DRV-001',
+        qrCode: 'QR-002',
+        paymentStatus: 'completed' as const,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: 'RES-003',
+        customerId: 'CUST-003',
+        customerName: 'Mustafa Demir',
+        customerEmail: 'mustafa@email.com',
+        customerPhone: '+90 533 987 6543',
+        transferType: 'airport-hotel' as const,
+        pickupLocation: 'Antalya Havalimanı (AYT)',
+        dropoffLocation: 'Side - Manavgat Resort',
+        pickupDate: new Date().toISOString().split('T')[0], // Today's date
+        pickupTime: '19:00',
+        passengerCount: 3,
+        baggageCount: 4,
+        vehicleType: 'premium' as const,
+        distance: 60,
+        basePrice: 98.00, // USD
+        additionalServices: [],
+        totalPrice: 105.00, // USD
+        status: 'completed' as const,
+        driverId: 'DRV-002',
+        qrCode: 'QR-003',
+        paymentStatus: 'completed' as const,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: 'RES-004',
+        customerId: 'CUST-001',
+        customerName: 'Ahmet Yılmaz',
+        customerEmail: 'ahmet@email.com',
+        customerPhone: '+90 532 123 4567',
+        transferType: 'hotel-airport' as const,
+        pickupLocation: 'Kemer - Club Med Palmiye',
+        dropoffLocation: 'Antalya Havalimanı (AYT)',
+        pickupDate: new Date(Date.now() + 86400000).toISOString().split('T')[0], // Tomorrow
+        pickupTime: '10:00',
+        passengerCount: 4,
+        baggageCount: 3,
+        vehicleType: 'premium' as const,
+        distance: 45,
+        basePrice: 85.00, // USD
+        additionalServices: [],
+        totalPrice: 95.00, // USD
+        status: 'confirmed' as const,
+        driverId: 'DRV-003',
+        qrCode: 'QR-004',
+        paymentStatus: 'completed' as const,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: 'RES-005',
+        customerId: 'CUST-002',
+        customerName: 'Sarah Johnson',
+        customerEmail: 'sarah@email.com',
+        customerPhone: '+1 555 123 4567',
+        transferType: 'airport-hotel' as const,
+        pickupLocation: 'Antalya Havalimanı (AYT)',
+        dropoffLocation: 'Belek - Regnum Carya',
+        pickupDate: new Date(Date.now() + 172800000).toISOString().split('T')[0], // Day after tomorrow
+        pickupTime: '15:30',
+        passengerCount: 2,
+        baggageCount: 2,
+        vehicleType: 'luxury' as const,
+        distance: 35,
+        basePrice: 110.00, // USD
+        additionalServices: [],
+        totalPrice: 120.00, // USD
+        status: 'pending' as const,
+        qrCode: 'QR-005',
+        paymentStatus: 'completed' as const,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    ];
 
     set(state => ({
+      drivers: mockDrivers,
       customers: mockCustomers,
-      vehicles: mockVehicles
+      vehicles: mockVehicles,
+      reservations: mockReservations
     }));
   },
 
