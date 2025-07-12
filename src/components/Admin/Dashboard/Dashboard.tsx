@@ -1,19 +1,52 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Calendar, DollarSign, Users, Car, Clock, TrendingUp } from 'lucide-react';
+import { Plus, Calendar, DollarSign, Users, Car, Clock, TrendingUp, Save, Trash2 } from 'lucide-react';
 import { useStore } from '../../../store/useStore';
 import { getSafeLocationStrings } from '../../../lib/utils/location';
 
 export default function Dashboard() {
-  const { reservations, drivers, fetchReservations, fetchDrivers, getStats } = useStore();
+  const { 
+    reservations, 
+    drivers, 
+    customers,
+    vehicles,
+    fetchReservations, 
+    fetchDrivers, 
+    fetchCustomers,
+    fetchVehicles,
+    getStats,
+    saveDemoDataToFirebase,
+    clearAllDemoData,
+    initializeMockData,
+    loading
+  } = useStore();
 
   useEffect(() => {
     // Fetch data when component mounts
     fetchReservations();
     fetchDrivers();
-  }, [fetchReservations, fetchDrivers]);
+    fetchCustomers();
+    fetchVehicles();
+    
+    // Initialize mock data if none exists
+    if (reservations.length === 0 && drivers.length === 0 && customers.length === 0 && vehicles.length === 0) {
+      initializeMockData();
+    }
+  }, [fetchReservations, fetchDrivers, fetchCustomers, fetchVehicles, initializeMockData]);
 
   const stats = getStats();
+
+  const handleSaveDemoData = async () => {
+    if (window.confirm('Tüm demo verileri Firebase\'e kaydetmek istediğinizden emin misiniz?')) {
+      await saveDemoDataToFirebase();
+    }
+  };
+
+  const handleClearDemoData = async () => {
+    if (window.confirm('Tüm demo verileri temizlemek istediğinizden emin misiniz?')) {
+      await clearAllDemoData();
+    }
+  };
 
   // Quick action buttons
   const quickActions = [
@@ -89,6 +122,35 @@ export default function Dashboard() {
               <Plus className="h-4 w-4" />
             </Link>
           ))}
+        </div>
+      </div>
+
+      {/* Demo Data Management */}
+      <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl shadow-sm border border-gray-100 p-6">
+        <h2 className="text-lg font-semibold text-gray-800 mb-4">Demo Veri Yönetimi</h2>
+        <p className="text-gray-600 mb-4">
+          Sistemdeki demo verileri Firebase'e kaydedin veya temizleyin.
+        </p>
+        <div className="flex flex-wrap gap-3">
+          <button
+            onClick={handleSaveDemoData}
+            disabled={loading}
+            className="flex items-center space-x-2 bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg transition-all duration-300 disabled:opacity-50"
+          >
+            <Save className="h-5 w-5" />
+            <span>{loading ? 'Kaydediliyor...' : 'Demo Verileri Firebase\'e Kaydet'}</span>
+          </button>
+          <button
+            onClick={handleClearDemoData}
+            disabled={loading}
+            className="flex items-center space-x-2 bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg transition-all duration-300 disabled:opacity-50"
+          >
+            <Trash2 className="h-5 w-5" />
+            <span>Demo Verileri Temizle</span>
+          </button>
+        </div>
+        <div className="mt-4 text-sm text-gray-500">
+          Mevcut veriler: {reservations.length} rezervasyon, {drivers.length} şoför, {customers.length} müşteri, {vehicles.length} araç
         </div>
       </div>
 

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AdminLayout from '../../components/Admin/Layout/AdminLayout';
 import { Search, Filter, Car, Users, Luggage, DollarSign, Eye, Edit, Trash2, Plus, Upload, X, Loader2, Settings } from 'lucide-react';
 import { useStore } from '../../store/useStore';
+import { formatPrice } from '../../lib/utils/pricing';
 import toast from 'react-hot-toast';
 
 const mockVehicles = [
@@ -118,7 +119,11 @@ export default function AdminVehiclesPage() {
   const [viewingVehicle, setViewingVehicle] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
-  const { addVehicle, editVehicle, deleteVehicle } = useStore();
+  const { vehicles, fetchVehicles, addVehicle, editVehicle, deleteVehicle } = useStore();
+
+  useEffect(() => {
+    fetchVehicles();
+  }, [fetchVehicles]);
 
   const [vehicleForm, setVehicleForm] = useState<VehicleForm>({
     name: '',
@@ -127,7 +132,7 @@ export default function AdminVehiclesPage() {
     licensePlate: '',
     passengerCapacity: 4,
     baggageCapacity: 4,
-    pricePerKm: 4.5,
+    pricePerKm: 1.8, // USD
     features: [],
     extraServices: [],
     status: 'active',
@@ -135,9 +140,9 @@ export default function AdminVehiclesPage() {
     imageUrls: []
   });
 
-  const filteredVehicles = mockVehicles.filter(vehicle => {
+  const filteredVehicles = vehicles.filter(vehicle => {
     const matchesSearch = vehicle.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         vehicle.plate.toLowerCase().includes(searchTerm.toLowerCase());
+                         (vehicle.licensePlate || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = typeFilter === 'all' || vehicle.type === typeFilter;
     const matchesStatus = statusFilter === 'all' || vehicle.status === statusFilter;
     return matchesSearch && matchesType && matchesStatus;
@@ -370,7 +375,7 @@ export default function AdminVehiclesPage() {
               </div>
               <div>
                 <div className="text-2xl font-bold text-gray-800">
-                  ₺{(mockVehicles.reduce((sum, v) => sum + v.pricePerKm, 0) / mockVehicles.length).toFixed(1)}
+                  {formatPrice((vehicles.reduce((sum, v) => sum + v.pricePerKm, 0) / Math.max(vehicles.length, 1)))} /km
                 </div>
                 <div className="text-sm text-gray-600">Ortalama Fiyat/KM</div>
               </div>
@@ -487,7 +492,7 @@ export default function AdminVehiclesPage() {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-green-600">₺{vehicle.pricePerKm}/km</div>
+                      <div className="text-sm font-medium text-green-600">{formatPrice(vehicle.pricePerKm)}/km</div>
                       <div className="text-sm text-gray-500">{vehicle.totalKm.toLocaleString()} km</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -612,7 +617,7 @@ export default function AdminVehiclesPage() {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Fiyat (₺/km)</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Fiyat ($/km)</label>
                       <input
                         type="number"
                         step="0.1"
@@ -823,7 +828,7 @@ export default function AdminVehiclesPage() {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Fiyat (₺/km)</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Fiyat ($/km)</label>
                       <input
                         type="number"
                         step="0.1"

@@ -53,9 +53,15 @@ interface StoreState {
   deleteCustomer: (id: string) => Promise<void>;
   
   // Vehicle management
+  fetchVehicles: () => Promise<void>;
   addVehicle: (vehicleData: Omit<Vehicle, 'id' | 'createdAt'>) => Promise<string | null>;
   editVehicle: (id: string, updates: Partial<Vehicle>) => Promise<void>;
   deleteVehicle: (id: string) => Promise<void>;
+  
+  // Demo data management
+  saveDemoDataToFirebase: () => Promise<void>;
+  clearAllDemoData: () => Promise<void>;
+  initializeMockData: () => void;
   
   // Real-time subscriptions
   subscribeToRealtimeUpdates: () => () => void;
@@ -78,6 +84,129 @@ export const useStore = create<StoreState>((set, get) => ({
   commissions: [],
   currentDriver: null,
   loading: false,
+
+  // Initialize mock data for all entities
+  initializeMockData: () => {
+    console.log('Initializing mock data for all entities...');
+    
+    // Mock customers data
+    const mockCustomers = [
+      {
+        id: 'CUST-001',
+        firstName: 'Ahmet',
+        lastName: 'Yılmaz',
+        email: 'ahmet@email.com',
+        phone: '+90 532 123 4567',
+        totalReservations: 3,
+        totalSpent: 310,
+        lastActivity: new Date(),
+        lastReservationDate: new Date(),
+        status: 'active' as const,
+        notes: 'VIP müşteri, özel ilgi gösterilmeli',
+        createdAt: new Date('2023-01-15'),
+        updatedAt: new Date()
+      },
+      {
+        id: 'CUST-002',
+        firstName: 'Sarah',
+        lastName: 'Johnson',
+        email: 'sarah@email.com',
+        phone: '+1 555 123 4567',
+        totalReservations: 1,
+        totalSpent: 120,
+        lastActivity: new Date(),
+        lastReservationDate: new Date(),
+        status: 'active' as const,
+        notes: 'İngilizce konuşuyor, turist',
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date()
+      },
+      {
+        id: 'CUST-003',
+        firstName: 'Mustafa',
+        lastName: 'Demir',
+        email: 'mustafa@email.com',
+        phone: '+90 533 987 6543',
+        totalReservations: 2,
+        totalSpent: 165,
+        lastActivity: new Date(),
+        lastReservationDate: new Date(),
+        status: 'active' as const,
+        notes: 'Düzenli müşteri',
+        createdAt: new Date('2023-06-10'),
+        updatedAt: new Date()
+      }
+    ];
+
+    // Mock vehicles data with USD pricing
+    const mockVehicles = [
+      {
+        id: 'VEH-001',
+        type: 'premium' as const,
+        name: 'Mercedes Vito Premium',
+        model: 'Mercedes Vito 2023',
+        image: '/api/placeholder/300/200',
+        images: ['/api/placeholder/300/200', '/api/placeholder/300/200'],
+        licensePlate: '07 ABC 123',
+        passengerCapacity: 8,
+        baggageCapacity: 8,
+        pricePerKm: 2.5, // USD
+        features: ['Wi-Fi', 'Klima', 'Premium İç Dizayn', 'USB Şarj'],
+        extraServices: ['wifi', 'water', 'magazines'],
+        status: 'active' as const,
+        isActive: true,
+        lastMaintenance: new Date('2024-01-01'),
+        totalKilometers: 45000,
+        createdAt: new Date('2023-01-01'),
+        updatedAt: new Date()
+      },
+      {
+        id: 'VEH-002',
+        type: 'luxury' as const,
+        name: 'BMW X7 Luxury',
+        model: 'BMW X7 2024',
+        image: '/api/placeholder/300/200',
+        images: ['/api/placeholder/300/200'],
+        licensePlate: '07 DEF 456',
+        passengerCapacity: 6,
+        baggageCapacity: 6,
+        pricePerKm: 3.5, // USD
+        features: ['VIP İç Dizayn', 'Premium Ses Sistemi', 'Deri Koltuk', 'Mini Bar'],
+        extraServices: ['vip-service', 'refreshments', 'wifi'],
+        status: 'active' as const,
+        isActive: true,
+        lastMaintenance: new Date('2023-12-15'),
+        totalKilometers: 32000,
+        createdAt: new Date('2023-02-01'),
+        updatedAt: new Date()
+      },
+      {
+        id: 'VEH-003',
+        type: 'standard' as const,
+        name: 'Volkswagen Caddy',
+        model: 'Volkswagen Caddy 2022',
+        image: '/api/placeholder/300/200',
+        images: ['/api/placeholder/300/200'],
+        licensePlate: '07 GHI 789',
+        passengerCapacity: 4,
+        baggageCapacity: 4,
+        pricePerKm: 1.8, // USD
+        features: ['Klima', 'Müzik Sistemi', 'Temiz İç Mekan'],
+        extraServices: ['basic-comfort'],
+        status: 'maintenance' as const,
+        isActive: true,
+        lastMaintenance: new Date('2024-01-10'),
+        totalKilometers: 67000,
+        createdAt: new Date('2022-06-01'),
+        updatedAt: new Date()
+      }
+    ];
+
+    set(state => ({
+      customers: mockCustomers,
+      vehicles: mockVehicles
+    }));
+  },
 
   // Fetch Reservations from Firebase
   fetchReservations: async () => {
@@ -125,9 +254,9 @@ export const useStore = create<StoreState>((set, get) => ({
           baggageCount: 3,
           vehicleType: 'premium' as const,
           distance: 45,
-          basePrice: 72.03,
+          basePrice: 85.00, // USD
           additionalServices: [],
-          totalPrice: 85,
+          totalPrice: 95, // USD
           status: 'pending' as const,
           qrCode: 'QR-001',
           paymentStatus: 'completed' as const,
@@ -149,9 +278,9 @@ export const useStore = create<StoreState>((set, get) => ({
           baggageCount: 2,
           vehicleType: 'luxury' as const,
           distance: 35,
-          basePrice: 101.69,
+          basePrice: 110.00, // USD
           additionalServices: [],
-          totalPrice: 120,
+          totalPrice: 120, // USD
           status: 'assigned' as const,
           driverId: 'DRV-001',
           qrCode: 'QR-002',
@@ -174,9 +303,9 @@ export const useStore = create<StoreState>((set, get) => ({
           baggageCount: 4,
           vehicleType: 'premium' as const,
           distance: 60,
-          basePrice: 89.55,
+          basePrice: 98.00, // USD
           additionalServices: [],
-          totalPrice: 105,
+          totalPrice: 105, // USD
           status: 'completed' as const,
           driverId: 'DRV-002',
           qrCode: 'QR-003',
@@ -201,9 +330,9 @@ export const useStore = create<StoreState>((set, get) => ({
           baggageCount: 1,
           vehicleType: 'standard' as const,
           distance: 25,
-          basePrice: 50.00,
+          basePrice: 55.00, // USD
           additionalServices: [],
-          totalPrice: 60,
+          totalPrice: 60, // USD
           status: 'pending' as const,
           qrCode: 'QR-004',
           paymentStatus: 'completed' as const,
@@ -375,7 +504,7 @@ export const useStore = create<StoreState>((set, get) => ({
       console.error('Error fetching drivers:', error);
       console.warn('Using fallback mock data for drivers');
       
-      // Enhanced mock data for drivers
+      // Enhanced mock data for drivers with USD earnings
       const mockDrivers = [
         {
           id: 'DRV-001',
@@ -388,7 +517,7 @@ export const useStore = create<StoreState>((set, get) => ({
           status: 'busy' as const,
           currentLocation: 'Kemer - Club Med Palmiye',
           rating: 4.8,
-          totalEarnings: 2340,
+          totalEarnings: 2340, // USD
           completedTrips: 156,
           isActive: true,
           createdAt: new Date()
@@ -404,7 +533,7 @@ export const useStore = create<StoreState>((set, get) => ({
           status: 'available' as const,
           currentLocation: 'Antalya Merkez',
           rating: 4.9,
-          totalEarnings: 3120,
+          totalEarnings: 3120, // USD
           completedTrips: 203,
           isActive: true,
           createdAt: new Date()
@@ -420,7 +549,7 @@ export const useStore = create<StoreState>((set, get) => ({
           status: 'available' as const,
           currentLocation: 'Belek',
           rating: 4.7,
-          totalEarnings: 1890,
+          totalEarnings: 1890, // USD
           completedTrips: 124,
           isActive: true,
           createdAt: new Date()
@@ -436,7 +565,7 @@ export const useStore = create<StoreState>((set, get) => ({
           status: 'offline' as const,
           currentLocation: 'Side',
           rating: 4.6,
-          totalEarnings: 1560,
+          totalEarnings: 1560, // USD
           completedTrips: 98,
           isActive: true,
           createdAt: new Date()
@@ -520,10 +649,20 @@ export const useStore = create<StoreState>((set, get) => ({
   // Fetch Customers
   fetchCustomers: async () => {
     try {
-      // This would fetch all customers - implement as needed
-      set({ customers: [] });
+      console.log('Fetching customers...');
+      const state = get();
+      
+      // If no customers exist, initialize mock data
+      if (state.customers.length === 0) {
+        console.warn('No customers found, initializing mock data');
+        get().initializeMockData();
+      }
+      
+      set({ customers: state.customers });
     } catch (error) {
       console.error('Error fetching customers:', error);
+      // Initialize mock data as fallback
+      get().initializeMockData();
     }
   },
 
@@ -577,6 +716,25 @@ export const useStore = create<StoreState>((set, get) => ({
   },
 
   // Vehicle management
+  fetchVehicles: async () => {
+    try {
+      console.log('Fetching vehicles...');
+      const state = get();
+      
+      // If no vehicles exist, initialize mock data
+      if (state.vehicles.length === 0) {
+        console.warn('No vehicles found, initializing mock data');
+        get().initializeMockData();
+      }
+      
+      set({ vehicles: state.vehicles });
+    } catch (error) {
+      console.error('Error fetching vehicles:', error);
+      // Initialize mock data as fallback
+      get().initializeMockData();
+    }
+  },
+
   addVehicle: async (vehicleData) => {
     try {
       // Implement createVehicle function
@@ -618,6 +776,77 @@ export const useStore = create<StoreState>((set, get) => ({
     } catch (error) {
       console.error('Error deleting vehicle:', error);
       toast.error('Araç silinirken hata oluştu');
+    }
+  },
+
+  // Demo data management
+  saveDemoDataToFirebase: async () => {
+    try {
+      set({ loading: true });
+      console.log('Saving demo data to Firebase...');
+      
+      const state = get();
+      let savedCount = 0;
+      
+      // Save reservations
+      for (const reservation of state.reservations) {
+        try {
+          const { id, createdAt, updatedAt, ...reservationData } = reservation;
+          await createReservation(reservationData);
+          savedCount++;
+        } catch (error) {
+          console.error('Error saving reservation:', reservation.id, error);
+        }
+      }
+      
+      // Save drivers
+      for (const driver of state.drivers) {
+        try {
+          const { id, createdAt, ...driverData } = driver;
+          await createDriver(driverData);
+          savedCount++;
+        } catch (error) {
+          console.error('Error saving driver:', driver.id, error);
+        }
+      }
+      
+      // Save customers
+      for (const customer of state.customers) {
+        try {
+          const { id, createdAt, updatedAt, ...customerData } = customer;
+          await createCustomer(customerData);
+          savedCount++;
+        } catch (error) {
+          console.error('Error saving customer:', customer.id, error);
+        }
+      }
+      
+      // Note: Vehicles would also be saved here if we had a createVehicle function
+      
+      toast.success(`${savedCount} demo veri Firebase'e başarıyla kaydedildi!`);
+      console.log(`Successfully saved ${savedCount} demo records to Firebase`);
+      
+    } catch (error) {
+      console.error('Error saving demo data to Firebase:', error);
+      toast.error('Demo veriler kaydedilirken hata oluştu');
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  clearAllDemoData: async () => {
+    try {
+      set({ 
+        reservations: [],
+        drivers: [],
+        customers: [],
+        vehicles: [],
+        commissions: []
+      });
+      toast.success('Tüm demo veriler temizlendi!');
+    } catch (error) {
+      console.error('Error clearing demo data:', error);
+      toast.error('Demo veriler temizlenirken hata oluştu');
     }
   },
 
