@@ -9,7 +9,7 @@ import {
   createReservation,
   updateReservation,
   getReservations,
-  getActiveDrivers,
+  getAvailableDrivers,
   createCustomer,
   getCustomerByEmail,
   createCommission,
@@ -177,7 +177,7 @@ export const useFirebaseStore = create<FirebaseState>((set, get) => ({
   // Fetch Drivers
   fetchDrivers: async () => {
     try {
-      const drivers = await getActiveDrivers();
+      const drivers = await getAvailableDrivers();
       set({ drivers });
     } catch (error) {
       console.error('Error fetching drivers:', error);
