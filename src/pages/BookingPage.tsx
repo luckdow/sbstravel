@@ -50,6 +50,7 @@ export default function BookingPage() {
   const [priceCalculation, setPriceCalculation] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [reservationId, setReservationId] = useState<string | null>(null);
+  const [qrCode, setQrCode] = useState<string | null>(null);
   
   const { vehicles, extraServices, settings, createNewReservation, addCustomer } = useStore();
 
@@ -170,8 +171,9 @@ export default function BookingPage() {
         throw new Error('Rezervasyon oluşturulamadı');
       }
 
-      // Store reservation ID for payment step
+      // Store reservation ID and QR code for payment step
       setReservationId(reservationId);
+      setQrCode(qrCode);
 
       // Show success message
       toast.success('Rezervasyon başarıyla oluşturuldu! Ödeme sayfasına yönlendiriliyorsunuz...');
@@ -410,7 +412,7 @@ export default function BookingPage() {
               {currentStep === 3 && (
                 <PaymentSection
                   priceCalculation={priceCalculation}
-                  bookingData={watchedValues}
+                  bookingData={{...watchedValues, qrCode}}
                   reservationId={reservationId}
                   onPaymentSuccess={(transactionId) => {
                     console.log('Payment successful, transaction ID:', transactionId);

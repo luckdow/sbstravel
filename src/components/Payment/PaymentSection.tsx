@@ -53,6 +53,7 @@ export default function PaymentSection({
         customerInfo: bookingData.customerInfo,
         reservationData: {
           route: `${bookingData.transferType === 'airport-hotel' ? 'Airport → ' + bookingData.destination.name : bookingData.destination.name + ' → Airport'}`,
+          qrCode: bookingData.qrCode,
           ...bookingData
         },
         paymentMethod: paymentMethod as 'credit-card' | 'bank-transfer',
@@ -68,6 +69,7 @@ export default function PaymentSection({
         customerInfo: bookingData.customerInfo,
         reservationData: {
           route: `${bookingData.transferType === 'airport-hotel' ? 'Airport → ' + bookingData.destination.name : bookingData.destination.name + ' → Airport'}`,
+          qrCode: bookingData.qrCode,
           ...bookingData
         },
         paymentMethod: paymentMethod as 'credit-card' | 'bank-transfer',
