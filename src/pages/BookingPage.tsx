@@ -12,6 +12,7 @@ import CustomerInfoForm from '../components/Booking/CustomerInfoForm';
 import PaymentSection from '../components/Payment/PaymentSection';
 import { useStore } from '../store/useStore';
 import { calculatePrice } from '../utils/pricing';
+import { generateQRCode } from '../utils/qrCode';
 
 const bookingSchema = z.object({
   transferType: z.enum(['airport-hotel', 'hotel-airport']),
@@ -47,8 +48,11 @@ export default function BookingPage() {
   const [isCalculatingPrice, setIsCalculatingPrice] = useState(false);
   const [totalPrice, setTotalPrice] = useState(0);
   const [priceCalculation, setPriceCalculation] = useState<any>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [reservationId, setReservationId] = useState<string | null>(null);
+  const [qrCode, setQrCode] = useState<string | null>(null);
   
-  const { vehicles, extraServices, settings } = useStore();
+  const { vehicles, extraServices, settings, createNewReservation, addCustomer } = useStore();
 
   const {
     register,
@@ -117,7 +121,72 @@ export default function BookingPage() {
   };
 
   const onSubmit = async (data: BookingFormData) => {
-    console.log('Form gönderildi:', data);
+    setIsSubmitting(true);
+    
+    try {
+      // Generate QR code for the reservation
+      const qrCode = generateQRCode();
+      
+      // Create customer record first
+      const customerId = await addCustomer({
+        firstName: data.customerInfo.firstName,
+        lastName: data.customerInfo.lastName,
+        email: data.customerInfo.email,
+        phone: data.customerInfo.phone
+      });
+
+      if (!customerId) {
+        throw new Error('Müşteri kaydı oluşturulamadı');
+      }
+
+      // Prepare reservation data
+      const reservationData = {
+        ...data,
+        customerId,
+        customerName: `${data.customerInfo.firstName} ${data.customerInfo.lastName}`,
+        customerEmail: data.customerInfo.email,
+        customerPhone: data.customerInfo.phone,
+        pickupLocation: data.transferType === 'airport-hotel' ? 'Antalya Havalimanı' : data.destination.name,
+        dropoffLocation: data.transferType === 'airport-hotel' ? data.destination.name : 'Antalya Havalimanı',
+        distance: priceCalculation?.distance || 0,
+        basePrice: priceCalculation?.basePrice || 0,
+        additionalServices: data.extraServices?.map(serviceId => {
+          const service = extraServices.find(s => s.id === serviceId);
+          return {
+            id: serviceId,
+            name: service?.name || '',
+            price: service?.price || 0
+          };
+        }) || [],
+        totalPrice: priceCalculation?.totalPrice || totalPrice,
+        qrCode,
+        paymentStatus: 'pending' as const,
+        status: 'pending' as const
+      };
+
+      // Create reservation
+      const reservationId = await createNewReservation(reservationData);
+
+      if (!reservationId) {
+        throw new Error('Rezervasyon oluşturulamadı');
+      }
+
+      // Store reservation ID and QR code for payment step
+      setReservationId(reservationId);
+      setQrCode(qrCode);
+
+      // Show success message
+      toast.success('Rezervasyon başarıyla oluşturuldu! Ödeme sayfasına yönlendiriliyorsunuz...');
+      
+      // Move to payment step
+      setCurrentStep(3);
+      
+    } catch (error) {
+      console.error('Rezervasyon oluşturma hatası:', error);
+      toast.error(error instanceof Error ? error.message : 'Rezervasyon oluşturulurken hata oluştu');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -343,9 +412,11 @@ export default function BookingPage() {
               {currentStep === 3 && (
                 <PaymentSection
                   priceCalculation={priceCalculation}
-                  bookingData={watchedValues}
+                  bookingData={{...watchedValues, qrCode}}
+                  reservationId={reservationId}
                   onPaymentSuccess={(transactionId) => {
                     console.log('Payment successful, transaction ID:', transactionId);
+                    toast.success('Ödeme başarıyla tamamlandı!');
                   }}
                 />
               )}
@@ -398,7 +469,8 @@ export default function BookingPage() {
                         return;
                       }
                       
-                      setCurrentStep(3);
+                      // Submit the form to create reservation and proceed to payment
+                      handleSubmit(onSubmit)();
                       return;
                     }
                     
@@ -406,11 +478,12 @@ export default function BookingPage() {
                       handlePayTRPayment();
                     }
                   }}
-                  disabled={isCalculatingPrice || (currentStep === 1 && totalPrice === 0)}
+                  disabled={isCalculatingPrice || isSubmitting || (currentStep === 1 && totalPrice === 0)}
                   className="ml-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span>
                     {isCalculatingPrice ? 'İşleniyor...' : 
+                     isSubmitting ? 'Rezervasyon oluşturuluyor...' :
                      currentStep === 3 ? 'Ödeme Yap & Rezervasyonu Tamamla' : 'Devam Et'}
                   </span>
                   <ArrowRight className="h-5 w-5" />

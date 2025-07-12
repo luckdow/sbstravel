@@ -161,6 +161,7 @@ export interface BookingFormData {
   vehicleType: 'standard' | 'premium' | 'luxury';
   additionalServices: string[];
   flightNumber?: string;
+  qrCode?: string; // QR code for the reservation
   customerInfo: {
     firstName: string;
     lastName: string;
