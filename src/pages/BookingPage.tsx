@@ -4,7 +4,6 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useSearchParams } from 'react-router-dom';
 import { LocationData } from '../types';
-// import { notificationService } from '../services/communication';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useStore } from '../store/useStore';
@@ -56,7 +55,13 @@ export default function BookingPage() {
   const [showPriceDetails, setShowPriceDetails] = useState(false);
   
   const navigate = useNavigate();
-  const { createNewReservation } = useStore();
+  const { createNewReservation, vehicles, extraServices, fetchVehicles, fetchExtraServices } = useStore();
+  
+  // Fetch vehicles and extra services when component mounts
+  useEffect(() => {
+    fetchVehicles();
+    fetchExtraServices();
+  }, [fetchVehicles, fetchExtraServices]);
 
   const {
     register,
@@ -504,7 +509,37 @@ export default function BookingPage() {
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-3">Araç Tipi Seçimi</label>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          {vehicleOptions.map((vehicle) => (
+                          {vehicles.length > 0 ? vehicles.map((vehicle) => (
+                            <label key={vehicle.type} className="relative">
+                              <input
+                                type="radio"
+                                {...register('vehicleType')}
+                                value={vehicle.type}
+                                className="sr-only"
+                              />
+                              <div className={`p-4 border-2 rounded-2xl cursor-pointer transition-all duration-300 ${
+                                watchedValues.vehicleType === vehicle.type
+                                  ? 'border-blue-600 bg-blue-50'
+                                  : 'border-gray-200 hover:border-blue-300'
+                              }`}>
+                                <img 
+                                  src={vehicle.image} 
+                                  alt={vehicle.name}
+                                  className="w-full h-32 object-cover rounded-xl mb-3"
+                                />
+                                <h3 className="font-bold text-gray-800 mb-1">{vehicle.name}</h3>
+                                <p className="text-sm text-gray-600 mb-2">{vehicle.description}</p>
+                                <p className="text-xs text-blue-600 font-medium mb-2">{vehicle.capacity}</p>
+                                <div className="flex flex-wrap gap-1">
+                                  {vehicle.features.map((feature, index) => (
+                                    <span key={index} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-lg">
+                                      {feature}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            </label>
+                          )) : vehicleOptions.map((vehicle) => (
                             <label key={vehicle.type} className="relative">
                               <input
                                 type="radio"

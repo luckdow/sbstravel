@@ -2,6 +2,8 @@ import React from 'react';
 import { User, Mail, Phone, Plus, X } from 'lucide-react';
 import { UseFormRegister, FieldErrors, UseFormSetValue } from 'react-hook-form';
 import { BookingFormData } from '../../types';
+import { useStore } from '../../store/useStore';
+import { useEffect } from 'react';
 
 interface CustomerInfoFormProps {
   register: UseFormRegister<BookingFormData>;
@@ -10,14 +12,6 @@ interface CustomerInfoFormProps {
   additionalServices: string[];
 }
 
-const availableServices = [
-  { id: 'baby-seat', name: 'Bebek Koltuğu', price: 10 },
-  { id: 'booster-seat', name: 'Yükseltici Koltuk', price: 8 },
-  { id: 'meet-greet', name: 'Karşılama Tabelası', price: 15 },
-  { id: 'extra-stop', name: 'Ek Durak', price: 20 },
-  { id: 'waiting-time', name: 'Bekleme Süresi (+30dk)', price: 25 },
-  { id: 'premium-water', name: 'Premium Su İkramı', price: 5 }
-];
 
 export default function CustomerInfoForm({
   register,
@@ -25,6 +19,12 @@ export default function CustomerInfoForm({
   setValue,
   additionalServices
 }: CustomerInfoFormProps) {
+  const { extraServices, fetchExtraServices } = useStore();
+  
+  useEffect(() => {
+    fetchExtraServices();
+  }, [fetchExtraServices]);
+  
   const toggleService = (serviceId: string) => {
     const currentServices = additionalServices || [];
     const newServices = currentServices.includes(serviceId)
@@ -36,7 +36,7 @@ export default function CustomerInfoForm({
 
   const getTotalServicesCost = () => {
     return (additionalServices || []).reduce((total, serviceId) => {
-      const service = availableServices.find(s => s.id === serviceId);
+      const service = extraServices.find(s => s.id === serviceId);
       return total + (service?.price || 0);
     }, 0);
   };
@@ -123,7 +123,7 @@ export default function CustomerInfoForm({
           <p className="text-gray-600 mb-6">Transfer deneyiminizi daha konforlu hale getirmek için ek hizmetler seçebilirsiniz.</p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {availableServices.map((service) => {
+            {extraServices.length > 0 ? extraServices.map((service) => {
               const isSelected = (additionalServices || []).includes(service.id);
               
               return (
@@ -151,7 +151,11 @@ export default function CustomerInfoForm({
                   </div>
                 </div>
               );
-            })}
+            }) : (
+              <div className="col-span-3 text-center py-4 text-gray-500">
+                Ek hizmetler yükleniyor...
+              </div>
+            )}
           </div>
 
           {(additionalServices || []).length > 0 && (
