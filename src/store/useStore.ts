@@ -18,8 +18,22 @@ import {
   subscribeToDrivers,
   getAvailableDrivers,
   updateDriver,
-  createDriver
+  createDriver,
+  getAllDrivers,
+  deleteDriver,
+  // Vehicle operations
+  createVehicle,
+  updateVehicle,
+  getVehicles,
+  deleteVehicle,
+  subscribeToVehicles,
+  // Customer operations
+  getAllCustomers,
+  updateCustomer,
+  deleteCustomer
 } from '../lib/firebase/collections';
+import { FirebaseErrorHandler, withFirebaseErrorHandling, withTimeout } from '../lib/firebase/error-handling';
+import { FirebasePersistence } from '../lib/services/persistence-service';
 import { generateQRCode } from '../lib/utils/qr-code';
 import { getLocationString } from '../lib/utils/location';
 import toast from 'react-hot-toast';
@@ -478,100 +492,273 @@ export const useStore = create<StoreState>((set, get) => ({
 
   // Fetch Drivers
   fetchDrivers: async () => {
+    set({ loading: true });
+    
     try {
-      console.log('Fetching drivers...');
+      console.log('Fetching drivers from Firebase...');
       
-      // Add timeout for Firebase requests
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('Firebase connection timeout')), 5000);
-      });
+      const drivers = await withFirebaseErrorHandling(
+        () => withTimeout(getAllDrivers(false), 10000, 'Driver fetch timed out'),
+        { maxRetries: 2, baseDelay: 1000 },
+        'Driver fetch'
+      );
       
-      const availableDrivers = await Promise.race([
-        getAvailableDrivers(),
-        timeoutPromise
-      ]);
+      console.log('Successfully fetched drivers from Firebase:', drivers.length);
       
-      console.log('Fetched drivers:', availableDrivers.length);
+      // Save to cache for offline use
+      FirebasePersistence.saveDrivers(drivers);
+      FirebasePersistence.updateLastSync();
       
-      // If Firebase returns empty results, use mock data for demo
-      if (availableDrivers.length === 0) {
-        console.warn('Firebase returned empty driver results, using mock data for demo');
-        throw new Error('Empty results, using mock data');
+      set({ drivers });
+      
+    } catch (error) {
+      console.error('Error fetching drivers from Firebase:', error);
+      
+      // Try to load from cache
+      const cachedDrivers = FirebasePersistence.getDrivers();
+      if (cachedDrivers.length > 0) {
+        console.log('Using cached drivers:', cachedDrivers.length);
+        set({ drivers: cachedDrivers });
+        toast.error('Firebase bağlantısı başarısız, önbellek veriler kullanılıyor');
+      } else {
+        console.warn('No cached drivers available, using mock data');
+        // Enhanced mock data for drivers with USD earnings
+        const mockDrivers = [
+          {
+            id: 'DRV-001',
+            firstName: 'Mehmet',
+            lastName: 'Demir',
+            email: 'mehmet@sbstravel.com',
+            phone: '+90 532 111 2233',
+            licenseNumber: 'ABC123',
+            vehicleType: 'premium' as const,
+            status: 'busy' as const,
+            currentLocation: 'Kemer - Club Med Palmiye',
+            rating: 4.8,
+            totalEarnings: 2340, // USD
+            completedTrips: 156,
+            isActive: true,
+            createdAt: new Date()
+          },
+          {
+            id: 'DRV-002',
+            firstName: 'Ali',
+            lastName: 'Kaya',
+            email: 'ali@sbstravel.com',
+            phone: '+90 533 222 3344',
+            licenseNumber: 'DEF456',
+            vehicleType: 'luxury' as const,
+            status: 'available' as const,
+            currentLocation: 'Antalya Merkez',
+            rating: 4.9,
+            totalEarnings: 3120, // USD
+            completedTrips: 203,
+            isActive: true,
+            createdAt: new Date()
+          },
+          {
+            id: 'DRV-003',
+            firstName: 'Osman',
+            lastName: 'Çelik',
+            email: 'osman@sbstravel.com',
+            phone: '+90 534 333 4455',
+            licenseNumber: 'GHI789',
+            vehicleType: 'standard' as const,
+            status: 'available' as const,
+            currentLocation: 'Belek',
+            rating: 4.7,
+            totalEarnings: 1890, // USD
+            completedTrips: 124,
+            isActive: true,
+            createdAt: new Date()
+          },
+          {
+            id: 'DRV-004',
+            firstName: 'Fatih',
+            lastName: 'Özkan',
+            email: 'fatih@sbstravel.com',
+            phone: '+90 535 444 5566',
+            licenseNumber: 'JKL012',
+            vehicleType: 'premium' as const,
+            status: 'offline' as const,
+            currentLocation: 'Side',
+            rating: 4.6,
+            totalEarnings: 1560, // USD
+            completedTrips: 98,
+            isActive: true,
+            createdAt: new Date()
+          }
+        ];
+        set({ drivers: mockDrivers });
+        toast.error('Şoför verileri yüklenemedi. Örnek veriler gösteriliyor.');
+      }
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  // Add Driver
+  addDriver: async (driverData) => {
+    const toastId = FirebaseErrorHandler.createLoadingToast('Şoför ekleniyor...');
+    
+    try {
+      console.log('Adding driver to Firebase...', driverData);
+      
+      const driverId = await withFirebaseErrorHandling(
+        () => withTimeout(createDriver(driverData), 15000, 'Driver creation timed out'),
+        { maxRetries: 2, baseDelay: 1500 },
+        'Driver creation'
+      );
+      
+      const newDriver = { 
+        id: driverId, 
+        ...driverData, 
+        createdAt: new Date()
+      };
+      
+      // Update local state
+      set(state => ({
+        drivers: [newDriver, ...state.drivers]
+      }));
+      
+      // Update cache
+      const currentDrivers = get().drivers;
+      FirebasePersistence.saveDrivers(currentDrivers);
+      
+      FirebaseErrorHandler.updateToast(toastId, 'Şoför başarıyla eklendi!', 'success');
+      return driverId;
+      
+    } catch (error) {
+      console.error('Error adding driver:', error);
+      
+      // Add to offline changes if this is a connectivity issue
+      if (error.message?.includes('timeout') || error.message?.includes('network')) {
+        const tempId = `temp-${Date.now()}`;
+        const newDriver = { 
+          id: tempId, 
+          ...driverData, 
+          createdAt: new Date()
+        };
+        
+        set(state => ({
+          drivers: [newDriver, ...state.drivers]
+        }));
+        
+        FirebasePersistence.addOfflineChange({
+          type: 'create',
+          entity: 'driver',
+          data: driverData,
+          timestamp: new Date()
+        });
+        
+        FirebaseErrorHandler.updateToast(toastId, 'Şoför çevrimdışı olarak eklendi, bağlantı kurulduğunda senkronize edilecek', 'success');
+        return tempId;
       }
       
-      set({ drivers: availableDrivers });
-    } catch (error) {
-      console.error('Error fetching drivers:', error);
-      console.warn('Using fallback mock data for drivers');
+      FirebaseErrorHandler.updateToast(toastId, 'Şoför eklenirken hata oluştu', 'error');
+      return null;
+    }
+  },
+
+  // Edit Driver
+  editDriver: async (id, updates) => {
+    const toastId = FirebaseErrorHandler.createLoadingToast('Şoför güncelleniyor...');
+    
+    try {
+      console.log('Updating driver in Firebase...', id, updates);
       
-      // Enhanced mock data for drivers with USD earnings
-      const mockDrivers = [
-        {
-          id: 'DRV-001',
-          firstName: 'Mehmet',
-          lastName: 'Demir',
-          email: 'mehmet@sbstravel.com',
-          phone: '+90 532 111 2233',
-          licenseNumber: 'ABC123',
-          vehicleType: 'premium' as const,
-          status: 'busy' as const,
-          currentLocation: 'Kemer - Club Med Palmiye',
-          rating: 4.8,
-          totalEarnings: 2340, // USD
-          completedTrips: 156,
-          isActive: true,
-          createdAt: new Date()
-        },
-        {
-          id: 'DRV-002',
-          firstName: 'Ali',
-          lastName: 'Kaya',
-          email: 'ali@sbstravel.com',
-          phone: '+90 533 222 3344',
-          licenseNumber: 'DEF456',
-          vehicleType: 'luxury' as const,
-          status: 'available' as const,
-          currentLocation: 'Antalya Merkez',
-          rating: 4.9,
-          totalEarnings: 3120, // USD
-          completedTrips: 203,
-          isActive: true,
-          createdAt: new Date()
-        },
-        {
-          id: 'DRV-003',
-          firstName: 'Osman',
-          lastName: 'Çelik',
-          email: 'osman@sbstravel.com',
-          phone: '+90 534 333 4455',
-          licenseNumber: 'GHI789',
-          vehicleType: 'standard' as const,
-          status: 'available' as const,
-          currentLocation: 'Belek',
-          rating: 4.7,
-          totalEarnings: 1890, // USD
-          completedTrips: 124,
-          isActive: true,
-          createdAt: new Date()
-        },
-        {
-          id: 'DRV-004',
-          firstName: 'Fatih',
-          lastName: 'Özkan',
-          email: 'fatih@sbstravel.com',
-          phone: '+90 535 444 5566',
-          licenseNumber: 'JKL012',
-          vehicleType: 'premium' as const,
-          status: 'offline' as const,
-          currentLocation: 'Side',
-          rating: 4.6,
-          totalEarnings: 1560, // USD
-          completedTrips: 98,
-          isActive: true,
-          createdAt: new Date()
-        }
-      ];
-      set({ drivers: mockDrivers });
+      await withFirebaseErrorHandling(
+        () => withTimeout(updateDriver(id, updates), 15000, 'Driver update timed out'),
+        { maxRetries: 2, baseDelay: 1500 },
+        'Driver update'
+      );
+      
+      // Update local state
+      set(state => ({
+        drivers: state.drivers.map(driver =>
+          driver.id === id ? { ...driver, ...updates } : driver
+        )
+      }));
+      
+      // Update cache
+      const currentDrivers = get().drivers;
+      FirebasePersistence.saveDrivers(currentDrivers);
+      
+      FirebaseErrorHandler.updateToast(toastId, 'Şoför başarıyla güncellendi!', 'success');
+      
+    } catch (error) {
+      console.error('Error editing driver:', error);
+      
+      // Add to offline changes if this is a connectivity issue
+      if (error.message?.includes('timeout') || error.message?.includes('network')) {
+        // Update local state optimistically
+        set(state => ({
+          drivers: state.drivers.map(driver =>
+            driver.id === id ? { ...driver, ...updates } : driver
+          )
+        }));
+        
+        FirebasePersistence.addOfflineChange({
+          type: 'update',
+          entity: 'driver',
+          data: updates,
+          id,
+          timestamp: new Date()
+        });
+        
+        FirebaseErrorHandler.updateToast(toastId, 'Şoför çevrimdışı olarak güncellendi, bağlantı kurulduğunda senkronize edilecek', 'success');
+      } else {
+        FirebaseErrorHandler.updateToast(toastId, 'Şoför güncellenirken hata oluştu', 'error');
+      }
+    }
+  },
+
+  // Delete Driver
+  deleteDriver: async (id) => {
+    const toastId = FirebaseErrorHandler.createLoadingToast('Şoför siliniyor...');
+    
+    try {
+      console.log('Deleting driver from Firebase...', id);
+      
+      await withFirebaseErrorHandling(
+        () => withTimeout(deleteDriver(id), 15000, 'Driver deletion timed out'),
+        { maxRetries: 2, baseDelay: 1500 },
+        'Driver deletion'
+      );
+      
+      // Update local state
+      set(state => ({
+        drivers: state.drivers.filter(driver => driver.id !== id)
+      }));
+      
+      // Update cache
+      const currentDrivers = get().drivers;
+      FirebasePersistence.saveDrivers(currentDrivers);
+      
+      FirebaseErrorHandler.updateToast(toastId, 'Şoför başarıyla silindi!', 'success');
+      
+    } catch (error) {
+      console.error('Error deleting driver:', error);
+      
+      // Add to offline changes if this is a connectivity issue
+      if (error.message?.includes('timeout') || error.message?.includes('network')) {
+        // Update local state optimistically
+        set(state => ({
+          drivers: state.drivers.filter(driver => driver.id !== id)
+        }));
+        
+        FirebasePersistence.addOfflineChange({
+          type: 'delete',
+          entity: 'driver',
+          id,
+          data: null,
+          timestamp: new Date()
+        });
+        
+        FirebaseErrorHandler.updateToast(toastId, 'Şoför çevrimdışı olarak silindi, bağlantı kurulduğunda senkronize edilecek', 'success');
+      } else {
+        FirebaseErrorHandler.updateToast(toastId, 'Şoför silinirken hata oluştu', 'error');
+      }
     }
   },
 
@@ -583,199 +770,447 @@ export const useStore = create<StoreState>((set, get) => ({
 
   // Update Driver Status
   updateDriverStatus: async (id, status) => {
+    const toastId = FirebaseErrorHandler.createLoadingToast('Şoför durumu güncelleniyor...');
+    
     try {
-      await updateDriver(id, { status });
+      await withFirebaseErrorHandling(
+        () => withTimeout(updateDriver(id, { status }), 10000, 'Driver status update timed out'),
+        { maxRetries: 1, baseDelay: 1000 },
+        'Driver status update'
+      );
+      
       set(state => ({
         drivers: state.drivers.map(driver =>
           driver.id === id ? { ...driver, status } : driver
         )
       }));
-      toast.success('Şoför durumu güncellendi!');
+      
+      FirebaseErrorHandler.updateToast(toastId, 'Şoför durumu güncellendi!', 'success');
     } catch (error) {
       console.error('Error updating driver status:', error);
-      toast.error('Şoför durumu güncellenirken hata oluştu');
-    }
-  },
-
-  // Add Driver
-  addDriver: async (driverData) => {
-    try {
-      const driverId = await createDriver(driverData);
-      const newDriver = { id: driverId, ...driverData, createdAt: new Date() };
-      
-      set(state => ({
-        drivers: [newDriver, ...state.drivers]
-      }));
-      
-      toast.success('Şoför başarıyla eklendi!');
-      return driverId;
-    } catch (error) {
-      console.error('Error adding driver:', error);
-      toast.error('Şoför eklenirken hata oluştu');
-      return null;
-    }
-  },
-
-  // Edit Driver
-  editDriver: async (id, updates) => {
-    try {
-      await updateDriver(id, updates);
-      set(state => ({
-        drivers: state.drivers.map(driver =>
-          driver.id === id ? { ...driver, ...updates } : driver
-        )
-      }));
-      toast.success('Şoför bilgileri güncellendi!');
-    } catch (error) {
-      console.error('Error editing driver:', error);
-      toast.error('Şoför güncellenirken hata oluştu');
-    }
-  },
-
-  // Delete Driver
-  deleteDriver: async (id) => {
-    try {
-      await updateDriver(id, { isActive: false });
-      set(state => ({
-        drivers: state.drivers.filter(driver => driver.id !== id)
-      }));
-      toast.success('Şoför silindi!');
-    } catch (error) {
-      console.error('Error deleting driver:', error);
-      toast.error('Şoför silinirken hata oluştu');
+      FirebaseErrorHandler.updateToast(toastId, 'Şoför durumu güncellenirken hata oluştu', 'error');
     }
   },
 
   // Fetch Customers
   fetchCustomers: async () => {
+    set({ loading: true });
+    
     try {
-      console.log('Fetching customers...');
-      const state = get();
+      console.log('Fetching customers from Firebase...');
       
-      // If no customers exist, initialize mock data
-      if (state.customers.length === 0) {
-        console.warn('No customers found, initializing mock data');
-        get().initializeMockData();
-      }
+      const customers = await withFirebaseErrorHandling(
+        () => withTimeout(getAllCustomers(), 10000, 'Customer fetch timed out'),
+        { maxRetries: 2, baseDelay: 1000 },
+        'Customer fetch'
+      );
       
-      set({ customers: state.customers });
+      console.log('Successfully fetched customers from Firebase:', customers.length);
+      
+      // Save to cache for offline use
+      FirebasePersistence.saveCustomers(customers);
+      FirebasePersistence.updateLastSync();
+      
+      set({ customers });
+      
     } catch (error) {
-      console.error('Error fetching customers:', error);
-      // Initialize mock data as fallback
-      get().initializeMockData();
+      console.error('Error fetching customers from Firebase:', error);
+      
+      // Try to load from cache
+      const cachedCustomers = FirebasePersistence.getCustomers();
+      if (cachedCustomers.length > 0) {
+        console.log('Using cached customers:', cachedCustomers.length);
+        set({ customers: cachedCustomers });
+        toast.error('Firebase bağlantısı başarısız, önbellek veriler kullanılıyor');
+      } else {
+        console.warn('No cached customers available, initializing mock data');
+        const state = get();
+        
+        // If no customers exist, initialize mock data
+        if (state.customers.length === 0) {
+          get().initializeMockData();
+        }
+        
+        set({ customers: state.customers });
+        toast.error('Müşteri verileri yüklenemedi. Örnek veriler gösteriliyor.');
+      }
+    } finally {
+      set({ loading: false });
     }
   },
 
   // Add Customer
   addCustomer: async (customerData) => {
+    const toastId = FirebaseErrorHandler.createLoadingToast('Müşteri ekleniyor...');
+    
     try {
-      const customerId = await createCustomer(customerData);
-      const newCustomer = { id: customerId, ...customerData, createdAt: new Date() };
+      console.log('Adding customer to Firebase...', customerData);
       
+      const customerId = await withFirebaseErrorHandling(
+        () => withTimeout(createCustomer(customerData), 15000, 'Customer creation timed out'),
+        { maxRetries: 2, baseDelay: 1500 },
+        'Customer creation'
+      );
+      
+      const newCustomer = { 
+        id: customerId, 
+        ...customerData, 
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      // Update local state
       set(state => ({
         customers: [newCustomer, ...state.customers]
       }));
       
-      toast.success('Müşteri başarıyla eklendi!');
+      // Update cache
+      const currentCustomers = get().customers;
+      FirebasePersistence.saveCustomers(currentCustomers);
+      
+      FirebaseErrorHandler.updateToast(toastId, 'Müşteri başarıyla eklendi!', 'success');
       return customerId;
+      
     } catch (error) {
       console.error('Error adding customer:', error);
-      toast.error('Müşteri eklenirken hata oluştu');
+      
+      // Add to offline changes if this is a connectivity issue
+      if (error.message?.includes('timeout') || error.message?.includes('network')) {
+        const tempId = `temp-${Date.now()}`;
+        const newCustomer = { 
+          id: tempId, 
+          ...customerData, 
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        
+        set(state => ({
+          customers: [newCustomer, ...state.customers]
+        }));
+        
+        FirebasePersistence.addOfflineChange({
+          type: 'create',
+          entity: 'customer',
+          data: customerData,
+          timestamp: new Date()
+        });
+        
+        FirebaseErrorHandler.updateToast(toastId, 'Müşteri çevrimdışı olarak eklendi, bağlantı kurulduğunda senkronize edilecek', 'success');
+        return tempId;
+      }
+      
+      FirebaseErrorHandler.updateToast(toastId, 'Müşteri eklenirken hata oluştu', 'error');
       return null;
     }
   },
 
   // Edit Customer
   editCustomer: async (id, updates) => {
+    const toastId = FirebaseErrorHandler.createLoadingToast('Müşteri güncelleniyor...');
+    
     try {
-      // Implement updateCustomer function
+      console.log('Updating customer in Firebase...', id, updates);
+      
+      await withFirebaseErrorHandling(
+        () => withTimeout(updateCustomer(id, updates), 15000, 'Customer update timed out'),
+        { maxRetries: 2, baseDelay: 1500 },
+        'Customer update'
+      );
+      
+      // Update local state
       set(state => ({
         customers: state.customers.map(customer =>
-          customer.id === id ? { ...customer, ...updates } : customer
+          customer.id === id ? { ...customer, ...updates, updatedAt: new Date() } : customer
         )
       }));
-      toast.success('Müşteri bilgileri güncellendi!');
+      
+      // Update cache
+      const currentCustomers = get().customers;
+      FirebasePersistence.saveCustomers(currentCustomers);
+      
+      FirebaseErrorHandler.updateToast(toastId, 'Müşteri başarıyla güncellendi!', 'success');
+      
     } catch (error) {
       console.error('Error editing customer:', error);
-      toast.error('Müşteri güncellenirken hata oluştu');
+      
+      // Add to offline changes if this is a connectivity issue
+      if (error.message?.includes('timeout') || error.message?.includes('network')) {
+        // Update local state optimistically
+        set(state => ({
+          customers: state.customers.map(customer =>
+            customer.id === id ? { ...customer, ...updates, updatedAt: new Date() } : customer
+          )
+        }));
+        
+        FirebasePersistence.addOfflineChange({
+          type: 'update',
+          entity: 'customer',
+          data: updates,
+          id,
+          timestamp: new Date()
+        });
+        
+        FirebaseErrorHandler.updateToast(toastId, 'Müşteri çevrimdışı olarak güncellendi, bağlantı kurulduğunda senkronize edilecek', 'success');
+      } else {
+        FirebaseErrorHandler.updateToast(toastId, 'Müşteri güncellenirken hata oluştu', 'error');
+      }
     }
   },
 
   // Delete Customer
   deleteCustomer: async (id) => {
+    const toastId = FirebaseErrorHandler.createLoadingToast('Müşteri siliniyor...');
+    
     try {
-      // Implement deleteCustomer function
+      console.log('Deleting customer from Firebase...', id);
+      
+      await withFirebaseErrorHandling(
+        () => withTimeout(deleteCustomer(id), 15000, 'Customer deletion timed out'),
+        { maxRetries: 2, baseDelay: 1500 },
+        'Customer deletion'
+      );
+      
+      // Update local state
       set(state => ({
         customers: state.customers.filter(customer => customer.id !== id)
       }));
-      toast.success('Müşteri silindi!');
+      
+      // Update cache
+      const currentCustomers = get().customers;
+      FirebasePersistence.saveCustomers(currentCustomers);
+      
+      FirebaseErrorHandler.updateToast(toastId, 'Müşteri başarıyla silindi!', 'success');
+      
     } catch (error) {
       console.error('Error deleting customer:', error);
-      toast.error('Müşteri silinirken hata oluştu');
+      
+      // Add to offline changes if this is a connectivity issue
+      if (error.message?.includes('timeout') || error.message?.includes('network')) {
+        // Update local state optimistically
+        set(state => ({
+          customers: state.customers.filter(customer => customer.id !== id)
+        }));
+        
+        FirebasePersistence.addOfflineChange({
+          type: 'delete',
+          entity: 'customer',
+          id,
+          data: null,
+          timestamp: new Date()
+        });
+        
+        FirebaseErrorHandler.updateToast(toastId, 'Müşteri çevrimdışı olarak silindi, bağlantı kurulduğunda senkronize edilecek', 'success');
+      } else {
+        FirebaseErrorHandler.updateToast(toastId, 'Müşteri silinirken hata oluştu', 'error');
+      }
     }
   },
 
   // Vehicle management
   fetchVehicles: async () => {
+    const state = get();
+    set({ loading: true });
+    
     try {
-      console.log('Fetching vehicles...');
-      const state = get();
+      console.log('Fetching vehicles from Firebase...');
       
-      // If no vehicles exist, initialize mock data
-      if (state.vehicles.length === 0) {
-        console.warn('No vehicles found, initializing mock data');
-        get().initializeMockData();
-      }
+      const vehicles = await withFirebaseErrorHandling(
+        () => withTimeout(getVehicles(), 10000, 'Vehicle fetch timed out'),
+        { maxRetries: 2, baseDelay: 1000 },
+        'Vehicle fetch'
+      );
       
-      set({ vehicles: state.vehicles });
+      console.log('Successfully fetched vehicles from Firebase:', vehicles.length);
+      
+      // Save to cache for offline use
+      FirebasePersistence.saveVehicles(vehicles);
+      FirebasePersistence.updateLastSync();
+      
+      set({ vehicles });
+      
     } catch (error) {
-      console.error('Error fetching vehicles:', error);
-      // Initialize mock data as fallback
-      get().initializeMockData();
+      console.error('Error fetching vehicles from Firebase:', error);
+      
+      // Try to load from cache
+      const cachedVehicles = FirebasePersistence.getVehicles();
+      if (cachedVehicles.length > 0) {
+        console.log('Using cached vehicles:', cachedVehicles.length);
+        set({ vehicles: cachedVehicles });
+        toast.error('Firebase bağlantısı başarısız, önbellek veriler kullanılıyor');
+      } else {
+        console.warn('No cached vehicles available, using mock data');
+        // Initialize mock data only if no cache exists
+        if (state.vehicles.length === 0) {
+          get().initializeMockData();
+        }
+        toast.error('Araç verileri yüklenemedi. Örnek veriler gösteriliyor.');
+      }
+    } finally {
+      set({ loading: false });
     }
   },
 
   addVehicle: async (vehicleData) => {
+    const toastId = FirebaseErrorHandler.createLoadingToast('Araç ekleniyor...');
+    
     try {
-      // Implement createVehicle function
-      const newVehicle = { id: `VEH-${Date.now()}`, ...vehicleData, createdAt: new Date() };
+      console.log('Adding vehicle to Firebase...', vehicleData);
       
+      const vehicleId = await withFirebaseErrorHandling(
+        () => withTimeout(createVehicle(vehicleData), 15000, 'Vehicle creation timed out'),
+        { maxRetries: 2, baseDelay: 1500 },
+        'Vehicle creation'
+      );
+      
+      const newVehicle = { 
+        id: vehicleId, 
+        ...vehicleData, 
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      // Update local state
       set(state => ({
         vehicles: [newVehicle, ...state.vehicles]
       }));
       
-      toast.success('Araç başarıyla eklendi!');
-      return newVehicle.id!;
+      // Update cache
+      const currentVehicles = get().vehicles;
+      FirebasePersistence.saveVehicles(currentVehicles);
+      
+      FirebaseErrorHandler.updateToast(toastId, 'Araç başarıyla eklendi!', 'success');
+      return vehicleId;
+      
     } catch (error) {
       console.error('Error adding vehicle:', error);
-      toast.error('Araç eklenirken hata oluştu');
+      
+      // Add to offline changes if this is a connectivity issue
+      if (error.message?.includes('timeout') || error.message?.includes('network')) {
+        const tempId = `temp-${Date.now()}`;
+        const newVehicle = { 
+          id: tempId, 
+          ...vehicleData, 
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        
+        set(state => ({
+          vehicles: [newVehicle, ...state.vehicles]
+        }));
+        
+        FirebasePersistence.addOfflineChange({
+          type: 'create',
+          entity: 'vehicle',
+          data: vehicleData,
+          timestamp: new Date()
+        });
+        
+        FirebaseErrorHandler.updateToast(toastId, 'Araç çevrimdışı olarak eklendi, bağlantı kurulduğunda senkronize edilecek', 'success');
+        return tempId;
+      }
+      
+      FirebaseErrorHandler.updateToast(toastId, 'Araç eklenirken hata oluştu', 'error');
       return null;
     }
   },
 
   editVehicle: async (id, updates) => {
+    const toastId = FirebaseErrorHandler.createLoadingToast('Araç güncelleniyor...');
+    
     try {
+      console.log('Updating vehicle in Firebase...', id, updates);
+      
+      await withFirebaseErrorHandling(
+        () => withTimeout(updateVehicle(id, updates), 15000, 'Vehicle update timed out'),
+        { maxRetries: 2, baseDelay: 1500 },
+        'Vehicle update'
+      );
+      
+      // Update local state
       set(state => ({
         vehicles: state.vehicles.map(vehicle =>
-          vehicle.id === id ? { ...vehicle, ...updates } : vehicle
+          vehicle.id === id ? { ...vehicle, ...updates, updatedAt: new Date() } : vehicle
         )
       }));
-      toast.success('Araç bilgileri güncellendi!');
+      
+      // Update cache
+      const currentVehicles = get().vehicles;
+      FirebasePersistence.saveVehicles(currentVehicles);
+      
+      FirebaseErrorHandler.updateToast(toastId, 'Araç başarıyla güncellendi!', 'success');
+      
     } catch (error) {
       console.error('Error editing vehicle:', error);
-      toast.error('Araç güncellenirken hata oluştu');
+      
+      // Add to offline changes if this is a connectivity issue
+      if (error.message?.includes('timeout') || error.message?.includes('network')) {
+        // Update local state optimistically
+        set(state => ({
+          vehicles: state.vehicles.map(vehicle =>
+            vehicle.id === id ? { ...vehicle, ...updates, updatedAt: new Date() } : vehicle
+          )
+        }));
+        
+        FirebasePersistence.addOfflineChange({
+          type: 'update',
+          entity: 'vehicle',
+          data: updates,
+          id,
+          timestamp: new Date()
+        });
+        
+        FirebaseErrorHandler.updateToast(toastId, 'Araç çevrimdışı olarak güncellendi, bağlantı kurulduğunda senkronize edilecek', 'success');
+      } else {
+        FirebaseErrorHandler.updateToast(toastId, 'Araç güncellenirken hata oluştu', 'error');
+      }
     }
   },
 
   deleteVehicle: async (id) => {
+    const toastId = FirebaseErrorHandler.createLoadingToast('Araç siliniyor...');
+    
     try {
+      console.log('Deleting vehicle from Firebase...', id);
+      
+      await withFirebaseErrorHandling(
+        () => withTimeout(deleteVehicle(id), 15000, 'Vehicle deletion timed out'),
+        { maxRetries: 2, baseDelay: 1500 },
+        'Vehicle deletion'
+      );
+      
+      // Update local state
       set(state => ({
         vehicles: state.vehicles.filter(vehicle => vehicle.id !== id)
       }));
-      toast.success('Araç silindi!');
+      
+      // Update cache
+      const currentVehicles = get().vehicles;
+      FirebasePersistence.saveVehicles(currentVehicles);
+      
+      FirebaseErrorHandler.updateToast(toastId, 'Araç başarıyla silindi!', 'success');
+      
     } catch (error) {
       console.error('Error deleting vehicle:', error);
-      toast.error('Araç silinirken hata oluştu');
+      
+      // Add to offline changes if this is a connectivity issue
+      if (error.message?.includes('timeout') || error.message?.includes('network')) {
+        // Update local state optimistically
+        set(state => ({
+          vehicles: state.vehicles.filter(vehicle => vehicle.id !== id)
+        }));
+        
+        FirebasePersistence.addOfflineChange({
+          type: 'delete',
+          entity: 'vehicle',
+          id,
+          data: null,
+          timestamp: new Date()
+        });
+        
+        FirebaseErrorHandler.updateToast(toastId, 'Araç çevrimdışı olarak silindi, bağlantı kurulduğunda senkronize edilecek', 'success');
+      } else {
+        FirebaseErrorHandler.updateToast(toastId, 'Araç silinirken hata oluştu', 'error');
+      }
     }
   },
 
@@ -856,16 +1291,25 @@ export const useStore = create<StoreState>((set, get) => ({
     
     let unsubscribeReservations: (() => void) | null = null;
     let unsubscribeDrivers: (() => void) | null = null;
+    let unsubscribeVehicles: (() => void) | null = null;
     
     try {
       unsubscribeReservations = subscribeToReservations((reservations) => {
         console.log('Real-time reservations update:', reservations.length);
         set({ reservations });
+        // Don't save reservations to cache in real-time to avoid conflicts
       });
 
       unsubscribeDrivers = subscribeToDrivers((drivers) => {
         console.log('Real-time drivers update:', drivers.length);
         set({ drivers });
+        FirebasePersistence.saveDrivers(drivers);
+      });
+
+      unsubscribeVehicles = subscribeToVehicles((vehicles) => {
+        console.log('Real-time vehicles update:', vehicles.length);
+        set({ vehicles });
+        FirebasePersistence.saveVehicles(vehicles);
       });
     } catch (error) {
       console.error('Error setting up real-time subscriptions:', error);
@@ -877,6 +1321,7 @@ export const useStore = create<StoreState>((set, get) => ({
       try {
         if (unsubscribeReservations) unsubscribeReservations();
         if (unsubscribeDrivers) unsubscribeDrivers();
+        if (unsubscribeVehicles) unsubscribeVehicles();
       } catch (error) {
         console.error('Error cleaning up subscriptions:', error);
       }

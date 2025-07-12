@@ -254,6 +254,30 @@ export const STORAGE_CONFIGS = {
   APP_SETTINGS: {
     key: 'ayt_app_settings',
     version: '1.0.0'
+  },
+  // New configurations for Firebase data caching
+  VEHICLES: {
+    key: 'sbstravel_vehicles',
+    version: '1.0.0',
+    ttl: 30 * 60 * 1000 // 30 minutes
+  },
+  DRIVERS: {
+    key: 'sbstravel_drivers',
+    version: '1.0.0',
+    ttl: 30 * 60 * 1000 // 30 minutes
+  },
+  CUSTOMERS: {
+    key: 'sbstravel_customers',
+    version: '1.0.0',
+    ttl: 30 * 60 * 1000 // 30 minutes
+  },
+  OFFLINE_CHANGES: {
+    key: 'sbstravel_offline_changes',
+    version: '1.0.0'
+  },
+  LAST_SYNC: {
+    key: 'sbstravel_last_sync',
+    version: '1.0.0'
   }
 } as const;
 
@@ -304,3 +328,98 @@ export const DEFAULT_USER_PREFERENCES: UserPreferences = {
 };
 
 export const persistenceService = PersistenceService.getInstance();
+
+// Firebase-specific helper functions
+import { Vehicle, Driver, Customer } from '../../types';
+
+export class FirebasePersistence {
+  private static persistence = persistenceService;
+
+  // Vehicle methods
+  static saveVehicles(vehicles: Vehicle[]): boolean {
+    return this.persistence.save(STORAGE_CONFIGS.VEHICLES, vehicles);
+  }
+
+  static getVehicles(): Vehicle[] {
+    return this.persistence.load<Vehicle[]>(STORAGE_CONFIGS.VEHICLES) || [];
+  }
+
+  static hasVehicles(): boolean {
+    return this.getVehicles().length > 0;
+  }
+
+  // Driver methods
+  static saveDrivers(drivers: Driver[]): boolean {
+    return this.persistence.save(STORAGE_CONFIGS.DRIVERS, drivers);
+  }
+
+  static getDrivers(): Driver[] {
+    return this.persistence.load<Driver[]>(STORAGE_CONFIGS.DRIVERS) || [];
+  }
+
+  static hasDrivers(): boolean {
+    return this.getDrivers().length > 0;
+  }
+
+  // Customer methods
+  static saveCustomers(customers: Customer[]): boolean {
+    return this.persistence.save(STORAGE_CONFIGS.CUSTOMERS, customers);
+  }
+
+  static getCustomers(): Customer[] {
+    return this.persistence.load<Customer[]>(STORAGE_CONFIGS.CUSTOMERS) || [];
+  }
+
+  static hasCustomers(): boolean {
+    return this.getCustomers().length > 0;
+  }
+
+  // Offline changes tracking
+  static addOfflineChange(change: {
+    type: 'create' | 'update' | 'delete';
+    entity: 'vehicle' | 'driver' | 'customer';
+    data: any;
+    id?: string;
+    timestamp: Date;
+  }): boolean {
+    const existingChanges = this.getOfflineChanges();
+    existingChanges.push(change);
+    return this.persistence.save(STORAGE_CONFIGS.OFFLINE_CHANGES, existingChanges);
+  }
+
+  static getOfflineChanges(): any[] {
+    return this.persistence.load<any[]>(STORAGE_CONFIGS.OFFLINE_CHANGES) || [];
+  }
+
+  static clearOfflineChanges(): boolean {
+    return this.persistence.remove(STORAGE_CONFIGS.OFFLINE_CHANGES.key);
+  }
+
+  // Sync tracking
+  static updateLastSync(): boolean {
+    return this.persistence.save(STORAGE_CONFIGS.LAST_SYNC, new Date().toISOString());
+  }
+
+  static getLastSync(): Date | null {
+    const syncTime = this.persistence.load<string>(STORAGE_CONFIGS.LAST_SYNC);
+    return syncTime ? new Date(syncTime) : null;
+  }
+
+  static isDataStale(maxAgeMinutes: number = 30): boolean {
+    const lastSync = this.getLastSync();
+    if (!lastSync) return true;
+    
+    const now = new Date();
+    const ageMinutes = (now.getTime() - lastSync.getTime()) / (1000 * 60);
+    return ageMinutes > maxAgeMinutes;
+  }
+
+  // Clear all Firebase cache
+  static clearFirebaseCache(): void {
+    this.persistence.remove(STORAGE_CONFIGS.VEHICLES.key);
+    this.persistence.remove(STORAGE_CONFIGS.DRIVERS.key);
+    this.persistence.remove(STORAGE_CONFIGS.CUSTOMERS.key);
+    this.persistence.remove(STORAGE_CONFIGS.OFFLINE_CHANGES.key);
+    this.persistence.remove(STORAGE_CONFIGS.LAST_SYNC.key);
+  }
+}
