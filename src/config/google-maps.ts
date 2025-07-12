@@ -1,9 +1,15 @@
 // Google Maps API configuration
 export const GOOGLE_MAPS_CONFIG = {
-  apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "AIzaSyDa66vbuMgm_L4wdOgPutliu_PLzI3xqEw",
+  apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "",
+  enabled: import.meta.env.VITE_GOOGLE_MAPS_ENABLED === 'true',
   libraries: ["places", "geometry"] as const,
   region: "TR",
   language: "tr"
+};
+
+// Check if Google Maps is properly configured
+export const isGoogleMapsConfigured = (): boolean => {
+  return Boolean(GOOGLE_MAPS_CONFIG.apiKey && GOOGLE_MAPS_CONFIG.enabled);
 };
 
 // Antalya Airport coordinates

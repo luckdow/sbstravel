@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Plane, Users, Calendar, Clock, MapPin, Car, CreditCard, Building2 } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -12,6 +13,7 @@ import CustomerInfoForm from '../components/Booking/CustomerInfoForm';
 import PaymentSection from '../components/Payment/PaymentSection';
 import { useStore } from '../store/useStore';
 import { calculatePrice } from '../utils/pricing';
+import { bookingService } from '../lib/services/booking-service';
 
 const bookingSchema = z.object({
   transferType: z.enum(['airport-hotel', 'hotel-airport']),
@@ -49,6 +51,7 @@ export default function BookingPage() {
   const [priceCalculation, setPriceCalculation] = useState<any>(null);
   
   const { vehicles, extraServices, settings } = useStore();
+  const navigate = useNavigate();
 
   const {
     register,
@@ -109,10 +112,45 @@ export default function BookingPage() {
 
   const handlePayTRPayment = async () => {
     try {
-      toast.success('Test modunda rezervasyon oluşturuldu!');
-      console.log('Rezervasyon verileri:', watchedValues);
+      // Use the real booking service
+      const bookingResult = await bookingService.processBooking({
+        transferType: watchedValues.transferType,
+        destination: watchedValues.destination,
+        vehicleType: watchedValues.vehicleType,
+        pickupDate: watchedValues.pickupDate,
+        pickupTime: watchedValues.pickupTime,
+        passengerCount: watchedValues.passengerCount,
+        luggageCount: watchedValues.luggageCount,
+        customerInfo: watchedValues.customerInfo,
+        extraServices: watchedValues.extraServices || [],
+        priceCalculation,
+        paymentMethod: watchedValues.paymentMethod
+      });
+
+      if (bookingResult.success) {
+        if (bookingResult.paymentUrl) {
+          // Redirect to PayTR payment page
+          window.location.href = bookingResult.paymentUrl;
+        } else {
+          // For bank transfer or test mode
+          toast.success(bookingResult.message || 'Rezervasyon başarıyla oluşturuldu!');
+          
+          // Navigate to success page
+          navigate('/payment/success', {
+            state: {
+              reservationId: bookingResult.reservationId,
+              customerId: bookingResult.customerId,
+              qrCode: bookingResult.qrCode,
+              method: watchedValues.paymentMethod
+            }
+          });
+        }
+      } else {
+        toast.error(bookingResult.error || 'Rezervasyon oluşturulurken hata oluştu');
+      }
     } catch (error) {
-      toast.error('Ödeme sırasında hata oluştu');
+      console.error('Booking error:', error);
+      toast.error('Rezervasyon sırasında hata oluştu');
     }
   };
 

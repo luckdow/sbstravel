@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CreditCard, Shield, Lock, CheckCircle, AlertCircle, DollarSign, Loader2 } from 'lucide-react';
 import { PriceCalculation, BookingFormData } from '../../types';
-import { transactionService } from '../../lib/services/transaction-service';
-import { notificationService } from '../../lib/services/notification-service';
+import { bookingService } from '../../lib/services/booking-service';
 import { useStore } from '../../store/useStore';
 import toast from 'react-hot-toast';
 
@@ -45,71 +44,50 @@ export default function PaymentSection({
     setIsProcessing(true);
     
     try {
-      // Create transaction
-      const transaction = await transactionService.createTransaction({
-        reservationId: reservationId || 'temp_' + Date.now(),
-        amount: priceCalculation.totalPrice,
-        currency: 'USD',
+      // Use the real booking service
+      const bookingResult = await bookingService.processBooking({
+        transferType: bookingData.transferType,
+        destination: bookingData.destination,
+        vehicleType: bookingData.vehicleType,
+        pickupDate: bookingData.pickupDate,
+        pickupTime: bookingData.pickupTime,
+        passengerCount: bookingData.passengerCount,
+        luggageCount: bookingData.luggageCount,
         customerInfo: bookingData.customerInfo,
-        reservationData: {
-          route: `${bookingData.transferType === 'airport-hotel' ? 'Airport → ' + bookingData.destination.name : bookingData.destination.name + ' → Airport'}`,
-          ...bookingData
-        },
-        paymentMethod: paymentMethod as 'credit-card' | 'bank-transfer',
-        successUrl: `${window.location.origin}/payment/success`,
-        failUrl: `${window.location.origin}/payment/fail`,
+        extraServices: bookingData.extraServices || [],
+        priceCalculation,
+        paymentMethod: paymentMethod as 'credit-card' | 'bank-transfer'
       });
 
-      // Process payment
-      const result = await transactionService.processPayment(transaction.id, {
-        reservationId: reservationId || 'temp_' + Date.now(),
-        amount: priceCalculation.totalPrice,
-        currency: 'USD',
-        customerInfo: bookingData.customerInfo,
-        reservationData: {
-          route: `${bookingData.transferType === 'airport-hotel' ? 'Airport → ' + bookingData.destination.name : bookingData.destination.name + ' → Airport'}`,
-          ...bookingData
-        },
-        paymentMethod: paymentMethod as 'credit-card' | 'bank-transfer',
-        successUrl: `${window.location.origin}/payment/success`,
-        failUrl: `${window.location.origin}/payment/fail`,
-      });
-
-      if (result.success) {
-        if (paymentMethod === 'credit-card' && result.paymentUrl) {
-          // For testing, we'll just simulate success
-          toast.success('Test modu: Ödeme başarılı kabul edildi');
+      if (bookingResult.success) {
+        if (paymentMethod === 'credit-card' && bookingResult.paymentUrl) {
+          // Redirect to real PayTR payment page
+          window.location.href = bookingResult.paymentUrl;
+        } else {
+          // For bank transfer or test payments
+          toast.success(bookingResult.message || 'Rezervasyon başarıyla oluşturuldu!');
           
-          // Navigate to success page with transaction info
+          // Navigate to success page
           navigate('/payment/success', { 
             state: { 
-              transaction: result.transaction,
-              method: 'credit-card' 
-            } 
-          });
-        } else if (paymentMethod === 'bank-transfer') {
-          // Show bank transfer success
-          toast.success('Havale bilgileri e-posta adresinize gönderildi');
-          
-          // Navigate to success page with transaction info
-          navigate('/payment/success', { 
-            state: { 
-              transaction: result.transaction,
-              method: 'bank-transfer' 
+              reservationId: bookingResult.reservationId,
+              customerId: bookingResult.customerId,
+              qrCode: bookingResult.qrCode,
+              method: paymentMethod 
             } 
           });
         }
 
         // Call success callback
-        if (onPaymentSuccess) {
-          onPaymentSuccess(transaction.id);
+        if (onPaymentSuccess && bookingResult.reservationId) {
+          onPaymentSuccess(bookingResult.reservationId);
         }
       } else {
-        toast.error(result.error || 'Ödeme işlemi başarısız');
+        toast.error(bookingResult.error || 'Rezervasyon oluşturulurken hata oluştu');
       }
     } catch (error) {
       console.error('Payment error:', error);
-      toast.error('Ödeme işlemi sırasında hata oluştu');
+      toast.error('Rezervasyon işlemi sırasında hata oluştu');
     } finally {
       setIsProcessing(false);
     }

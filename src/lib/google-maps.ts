@@ -1,4 +1,4 @@
-import { GOOGLE_MAPS_CONFIG, ANTALYA_AIRPORT, POPULAR_DESTINATIONS } from '../config/google-maps';
+import { GOOGLE_MAPS_CONFIG, ANTALYA_AIRPORT, POPULAR_DESTINATIONS, isGoogleMapsConfigured } from '../config/google-maps';
 import { RouteResult, Location, LocationData } from '../types';
 
 export class GoogleMapsService {
@@ -13,7 +13,15 @@ export class GoogleMapsService {
     return GoogleMapsService.instance;
   }
 
+  /**
+   * Loads Google Maps API if configured, otherwise uses fallback behavior
+   */
   async loadGoogleMapsAPI(): Promise<void> {
+    if (!isGoogleMapsConfigured()) {
+      console.warn('Google Maps API not configured, using fallback data');
+      return;
+    }
+
     if (this.isLoaded && window.google) {
       return;
     }
@@ -60,6 +68,11 @@ export class GoogleMapsService {
     destination: string | google.maps.LatLngLiteral | LocationData
   ): Promise<RouteResult | null> {
     try {
+      // If Google Maps is not configured, use fallback calculation
+      if (!isGoogleMapsConfigured()) {
+        return this.calculateRouteFallback(origin, destination);
+      }
+
       await this.loadGoogleMapsAPI();
       
       const directionsService = new google.maps.DirectionsService();
@@ -104,12 +117,54 @@ export class GoogleMapsService {
       
     } catch (error) {
       console.error('Error calculating route:', error);
+      // Fallback to approximate calculation
+      return this.calculateRouteFallback(origin, destination);
+    }
+  }
+
+  /**
+   * Fallback route calculation using predefined distances for popular destinations
+   */
+  private calculateRouteFallback(
+    origin: string | google.maps.LatLngLiteral | LocationData,
+    destination: string | google.maps.LatLngLiteral | LocationData
+  ): RouteResult | null {
+    try {
+      const destName = typeof destination === 'string' ? destination : 
+                      ('name' in destination ? destination.name : '');
+      
+      // Find in popular destinations
+      const popularDest = POPULAR_DESTINATIONS.find(dest => 
+        destName.toLowerCase().includes(dest.name.toLowerCase())
+      );
+      
+      if (popularDest) {
+        return {
+          distance: popularDest.distance,
+          duration: popularDest.distance * 1.2, // Approximate: 50 km/h average speed
+          route: null // No actual route data in fallback
+        };
+      }
+      
+      // Default fallback distance
+      return {
+        distance: 50, // Default 50km
+        duration: 60,  // Default 60 minutes
+        route: null
+      };
+    } catch (error) {
+      console.error('Error in fallback route calculation:', error);
       return null;
     }
   }
 
   async searchPlaces(query: string): Promise<google.maps.places.PlaceResult[]> {
     try {
+      // If Google Maps is not configured, return popular destinations that match
+      if (!isGoogleMapsConfigured()) {
+        return this.searchPlacesFallback(query);
+      }
+
       await this.loadGoogleMapsAPI();
       
       const service = new google.maps.places.PlacesService(document.createElement('div'));
@@ -124,7 +179,8 @@ export class GoogleMapsService {
             if (status === google.maps.places.PlacesServiceStatus.OK && results) {
               resolve(results);
             } else {
-              reject(new Error(`Places search failed: ${status}`));
+              console.warn(`Places search failed: ${status}, using fallback`);
+              resolve(this.searchPlacesFallback(query));
             }
           }
         );
@@ -132,8 +188,25 @@ export class GoogleMapsService {
       
     } catch (error) {
       console.error('Error searching places:', error);
-      return [];
+      return this.searchPlacesFallback(query);
     }
+  }
+
+  /**
+   * Fallback place search using predefined popular destinations
+   */
+  private searchPlacesFallback(query: string): google.maps.places.PlaceResult[] {
+    const queryLower = query.toLowerCase();
+    return POPULAR_DESTINATIONS
+      .filter(dest => dest.name.toLowerCase().includes(queryLower))
+      .map(dest => ({
+        name: dest.name,
+        geometry: {
+          location: new google.maps.LatLng(dest.lat, dest.lng)
+        },
+        place_id: `fallback_${dest.name.toLowerCase().replace(/\s+/g, '_')}`,
+        formatted_address: `${dest.name}, Antalya, Turkey`
+      } as google.maps.places.PlaceResult));
   }
 
   // Get distance from Antalya Airport to destination
@@ -161,6 +234,13 @@ export class GoogleMapsService {
       lng: dest.lng,
       distance: dest.distance
     }));
+  }
+
+  /**
+   * Check if Google Maps API is available and loaded
+   */
+  isApiAvailable(): boolean {
+    return isGoogleMapsConfigured() && this.isLoaded && Boolean(window.google);
   }
 }
 
