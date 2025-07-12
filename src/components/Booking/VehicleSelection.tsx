@@ -17,10 +17,9 @@ interface VehicleOption {
 interface VehicleSelectionProps {
   selectedVehicle: string;
   onVehicleSelect: (vehicleType: 'standard' | 'premium' | 'luxury') => void;
-  passengerCount: number;
-  baggageCount: number;
-  priceCalculation: PriceCalculation | null;
-  isCalculatingPrice: boolean;
+  passengerCount?: number;
+  baggageCount?: number;
+  vehicles?: any[];
 }
 
 const vehicles: VehicleOption[] = [
@@ -60,43 +59,33 @@ const vehicles: VehicleOption[] = [
 export default function VehicleSelection({
   selectedVehicle,
   onVehicleSelect,
-  passengerCount,
-  baggageCount,
-  priceCalculation,
-  isCalculatingPrice
+  passengerCount = 1,
+  baggageCount = 1,
+  vehicles: providedVehicles
 }: VehicleSelectionProps) {
   const isVehicleSuitable = (vehicle: VehicleOption) => {
-    return vehicle.passengerCapacity >= passengerCount && vehicle.baggageCapacity >= baggageCount;
+    return vehicle.passengerCapacity >= (passengerCount || 1) && vehicle.baggageCapacity >= (baggageCount || 1);
   };
 
   const getVehiclePrice = (vehicleType: string) => {
-    if (!priceCalculation) return null;
-    
     const prices = {
       standard: 4.5,
       premium: 6.5,
       luxury: 8.5
     };
     
-    return priceCalculation.distance * prices[vehicleType as keyof typeof prices];
+    return prices[vehicleType as keyof typeof prices];
   };
 
   return (
     <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
       <h2 className="text-2xl font-bold text-gray-800 mb-6">Araç Seçimi</h2>
       
-      {isCalculatingPrice && (
-        <div className="flex items-center justify-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-600 mr-3" />
-          <span className="text-gray-600">Fiyatlar hesaplanıyor...</span>
-        </div>
-      )}
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {vehicles.map((vehicle) => {
           const isSuitable = isVehicleSuitable(vehicle);
           const isSelected = selectedVehicle === vehicle.type;
-          const vehiclePrice = getVehiclePrice(vehicle.type);
+          const vehiclePrice = getVehiclePrice(vehicle.type) || 0;
 
           return (
             <div
@@ -194,22 +183,11 @@ export default function VehicleSelection({
                 </div>
 
                 {/* Price */}
-                <div className="pt-4 border-t border-gray-100">
-                  {vehiclePrice && !isCalculatingPrice ? (
-                    <div className="text-center">
-                      <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                        ${vehiclePrice.toFixed(2)}
-                      </div>
-                      <div className="text-sm text-gray-500">Toplam Fiyat</div>
-                    </div>
-                  ) : (
-                    <div className="text-center">
-                      <div className="text-lg font-semibold text-gray-400">
-                        ${vehicle.type === 'standard' ? '4.5' : vehicle.type === 'premium' ? '6.5' : '8.5'}/km
-                      </div>
-                      <div className="text-sm text-gray-500">KM başına</div>
-                    </div>
-                  )}
+                <div className="pt-4 border-t border-gray-100 text-center">
+                  <div className="text-lg font-semibold text-gray-800">
+                    ${vehicle.type === 'standard' ? '4.5' : vehicle.type === 'premium' ? '6.5' : '8.5'}/km
+                  </div>
+                  <div className="text-sm text-gray-500">KM başına</div>
                 </div>
 
                 {/* Select Button */}
