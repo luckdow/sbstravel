@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, User, Car, Star, Phone, MapPin, Edit, Trash2, Loader2 } from 'lucide-react';
+import { Search, Plus, User, Car, Star, Phone, MapPin, Edit, Trash2, Loader2, DollarSign } from 'lucide-react';
 import { useStore } from '../../../store/useStore';
 import toast from 'react-hot-toast';
+import DriverFinancialsModal from './DriverFinancialsModal';
 
 export default function DriverManagement() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showFinancialsModal, setShowFinancialsModal] = useState(false);
   const [selectedDriver, setSelectedDriver] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
@@ -284,6 +286,15 @@ export default function DriverManagement() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
                       <button
+                        onClick={() => {
+                          setSelectedDriver(driver);
+                          setShowFinancialsModal(true);
+                        }}
+                        className="text-green-600 hover:text-green-900"
+                      >
+                        <DollarSign className="h-4 w-4" />
+                      </button>
+                      <button
                         onClick={() => openEditModal(driver)}
                         className="text-purple-600 hover:text-purple-900"
                       >
@@ -523,6 +534,14 @@ export default function DriverManagement() {
             </div>
           </div>
         </div>
+      )}
+      
+      {/* Driver Financials Modal */}
+      {showFinancialsModal && selectedDriver && (
+        <DriverFinancialsModal
+          driver={selectedDriver}
+          onClose={() => setShowFinancialsModal(false)}
+        />
       )}
     </div>
   );

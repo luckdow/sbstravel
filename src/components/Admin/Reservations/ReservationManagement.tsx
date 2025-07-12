@@ -6,6 +6,7 @@ import { formatPrice } from '../../../lib/utils/pricing';
 import { addReadableReservationNumbers, getDriverDisplayName } from '../../../utils/reservation';
 import ReservationDetailModal from './ReservationDetailModal';
 import AddReservationModal from './AddReservationModal';
+import QRStatusModal from './QRStatusModal';
 
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -30,6 +31,7 @@ export default function ReservationManagement() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedReservation, setSelectedReservation] = useState<any>(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showQRStatusModal, setShowQRStatusModal] = useState(false);
   
   const { 
     reservations, 
@@ -240,6 +242,15 @@ export default function ReservationManagement() {
                       >
                         <Eye className="h-4 w-4" />
                       </button>
+                      <button
+                        onClick={() => {
+                          setSelectedReservation(reservation);
+                          setShowQRStatusModal(true);
+                        }}
+                        className="text-blue-600 hover:text-blue-900"
+                      >
+                        <QrCode className="h-4 w-4" />
+                      </button>
                       <button className="text-green-600 hover:text-green-900">
                         <Edit className="h-4 w-4" />
                       </button>
@@ -270,6 +281,13 @@ export default function ReservationManagement() {
       <AddReservationModal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
+      />
+      
+      {/* QR Status Modal */}
+      <QRStatusModal
+        isOpen={showQRStatusModal}
+        onClose={() => setShowQRStatusModal(false)}
+        reservation={selectedReservation}
       />
     </div>
   );

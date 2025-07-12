@@ -24,6 +24,9 @@ import { db } from '../config/firebase';
 import { generateQRCode } from '../utils/qrCode';
 import toast from 'react-hot-toast';
 
+// Flag to prevent auto-initialization on every load
+let hasInitialized = false;
+
 // Collection references
 const reservationsRef = collection(db, 'reservations');
 const driversRef = collection(db, 'drivers');
@@ -31,6 +34,7 @@ const customersRef = collection(db, 'customers');
 const vehiclesRef = collection(db, 'vehicles');
 const extraServicesRef = collection(db, 'extraServices');
 const locationsRef = collection(db, 'locations');
+const commissionsRef = collection(db, 'commissions');
 
 interface StoreState {
   // Data
@@ -79,6 +83,12 @@ interface StoreState {
   addLocation: (location: Partial<Location>) => Promise<string | null>;
   editLocation: (id: string, updates: Partial<Location>) => Promise<void>;
   deleteLocation: (id: string) => Promise<void>;
+
+  // Commissions
+  fetchCommissions: () => Promise<void>;
+  calculateCommission: (reservationId: string, amount: number) => Promise<void>;
+  getDriverFinancials: (driverId: string) => Promise<DriverFinancials>;
+  markCommissionAsPaid: (commissionId: string) => Promise<void>;
   
   // Utility functions
   getStats: () => {
@@ -734,6 +744,12 @@ export const useStore = create<StoreState>((set, get) => ({
 
   // Initialize Mock Data
   initializeMockData: async () => {
+    // Prevent multiple initializations
+    if (hasInitialized) {
+      console.log('Mock data already initialized, skipping...');
+      return;
+    }
+    
     const { reservations, drivers, customers, vehicles, extraServices, locations } = get();
     
     // Only initialize if collections are empty
@@ -997,6 +1013,9 @@ export const useStore = create<StoreState>((set, get) => ({
       }
     }
     
+    // Mark as initialized
+    hasInitialized = true;
+    
     // Fetch all data after initialization
     get().fetchReservations();
     get().fetchDrivers();
@@ -1004,5 +1023,118 @@ export const useStore = create<StoreState>((set, get) => ({
     get().fetchVehicles();
     get().fetchExtraServices();
     get().fetchLocations();
+    get().fetchCommissions();
+  },
+  
+  // Commission Management
+  fetchCommissions: async () => {
+    set({ loading: true });
+    try {
+      const querySnapshot = await getDocs(commissionsRef);
+      const commissions = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      
+      console.log('Fetched commissions:', commissions.length);
+    } catch (error) {
+      console.error('Error fetching commissions:', error);
+      toast.error('Komisyon verileri yüklenirken hata oluştu');
+    } finally {
+      set({ loading: false });
+    }
+  },
+  
+  calculateCommission: async (reservationId: string, amount: number) => {
+    try {
+      const reservation = get().reservations.find(r => r.id === reservationId);
+      if (!reservation || !reservation.driverId) {
+        console.error('Reservation not found or no driver assigned');
+        return;
+      }
+      
+      // Calculate commission (75% driver, 25% company)
+      const companyShare = amount * 0.25;
+      const driverShare = amount * 0.75;
+      
+      // Create commission record
+      await addDoc(commissionsRef, {
+        reservationId,
+        driverId: reservation.driverId,
+        totalAmount: amount,
+        companyShare,
+        driverShare,
+        status: 'pending',
+        createdAt: Timestamp.now()
+      });
+      
+      console.log('Commission calculated and saved:', { reservationId, driverShare, companyShare });
+    } catch (error) {
+      console.error('Error calculating commission:', error);
+      toast.error('Komisyon hesaplanırken hata oluştu');
+    }
+  },
+  
+  getDriverFinancials: async (driverId: string) => {
+    try {
+      // Get all commissions for this driver
+      const q = query(commissionsRef, where('driverId', '==', driverId));
+      const querySnapshot = await getDocs(q);
+      
+      const commissions = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      
+      // Calculate totals
+      const totalEarnings = commissions.reduce((sum, c) => sum + (c.driverShare || 0), 0);
+      const pendingPayments = commissions
+        .filter(c => c.status === 'pending')
+        .reduce((sum, c) => sum + (c.driverShare || 0), 0);
+      
+      // Group by month
+      const monthlyEarnings: Record<string, number> = {};
+      commissions.forEach(c => {
+        if (c.createdAt) {
+          const date = (c.createdAt as Timestamp).toDate();
+          const monthYear = `${date.getMonth() + 1}-${date.getFullYear()}`;
+          monthlyEarnings[monthYear] = (monthlyEarnings[monthYear] || 0) + (c.driverShare || 0);
+        }
+      });
+      
+      return {
+        totalEarnings,
+        currentBalance: pendingPayments,
+        receivables: pendingPayments,
+        payables: 0,
+        pendingPayments,
+        monthlyEarnings
+      };
+    } catch (error) {
+      console.error('Error getting driver financials:', error);
+      return {
+        totalEarnings: 0,
+        currentBalance: 0,
+        receivables: 0,
+        payables: 0,
+        pendingPayments: 0,
+        monthlyEarnings: {}
+      };
+    }
+  },
+  
+  markCommissionAsPaid: async (commissionId: string) => {
+    try {
+      const docRef = doc(db, 'commissions', commissionId);
+      await updateDoc(docRef, {
+        status: 'paid',
+        paidAt: Timestamp.now()
+      });
+      
+      toast.success('Ödeme başarıyla kaydedildi');
+    } catch (error) {
+      console.error('Error marking commission as paid:', error);
+      toast.error('Ödeme kaydedilirken hata oluştu');
+    }
   }
 }));
