@@ -4,27 +4,27 @@ import { Award, Users, Car, MapPin, Target, Eye, Heart, Zap } from 'lucide-react
 const stats = [
   {
     icon: Car,
-    number: "500+",
-    label: "Premium Araç Filosu",
-    description: "Son model ve lüks araçlar"
+    number: "100+",
+    label: "Modern Transfer Araçları",
+    description: "Konforlu ve güvenli araçlar"
   },
   {
     icon: Users,
-    number: "50.000+",
+    number: "25.000+",
     label: "Mutlu Müşteri",
     description: "Memnuniyet garantisi"
   },
   {
     icon: MapPin,
-    number: "25+",
-    label: "Hizmet Noktası",
+    number: "15+",
+    label: "Şehir & Bölge",
     description: "Türkiye genelinde"
   },
   {
     icon: Award,
-    number: "15+",
+    number: "5+",
     label: "Yıl Deneyim",
-    description: "Sektör liderliği"
+    description: "Transfer hizmetinde"
   }
 ];
 
@@ -32,12 +32,12 @@ const values = [
   {
     icon: Target,
     title: "Misyonumuz",
-    description: "Müşterilerimize en kaliteli araç kiralama deneyimini sunarak, yolculuklarını güvenli ve konforlu hale getirmek."
+    description: "Müşterilerimize en kaliteli havalimanı transfer deneyimini sunarak, yolculuklarını güvenli ve konforlu hale getirmek."
   },
   {
     icon: Eye,
     title: "Vizyonumuz",
-    description: "Türkiye'nin en güvenilir ve tercih edilen premium araç kiralama markası olmak."
+    description: "Türkiye'nin en güvenilir ve tercih edilen transfer hizmeti markası olmak."
   },
   {
     icon: Heart,
@@ -64,14 +64,14 @@ export default function About() {
           </div>
           <h2 className="text-5xl font-bold text-gray-800 mb-6">
             <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Türkiye'nin Lider
+              Türkiye'nin Güvenilir
             </span>
             <br />
-            Araç Kiralama Şirketi
+            Transfer Hizmeti
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            2009 yılından beri sektörde öncü konumda olan PremiumRent, 
-            müşteri memnuniyetini ön planda tutarak premium hizmet sunmaktadır.
+            SBS TRAVEL olarak, havalimanı-otel ve otel-havalimanı transferlerinde 
+            müşteri memnuniyetini ön planda tutarak kaliteli hizmet sunmaktayız.
           </p>
         </div>
 
@@ -80,17 +80,17 @@ export default function About() {
           <div className="space-y-8">
             <div>
               <h3 className="text-3xl font-bold text-gray-800 mb-6">
-                15 Yıllık Deneyim ile 
-                <span className="text-blue-600"> Güvenilir Hizmet</span>
+                Kaliteli Transfer Hizmeti ile 
+                <span className="text-blue-600"> Güvenilir Yolculuk</span>
               </h3>
               <p className="text-gray-600 mb-6 leading-relaxed text-lg">
-                PremiumRent olarak 2009 yılından beri müşterilerimize en kaliteli araç kiralama hizmetini sunmaktayız. 
-                Sektördeki derin deneyimimiz ve sürekli gelişen teknolojimizle, her geçen gün daha iyi hizmet vermeye odaklanıyoruz.
+                SBS TRAVEL olarak havalimanı transferlerinde müşterilerimize en kaliteli hizmeti sunmaktayız. 
+                Deneyimli şoförlerimiz ve modern araç filomuzla, her geçen gün daha iyi hizmet vermeye odaklanıyoruz.
               </p>
               <p className="text-gray-600 leading-relaxed text-lg">
-                Geniş araç filomuz, profesyonel ekibimiz ve müşteri odaklı yaklaşımımızla, 
-                araç kiralama deneyiminizi mükemmel kılmak için elimizden geleni yapıyoruz. 
-                Her bütçeye uygun seçeneklerimizle hayalinizdeki yolculuğu gerçekleştirmenize yardımcı oluyoruz.
+                Konforlu araçlarımız, profesyonel ekibimiz ve müşteri odaklı yaklaşımımızla, 
+                transfer deneyiminizi mükemmel kılmak için elimizden geleni yapıyoruz. 
+                Havalimanından otel ve otelden havalimanına güvenli yolculuk garantisi sunuyoruz.
               </p>
             </div>
 
@@ -116,19 +116,19 @@ export default function About() {
                 className="w-full h-80 object-cover"
               />
               <div className="p-8">
-                <h4 className="text-2xl font-bold text-gray-800 mb-4">Premium Araç Filosu</h4>
+                <h4 className="text-2xl font-bold text-gray-800 mb-4">Modern Transfer Araçları</h4>
                 <p className="text-gray-600 leading-relaxed">
-                  Son model ve lüks araçlarımız düzenli bakım ve kontrolden geçerek, 
-                  size en güvenli ve konforlu sürüş deneyimini sunmaktadır.
+                  Son model ve konforlu araçlarımız düzenli bakım ve kontrolden geçerek, 
+                  size en güvenli ve rahat transfer deneyimini sunmaktadır.
                 </p>
                 <div className="flex items-center space-x-4 mt-6">
                   <div className="flex items-center space-x-2">
                     <Zap className="h-5 w-5 text-green-500" />
-                    <span className="text-sm font-medium text-gray-700">Elektrikli Araçlar</span>
+                    <span className="text-sm font-medium text-gray-700">Klimalı Araçlar</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Award className="h-5 w-5 text-blue-500" />
-                    <span className="text-sm font-medium text-gray-700">Premium Modeller</span>
+                    <span className="text-sm font-medium text-gray-700">Konfor Garantisi</span>
                   </div>
                 </div>
               </div>
@@ -139,7 +139,7 @@ export default function About() {
         {/* Stats */}
         <div className="bg-white rounded-3xl shadow-xl p-12">
           <div className="text-center mb-12">
-            <h3 className="text-3xl font-bold text-gray-800 mb-4">Rakamlarla PremiumRent</h3>
+            <h3 className="text-3xl font-bold text-gray-800 mb-4">Rakamlarla SBS TRAVEL</h3>
             <p className="text-gray-600 text-lg">Başarılarımız ve büyüklüğümüzü gösteren önemli veriler</p>
           </div>
           
@@ -165,13 +165,13 @@ export default function About() {
         {/* CTA Section */}
         <div className="text-center mt-16">
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl p-12 text-white">
-            <h3 className="text-3xl font-bold mb-4">Bizimle Yolculuğa Çıkmaya Hazır mısınız?</h3>
+            <h3 className="text-3xl font-bold mb-4">Bizimle Transfer Yapmaya Hazır mısınız?</h3>
             <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-              Premium araç filomuz ve profesyonel hizmetimizle unutulmaz bir deneyim yaşayın.
+              Modern araç filomuz ve profesyonel hizmetimizle konforlu bir transfer deneyimi yaşayın.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button className="bg-white text-blue-600 px-8 py-4 rounded-2xl font-semibold hover:bg-gray-100 transition-colors">
-                Araç Kirala
+                Transfer Rezervasyonu
               </button>
               <button className="bg-white/10 backdrop-blur-sm text-white px-8 py-4 rounded-2xl font-semibold hover:bg-white/20 transition-colors border border-white/20">
                 İletişime Geç

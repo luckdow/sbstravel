@@ -40,9 +40,9 @@ export default function Header() {
             </div>
             <div>
               <h1 className={`text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent`}>
-                AYT Transfer
+                SBS TRAVEL
               </h1>
-              <p className={`text-xs ${isScrolled ? 'text-gray-500' : 'text-white/80'}`}>Antalya Airport Transfer</p>
+              <p className={`text-xs ${isScrolled ? 'text-gray-500' : 'text-white/80'}`}>Transfer Hizmeti</p>
             </div>
           </Link>
           
@@ -50,9 +50,9 @@ export default function Header() {
           <nav className="hidden lg:flex items-center space-x-8">
             {[
               { name: 'Ana Sayfa', href: '/' },
-              { name: 'Transfer Rezervasyonu', href: '/booking' },
-              { name: 'Araç Filosu', href: '/fleet' },
               { name: 'Hakkımızda', href: '/about' },
+              { name: 'Transfer Bilgileri', href: '/transfer-info' },
+              { name: 'SSS', href: '/faq' },
               { name: 'İletişim', href: '/contact' }
             ].map((item) => (
               <Link 
@@ -131,9 +131,9 @@ export default function Header() {
             <nav className="p-6 space-y-4">
               {[
                 { name: 'Ana Sayfa', href: '/' },
-                { name: 'Transfer Rezervasyonu', href: '/booking' },
-                { name: 'Araç Filosu', href: '/fleet' },
                 { name: 'Hakkımızda', href: '/about' },
+                { name: 'Transfer Bilgileri', href: '/transfer-info' },
+                { name: 'SSS', href: '/faq' },
                 { name: 'İletişim', href: '/contact' }
               ].map((item) => (
                 <Link 
