@@ -179,7 +179,7 @@ export default function DriverManagement() {
     problemNotes: ''
   });
 
-  const filteredDrivers = drivers.filter(driver => {
+  const filteredDrivers = (drivers || []).filter(driver => {
     const fullName = `${driver.firstName} ${driver.lastName}`.toLowerCase();
     const matchesSearch = fullName.includes(searchTerm.toLowerCase()) ||
                          driver.phone.includes(searchTerm) ||
@@ -313,10 +313,10 @@ export default function DriverManagement() {
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {[
-          { title: 'Toplam Şoför', value: drivers.length, color: 'blue', icon: User },
-          { title: 'Müsait', value: drivers.filter(d => d.status === 'available').length, color: 'green', icon: User },
-          { title: 'Meşgul', value: drivers.filter(d => d.status === 'busy').length, color: 'yellow', icon: User },
-          { title: 'Ortalama Puan', value: (drivers.reduce((acc, d) => acc + d.rating, 0) / drivers.length).toFixed(1), color: 'purple', icon: Star }
+          { title: 'Toplam Şoför', value: (drivers || []).length, color: 'blue', icon: User },
+          { title: 'Müsait', value: (drivers || []).filter(d => d.status === 'available').length, color: 'green', icon: User },
+          { title: 'Meşgul', value: (drivers || []).filter(d => d.status === 'busy').length, color: 'yellow', icon: User },
+          { title: 'Ortalama Puan', value: (drivers && drivers.length > 0) ? ((drivers || []).reduce((acc, d) => acc + d.rating, 0) / drivers.length).toFixed(1) : '0.0', color: 'purple', icon: Star }
         ].map((stat, index) => (
           <div key={index} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <div className="flex items-center justify-between">

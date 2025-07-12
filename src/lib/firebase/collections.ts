@@ -197,3 +197,129 @@ export const subscribeToDrivers = (callback: (drivers: Driver[]) => void) => {
     callback(drivers);
   });
 };
+
+// Vehicle Operations
+export const createVehicle = async (vehicleData: Omit<Vehicle, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const now = Timestamp.now();
+  const docRef = await addDoc(vehiclesRef, {
+    ...vehicleData,
+    createdAt: now,
+    updatedAt: now
+  });
+  return docRef.id;
+};
+
+export const updateVehicle = async (id: string, updates: Partial<Vehicle>) => {
+  const docRef = doc(vehiclesRef, id);
+  await updateDoc(docRef, {
+    ...updates,
+    updatedAt: Timestamp.now()
+  });
+};
+
+export const getVehicle = async (id: string) => {
+  const docRef = doc(vehiclesRef, id);
+  const docSnap = await getDoc(docRef);
+  if (docSnap.exists()) {
+    return { id: docSnap.id, ...docSnap.data() } as Vehicle;
+  }
+  return null;
+};
+
+export const getVehicles = async (filters?: {
+  status?: string;
+  type?: string;
+  isActive?: boolean;
+  limit?: number;
+}) => {
+  let q = query(vehiclesRef, orderBy('createdAt', 'desc'));
+  
+  if (filters?.status) {
+    q = query(q, where('status', '==', filters.status));
+  }
+  
+  if (filters?.type) {
+    q = query(q, where('type', '==', filters.type));
+  }
+  
+  if (filters?.isActive !== undefined) {
+    q = query(q, where('isActive', '==', filters.isActive));
+  }
+  
+  if (filters?.limit) {
+    q = query(q, limit(filters.limit));
+  }
+  
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  })) as Vehicle[];
+};
+
+export const deleteVehicle = async (id: string) => {
+  const docRef = doc(vehiclesRef, id);
+  await updateDoc(docRef, {
+    isActive: false,
+    status: 'inactive',
+    updatedAt: Timestamp.now()
+  });
+};
+
+export const subscribeToVehicles = (callback: (vehicles: Vehicle[]) => void) => {
+  const q = query(vehiclesRef, where('isActive', '==', true), orderBy('createdAt', 'desc'));
+  return onSnapshot(q, (snapshot) => {
+    const vehicles = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as Vehicle[];
+    callback(vehicles);
+  });
+};
+
+// Enhanced Driver Operations
+export const getAllDrivers = async (includeInactive: boolean = false) => {
+  let q = query(driversRef, orderBy('createdAt', 'desc'));
+  
+  if (!includeInactive) {
+    q = query(q, where('isActive', '==', true));
+  }
+  
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  })) as Driver[];
+};
+
+export const deleteDriver = async (id: string) => {
+  const docRef = doc(driversRef, id);
+  await updateDoc(docRef, {
+    isActive: false,
+    status: 'offline',
+    updatedAt: Timestamp.now()
+  });
+};
+
+// Enhanced Customer Operations
+export const getAllCustomers = async () => {
+  const q = query(customersRef, orderBy('createdAt', 'desc'));
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  })) as Customer[];
+};
+
+export const updateCustomer = async (id: string, updates: Partial<Customer>) => {
+  const docRef = doc(customersRef, id);
+  await updateDoc(docRef, {
+    ...updates,
+    updatedAt: Timestamp.now()
+  });
+};
+
+export const deleteCustomer = async (id: string) => {
+  const docRef = doc(customersRef, id);
+  await deleteDoc(docRef);
+};
