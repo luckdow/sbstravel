@@ -223,6 +223,28 @@ export default function SystemSettingsPanel() {
                 </div>
                 
                 <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Banka Adı</label>
+                  <input
+                    type="text"
+                    value={settings.company.bankName || ''}
+                    onChange={(e) => updateSetting('company', 'bankName', e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Örn: Türkiye İş Bankası"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">IBAN</label>
+                  <input
+                    type="text"
+                    value={settings.company.iban || ''}
+                    onChange={(e) => updateSetting('company', 'iban', e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Örn: TR12 0006 4000 0011 2345 6789 01"
+                  />
+                </div>
+                
+                <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Telefon</label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />

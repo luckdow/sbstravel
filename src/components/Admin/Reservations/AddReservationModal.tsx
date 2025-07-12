@@ -13,6 +13,7 @@ interface ReservationFormData {
   customerName: string;
   customerEmail: string;
   customerPhone: string;
+  flightNumber: string;
   
   // Transfer Info
   transferType: 'airport-hotel' | 'hotel-airport';
@@ -34,6 +35,7 @@ const initialFormData: ReservationFormData = {
   customerName: '',
   customerEmail: '',
   customerPhone: '',
+  flightNumber: '',
   transferType: 'airport-hotel',
   pickupLocation: '',
   dropoffLocation: '',
@@ -97,8 +99,8 @@ export default function AddReservationModal({ isOpen, onClose }: AddReservationM
       // Create reservation data
       const reservationData = {
         customerInfo: {
-          firstName: formData.customerName.split(' ')[0],
-          lastName: formData.customerName.split(' ').slice(1).join(' ') || '',
+          firstName: formData.customerName.split(' ')[0] || '',
+          lastName: formData.customerName.split(' ').slice(1).join(' ') || formData.customerName,
           email: formData.customerEmail,
           phone: formData.customerPhone
         },
@@ -113,6 +115,7 @@ export default function AddReservationModal({ isOpen, onClose }: AddReservationM
         passengerCount: formData.passengerCount,
         baggageCount: formData.baggageCount,
         vehicleType: formData.vehicleType,
+        flightNumber: formData.flightNumber,
         additionalServices: [],
         distance,
         totalPrice
@@ -243,6 +246,27 @@ export default function AddReservationModal({ isOpen, onClose }: AddReservationM
                     </option>
                   ))}
                 </select>
+              </div>
+            </div>
+
+            {/* Flight Information */}
+            <div className="bg-gray-50 rounded-xl p-4 mb-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                <Plane className="h-5 w-5 mr-2" />
+                Uçuş Bilgisi
+              </h3>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Uçuş Numarası
+                </label>
+                <input
+                  type="text"
+                  value={formData.flightNumber}
+                  onChange={(e) => handleInputChange('flightNumber', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Örn: TK1234, PC1234"
+                />
+                <p className="mt-1 text-xs text-gray-500">Uçuş takibi için uçuş numarasını girin (isteğe bağlı)</p>
               </div>
             </div>
 

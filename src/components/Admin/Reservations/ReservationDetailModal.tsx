@@ -120,6 +120,19 @@ export default function ReservationDetailModal({ isOpen, onClose, reservation }:
             </div>
           </div>
 
+          {/* Flight Info */}
+          {reservation.flightNumber && (
+            <div className="bg-blue-50 rounded-lg p-3">
+              <h3 className="font-semibold text-gray-800 mb-2 flex items-center">
+                <Plane className="h-4 w-4 mr-2" />
+                Uçuş Bilgisi
+              </h3>
+              <div className="text-sm">
+                <div><strong>Uçuş Numarası:</strong> {reservation.flightNumber}</div>
+              </div>
+            </div>
+          )}
+
           {/* Vehicle & Driver */}
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-gray-50 rounded-lg p-3">

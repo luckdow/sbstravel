@@ -102,6 +102,7 @@ interface StoreState {
   
   // Mock data initialization
   initializeMockData: () => void;
+  settings: SystemSettings | null;
 }
 
 export const useStore = create<StoreState>((set, get) => ({
@@ -113,6 +114,7 @@ export const useStore = create<StoreState>((set, get) => ({
   locations: [],
   currentDriver: null,
   loading: false,
+  settings: null,
 
   // Fetch Reservations
   fetchReservations: async () => {
@@ -776,7 +778,7 @@ export const useStore = create<StoreState>((set, get) => ({
   // Initialize Mock Data
   initializeMockData: async () => {
     // Prevent multiple initializations
-    if (isInitialized()) {
+    const isInitialized = localStorage.getItem('sbs_initialized_v2') === 'true';
       console.log('Mock data already initialized, skipping...');
       return;
     }
@@ -1045,7 +1047,7 @@ export const useStore = create<StoreState>((set, get) => ({
     }
     
     // Mark as initialized
-    setInitialized();
+    localStorage.setItem('sbs_initialized_v2', 'true');
     
     // Fetch all data after initialization
     get().fetchReservations();
@@ -1166,6 +1168,70 @@ export const useStore = create<StoreState>((set, get) => ({
     } catch (error) {
       console.error('Error marking commission as paid:', error);
       toast.error('Ödeme kaydedilirken hata oluştu');
+    }
+  },
+
+  // Settings Management
+  fetchSettings: async () => {
+    set({ loading: true });
+    try {
+      // Try to get settings from Firestore
+      const settingsData = await getAllSettings();
+      
+      // If no settings found, use default
+      if (!settingsData || Object.keys(settingsData).length === 0) {
+        const defaultSettings = {
+          pricing: { standard: 4.5, premium: 6.5, luxury: 8.5, commissionRate: 0.25 },
+          company: {
+            name: 'SBS TRAVEL',
+            phone: '+90 242 123 45 67',
+            email: 'sbstravelinfo@gmail.com',
+            address: 'Muratpaşa Mah. Atatürk Cad. No:123/A Muratpaşa/ANTALYA',
+            website: 'https://www.sbstravel.com',
+            taxNumber: '1234567890',
+            bankName: 'Türkiye İş Bankası',
+            iban: 'TR12 0006 4000 0011 2345 6789 01'
+          },
+          notifications: { email: { enabled: false, provider: 'none' }, sms: { enabled: false, provider: 'none' }, whatsapp: { enabled: false } },
+          payment: { paytr: { enabled: false, merchantId: '', merchantKey: '', merchantSalt: '' }, cashOnDelivery: true }
+        };
+        set({ settings: defaultSettings });
+      } else {
+        set({ settings: settingsData });
+      }
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+      toast.error('Ayarlar yüklenirken hata oluştu');
+    } finally {
+      set({ loading: false });
+    }
+  },
+  
+  updateSettings: async (key, value) => {
+    try {
+      await updateSettings(key, value);
+      
+      // Update local state
+      set(state => ({
+        settings: {
+          ...state.settings,
+          [key]: value
+        }
+      }));
+      
+      toast.success('Ayarlar güncellendi');
+    } catch (error) {
+      console.error('Error updating settings:', error);
+      toast.error('Ayarlar güncellenirken hata oluştu');
+    }
+  },
+  
+  getAllSettings: async () => {
+    try {
+      return await getAllSettings();
+    } catch (error) {
+      console.error('Error getting all settings:', error);
+      return {};
     }
   }
 }));

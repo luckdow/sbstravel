@@ -160,6 +160,7 @@ export interface BookingFormData {
   baggageCount: number;
   vehicleType: 'standard' | 'premium' | 'luxury';
   additionalServices: string[];
+  flightNumber?: string;
   customerInfo: {
     firstName: string;
     lastName: string;
@@ -169,6 +170,8 @@ export interface BookingFormData {
 }
 
 export interface LocationData {
+    bankName?: string;
+    iban?: string;
   name: string;
   formatted_address?: string;
   lat: number;

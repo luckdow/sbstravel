@@ -10,17 +10,18 @@ interface AdminLayoutProps {
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { initializeMockData } = useStore();
+  const { initializeMockData, fetchSettings } = useStore();
   
   useEffect(() => {
     // Initialize mock data for consistent experience
     try {
       initializeMockData();
+      fetchSettings();
     } catch (error) {
       console.error("Error initializing mock data:", error);
       toast.error("Demo veriler yüklenirken hata oluştu");
     }
-  }, [initializeMockData]);
+  }, [initializeMockData, fetchSettings]);
 
   return (
     <div className="min-h-screen bg-gray-50">

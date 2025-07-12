@@ -328,14 +328,14 @@ export const getSettings = async (key: string) => {
   return null;
 };
 
-export const updateSettings = async (key: string, value: any) => {
+export const updateSettings = async (key: string, value: any): Promise<void> => {
   const docRef = doc(settingsRef, key);
   const docSnap = await getDoc(docRef);
   
   if (docSnap.exists()) {
     await updateDoc(docRef, { value, updatedAt: Timestamp.now() });
   } else {
-    await addDoc(settingsRef, { 
+    await setDoc(docRef, { 
       key, 
       value, 
       createdAt: Timestamp.now(), 
@@ -344,13 +344,36 @@ export const updateSettings = async (key: string, value: any) => {
   }
 };
 
-export const getAllSettings = async () => {
+export const getAllSettings = async (): Promise<any> => {
   const querySnapshot = await getDocs(settingsRef);
-  const settings: Record<string, any> = {};
+  let settings: any = {
+    pricing: { standard: 4.5, premium: 6.5, luxury: 8.5, commissionRate: 0.25 },
+    company: {
+      name: 'SBS TRAVEL',
+      phone: '+90 242 123 45 67',
+      email: 'sbstravelinfo@gmail.com',
+      address: 'Muratpaşa Mah. Atatürk Cad. No:123/A Muratpaşa/ANTALYA',
+      website: 'https://www.sbstravel.com',
+      taxNumber: '1234567890',
+      bankName: 'Türkiye İş Bankası',
+      iban: 'TR12 0006 4000 0011 2345 6789 01'
+    },
+    notifications: { email: { enabled: false, provider: 'none' }, sms: { enabled: false, provider: 'none' }, whatsapp: { enabled: false } },
+    payment: { paytr: { enabled: false, merchantId: '', merchantKey: '', merchantSalt: '' }, cashOnDelivery: true }
+  };
   
   querySnapshot.docs.forEach(doc => {
     const data = doc.data();
-    settings[data.key] = data.value;
+    if (data.key && data.value) {
+      // Handle nested settings
+      if (data.key.includes('.')) {
+        const [category, field] = data.key.split('.');
+        if (!settings[category]) settings[category] = {};
+        settings[category][field] = data.value;
+      } else {
+        settings[data.key] = data.value;
+      }
+    }
   });
   
   return settings;

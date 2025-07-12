@@ -138,6 +138,9 @@ export default function ReservationManagement() {
                   Tarih/Saat
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Uçuş Bilgisi
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Detaylar
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -195,6 +198,12 @@ export default function ReservationManagement() {
                       {reservation.pickupDate || 'N/A'}
                     </div>
                     <div className="text-sm text-gray-500">{reservation.pickupTime || 'N/A'}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900 flex items-center">
+                      <Plane className="h-3 w-3 mr-1" />
+                      {reservation.flightNumber || 'Belirtilmemiş'}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900 flex items-center">

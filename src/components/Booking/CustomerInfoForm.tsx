@@ -25,6 +25,11 @@ export default function CustomerInfoForm({
     fetchExtraServices();
   }, [fetchExtraServices]);
   
+  // Register flight number field if not already registered
+  useEffect(() => {
+    register('flightNumber');
+  }, [register]);
+  
   const toggleService = (serviceId: string) => {
     const currentServices = additionalServices || [];
     const newServices = currentServices.includes(serviceId)
@@ -114,6 +119,26 @@ export default function CustomerInfoForm({
               <p className="mt-2 text-sm text-red-600">{errors.customerInfo.phone.message}</p>
             )}
             <p className="mt-2 text-sm text-gray-500">Acil durumlar için iletişim</p>
+          </div>
+        </div>
+
+        {/* Flight Number */}
+        <div className="border-t border-gray-200 pt-6">
+          <h3 className="text-lg font-bold text-gray-800 mb-4">Uçuş Bilgileri</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">Uçuş Numarası</label>
+              <div className="relative">
+                <Plane className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  type="text"
+                  {...register('flightNumber')}
+                  placeholder="Örn: TK1234, PC1234"
+                  className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                />
+              </div>
+              <p className="mt-2 text-sm text-gray-500">Uçuş takibi için uçuş numaranızı giriniz (isteğe bağlı)</p>
+            </div>
           </div>
         </div>
 

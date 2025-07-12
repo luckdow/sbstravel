@@ -131,6 +131,7 @@ export default function BookingPage() {
     console.log('🚗 Vehicle type:', watchedValues.vehicleType);
     console.log('💰 Total price:', totalPrice);
     console.log('📏 Distance:', distance);
+    console.log('✈️ Flight number:', watchedValues.flightNumber);
     
     try {
       if (currentStep === 1) {
@@ -258,13 +259,14 @@ export default function BookingPage() {
   const handlePayTRPayment = async () => {
     try {
       setIsCalculatingPrice(true);
-      console.log('Payment initiated:', reservationData);
+      console.log('Payment initiated');
       
       // Create reservation first
       const reservationData = {
         ...watchedValues,
         distance,
-        totalPrice: totalPrice * 1.18 // Include tax
+        totalPrice: totalPrice * 1.18, // Include tax
+        flightNumber: watchedValues.flightNumber || ''
       };
 
       const reservationId = await createNewReservation(reservationData);
@@ -585,282 +587,14 @@ export default function BookingPage() {
                       />
                       {errors.destination && (
                         <p className="mt-2 text-sm text-red-600">{errors.destination.message}</p>
-                      )}
-
-                      {/* Date, Time, Passengers */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            <Calendar className="h-4 w-4 inline mr-1 text-blue-600" />
-                            Tarih
-                          </label>
-                          <input
-                            type="date"
-                            {...register('pickupDate')}
-                            min={new Date().toISOString().split('T')[0]}
-                            className="w-full px-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                          />
-                          {errors.pickupDate && (
-                            <p className="mt-1 text-xs text-red-600">{errors.pickupDate.message}</p>
-                          )}
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            <Clock className="h-4 w-4 inline mr-1 text-blue-600" />
-                            Saat
-                          </label>
-                          <select
-                            {...register('pickupTime')}
-                            className="w-full px-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 bg-white"
-                          >
-                            <option value="">Saat seçin</option>
-                            {Array.from({ length: 24 }, (_, i) => {
-                              const hour = i.toString().padStart(2, '0');
-                              return (
-                                <option key={hour} value={`${hour}:00`}>{hour}:00</option>
-                              );
-                            })}
-                          </select>
-                          {errors.pickupTime && (
-                            <p className="mt-1 text-xs text-red-600">{errors.pickupTime.message}</p>
-                          )}
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            <Users className="h-4 w-4 inline mr-1 text-blue-600" />
-                            Yolcu
-                          </label>
-                          <select
-                            {...register('passengerCount', { valueAsNumber: true })}
-                            className="w-full px-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 bg-white"
-                          >
-                            {[1,2,3,4,5,6,7,8].map(num => (
-                              <option key={num} value={num}>{num} Kişi</option>
-                            ))}
-                          </select>
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            <Luggage className="h-4 w-4 inline mr-1 text-blue-600" />
-                            Bagaj
-                          </label>
-                          <select
-                            {...register('baggageCount', { valueAsNumber: true })}
-                            className="w-full px-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 bg-white"
-                          >
-                            {[0,1,2,3,4,5,6,7,8].map(num => (
-                              <option key={num} value={num}>{num} Bagaj</option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Price & Map Section */}
-                  {showPriceDetails && (
-                    <div className="bg-white rounded-3xl shadow-xl p-6 border border-gray-100">
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {/* Price Display */}
-                        <div className="space-y-4">
-                          <h3 className="text-xl font-bold text-gray-800 flex items-center">
-                            <DollarSign className="h-5 w-5 mr-2 text-green-600" />
-                            Fiyat Bilgileri
-                          </h3>
-                          
-                          {isCalculatingPrice ? (
-                            <div className="flex items-center justify-center py-8">
-                              <Loader2 className="h-8 w-8 animate-spin text-blue-600 mr-3" />
-                              <span className="text-gray-600">Fiyat hesaplanıyor...</span>
-                            </div>
-                          ) : (
-                            <div className="space-y-4">
-                              <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl p-6 text-center">
-                                <div className="text-4xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mb-2">
-                                  ${totalPrice.toFixed(2)}
-                                </div>
-                                <div className="text-gray-600">Toplam Transfer Ücreti</div>
-                                <div className="text-sm text-gray-500 mt-2">
-                                  {distance.toFixed(1)} km mesafe
-                                </div>
-                              </div>
-                              
-                              <div className="bg-green-50 rounded-xl p-4">
-                                <h4 className="font-semibold text-green-800 mb-2">Fiyata Dahil Olanlar:</h4>
-                                <div className="grid grid-cols-2 gap-2 text-sm text-green-700">
-                                  <div>✓ Yakıt</div>
-                                  <div>✓ Sigorta</div>
-                                  <div>✓ Profesyonel Şoför</div>
-                                  <div>✓ 7/24 Destek</div>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Route Map */}
-                        <div className="space-y-4">
-                          <h3 className="text-xl font-bold text-gray-800 flex items-center">
-                            <MapPin className="h-5 w-5 mr-2 text-blue-600" />
-                            Transfer Güzergahı
-                          </h3>
-                          <RouteMap
-                            origin={watchedValues.transferType === 'airport-hotel' ? ANTALYA_AIRPORT : watchedValues.destination}
-                            destination={watchedValues.transferType === 'airport-hotel' ? watchedValues.destination : ANTALYA_AIRPORT}
-                            onRouteCalculated={(distance, duration) => {
-                              // Route calculated callback
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Step 2: Customer Info */}
-              {currentStep === 2 && (
-                <CustomerInfoForm
-                  register={register}
-                  errors={errors}
-                  setValue={setValue}
-                  additionalServices={watchedValues.additionalServices || []}
+                <PaymentSection
+                  priceCalculation={priceCalculation}
+                  bookingData={watchedValues}
+                  onPaymentSuccess={(transactionId) => {
+                    console.log('Payment successful, transaction ID:', transactionId);
+                    // Navigate to success page
+                  }}
                 />
-              )}
-
-              {/* Step 3: Confirmation */}
-              {currentStep === 3 && (
-                <div className="bg-white rounded-3xl shadow-xl p-6 border border-gray-100">
-                  <h2 className="text-2xl font-bold text-gray-800 mb-6">Rezervasyon Onayı & Ödeme</h2>
-                  
-                  <div className="space-y-6">
-                    {/* Transfer Summary */}
-                    <div className="bg-gray-50 rounded-2xl p-6">
-                      <h3 className="font-bold text-gray-800 mb-4">Transfer Özeti</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-sm text-gray-600">Transfer Türü</p>
-                          <p className="font-semibold">
-                            {watchedValues.transferType === 'airport-hotel' ? 'Havalimanı → Otel' : 'Otel → Havalimanı'}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">Araç Tipi</p>
-                          <p className="font-semibold capitalize">{watchedValues.vehicleType}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">Varış Noktası</p>
-                          <p className="font-semibold">{watchedValues.destination?.name}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">Tarih & Saat</p>
-                          <p className="font-semibold">{watchedValues.pickupDate} - {watchedValues.pickupTime}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">Yolcu & Bagaj</p>
-                          <p className="font-semibold">{watchedValues.passengerCount} kişi, {watchedValues.baggageCount} bagaj</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">Toplam Tutar</p>
-                          <p className="font-bold text-green-600 text-lg">${totalPrice.toFixed(2)}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Customer Summary */}
-                    <div className="bg-gray-50 rounded-2xl p-6">
-                      <h3 className="font-bold text-gray-800 mb-4">Müşteri Bilgileri</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-sm text-gray-600">Ad Soyad</p>
-                          <p className="font-semibold">
-                            {watchedValues.customerInfo?.firstName} {watchedValues.customerInfo?.lastName}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">E-posta</p>
-                          <p className="font-semibold">{watchedValues.customerInfo?.email}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">Telefon</p>
-                          <p className="font-semibold">{watchedValues.customerInfo?.phone}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* PayTR Payment Section */}
-                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6">
-                      <h3 className="font-bold text-gray-800 mb-4 flex items-center">
-                        <CreditCard className="h-5 w-5 mr-2 text-blue-600" />
-                        Ödeme Bilgileri
-                      </h3>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Payment Methods */}
-                        <div>
-                          <h4 className="font-semibold text-gray-700 mb-3">Ödeme Yöntemi</h4>
-                          <div className="space-y-3">
-                            <label className="flex items-center p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-blue-50">
-                              <input type="radio" name="paymentMethod" value="credit-card" defaultChecked className="mr-3" />
-                              <CreditCard className="h-5 w-5 text-blue-600 mr-2" />
-                              <span className="font-medium">Kredi/Banka Kartı</span>
-                            </label>
-                            <label className="flex items-center p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-blue-50">
-                              <input type="radio" name="paymentMethod" value="bank-transfer" className="mr-3" />
-                              <DollarSign className="h-5 w-5 text-green-600 mr-2" />
-                              <span className="font-medium">Banka Havalesi</span>
-                            </label>
-                          </div>
-                        </div>
-
-                        {/* Price Summary */}
-                        <div className="bg-white rounded-xl p-4">
-                          <h4 className="font-semibold text-gray-700 mb-3">Ödeme Özeti</h4>
-                          <div className="space-y-2">
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Transfer Ücreti:</span>
-                              <span className="font-semibold">${totalPrice.toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">KDV (%18):</span>
-                              <span className="font-semibold">${(totalPrice * 0.18).toFixed(2)}</span>
-                            </div>
-                            <div className="border-t pt-2">
-                              <div className="flex justify-between">
-                                <span className="font-bold text-gray-800">Toplam:</span>
-                                <span className="font-bold text-green-600 text-lg">${(totalPrice * 1.18).toFixed(2)}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Security Info */}
-                      <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-xl">
-                        <div className="flex items-center space-x-2">
-                          <Shield className="h-4 w-4 text-green-600" />
-                          <span className="text-sm text-green-700 font-medium">
-                            256-bit SSL şifreleme ile güvenli ödeme
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Terms */}
-                    <div className="bg-blue-50 rounded-2xl p-6">
-                      <h3 className="font-bold text-blue-800 mb-4">Önemli Bilgiler</h3>
-                      <ul className="text-sm text-blue-700 space-y-2">
-                        <li>• Transfer saatinden 15 dakika önce hazır olunuz</li>
-                        <li>• Şoförünüz size WhatsApp ile ulaşacaktır</li>
-                        <li>• QR kodunuzu şoföre göstermeyi unutmayınız</li>
-                        <li>• İptal işlemleri transfer saatinden 24 saat önce yapılmalıdır</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
               )}
 
               {/* Navigation Buttons */}
