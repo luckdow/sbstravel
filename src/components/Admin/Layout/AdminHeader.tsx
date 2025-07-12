@@ -122,6 +122,7 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
                       <p className="text-sm text-gray-600">
                         {currentUser?.email || 'admin@sbstravel.com'}
                       </p>
+                    </div>
                   </div>
                 </div>
                 <div className="p-2">
@@ -143,8 +144,6 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
             )}
           </div>
         </div>
-            )
-            }
       </div>
     </header>
   );
