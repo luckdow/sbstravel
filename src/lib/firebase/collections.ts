@@ -11,7 +11,8 @@ import {
   orderBy, 
   limit,
   Timestamp,
-  onSnapshot
+  onSnapshot,
+  setDoc
 } from 'firebase/firestore';
 import { db } from '../../config/firebase';
 import { Reservation, Driver, Vehicle, Customer, Commission, Location } from '../../types';

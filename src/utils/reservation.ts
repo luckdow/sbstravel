@@ -2,6 +2,92 @@
  * Utility functions for reservation management
  */
 
+import { createReservation, createCustomer, getCustomerByEmail } from '../lib/firebase/collections';
+import { generateReservationQRCode } from './qrCode';
+import { BookingFormData, Reservation, Customer } from '../types';
+
+export interface CreateNewReservationData extends BookingFormData {
+  distance?: number;
+  totalPrice?: number;
+}
+
+/**
+ * Creates a new reservation with customer auto-registration
+ */
+export const createNewReservation = async (data: CreateNewReservationData): Promise<string> => {
+  try {
+    // 1. Check if customer exists, if not create one
+    let customer = await getCustomerByEmail(data.customerInfo.email);
+    let customerId: string;
+    
+    if (!customer) {
+      // Auto-register customer
+      const customerData: Omit<Customer, 'id' | 'createdAt'> = {
+        firstName: data.customerInfo.firstName,
+        lastName: data.customerInfo.lastName,
+        email: data.customerInfo.email,
+        phone: data.customerInfo.phone,
+        totalReservations: 0,
+        totalSpent: 0,
+        status: 'active'
+      };
+      
+      customerId = await createCustomer(customerData);
+    } else {
+      customerId = customer.id!;
+    }
+
+    // 2. Generate QR code for this reservation
+    const tempReservationId = `RES-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const qrCode = await generateReservationQRCode(tempReservationId);
+
+    // 3. Prepare reservation data
+    const reservationData: Omit<Reservation, 'id' | 'createdAt' | 'updatedAt'> = {
+      customerId,
+      customerName: `${data.customerInfo.firstName} ${data.customerInfo.lastName}`,
+      customerEmail: data.customerInfo.email,
+      customerPhone: data.customerInfo.phone,
+      
+      // Transfer details
+      transferType: data.transferType,
+      pickupLocation: data.transferType === 'airport-hotel' ? 'Antalya Havalimanı' : data.destination.name,
+      dropoffLocation: data.transferType === 'airport-hotel' ? data.destination.name : 'Antalya Havalimanı',
+      pickupDate: data.pickupDate,
+      pickupTime: data.pickupTime,
+      
+      // Passenger details
+      passengerCount: data.passengerCount,
+      baggageCount: data.baggageCount || 0,
+      
+      // Vehicle and pricing
+      vehicleType: data.vehicleType as 'standard' | 'premium' | 'luxury',
+      distance: data.distance || 50, // Default distance if not provided
+      basePrice: data.totalPrice || 250, // Default price if not provided
+      additionalServices: data.additionalServices?.map(serviceId => ({
+        id: serviceId,
+        name: serviceId,
+        price: 0 // This should be calculated from actual service data
+      })) || [],
+      totalPrice: data.totalPrice || 250,
+      
+      // Status and assignment
+      status: 'pending',
+      
+      // QR Code and payment
+      qrCode,
+      paymentStatus: 'pending'
+    };
+
+    // 4. Create the reservation
+    const reservationId = await createReservation(reservationData);
+    
+    return reservationId;
+  } catch (error) {
+    console.error('Error creating new reservation:', error);
+    throw new Error('Rezervasyon oluşturulurken hata oluştu');
+  }
+};
+
 /**
  * Generates a readable reservation number in SBS-XXX format
  * @param rawId - Raw Firebase ID or any string ID

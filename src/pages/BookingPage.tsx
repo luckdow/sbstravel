@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Plane, Users, Calendar, Clock, MapPin, Car, CreditCard, Building2 } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -12,6 +13,9 @@ import CustomerInfoForm from '../components/Booking/CustomerInfoForm';
 import PaymentSection from '../components/Payment/PaymentSection';
 import { useStore } from '../store/useStore';
 import { calculatePrice } from '../utils/pricing';
+import { createNewReservation } from '../utils/reservation';
+import { generateReservationQRCode } from '../utils/qrCode';
+import { sendConfirmationEmail } from '../services/emailService';
 
 const bookingSchema = z.object({
   transferType: z.enum(['airport-hotel', 'hotel-airport']),
@@ -45,10 +49,12 @@ type BookingFormData = z.infer<typeof bookingSchema>;
 export default function BookingPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isCalculatingPrice, setIsCalculatingPrice] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [totalPrice, setTotalPrice] = useState(0);
   const [priceCalculation, setPriceCalculation] = useState<any>(null);
   
   const { vehicles, extraServices, settings } = useStore();
+  const navigate = useNavigate();
 
   const {
     register,
@@ -117,7 +123,51 @@ export default function BookingPage() {
   };
 
   const onSubmit = async (data: BookingFormData) => {
-    console.log('Form gönderildi:', data);
+    setIsLoading(true);
+    
+    try {
+      // 1. Create reservation in Firebase
+      const reservationId = await createNewReservation({
+        ...data,
+        distance: priceCalculation?.distance,
+        totalPrice: priceCalculation?.totalPrice
+      });
+      
+      // 2. Generate QR code
+      const qrCode = await generateReservationQRCode(reservationId);
+      
+      // 3. Send confirmation email
+      const emailSent = await sendConfirmationEmail(
+        data.customerInfo.email, 
+        reservationId, 
+        qrCode,
+        {
+          customerName: `${data.customerInfo.firstName} ${data.customerInfo.lastName}`,
+          transferType: data.transferType === 'airport-hotel' ? 'Havalimanı → Otel' : 'Otel → Havalimanı',
+          pickupLocation: data.transferType === 'airport-hotel' ? 'Antalya Havalimanı' : data.destination.name,
+          dropoffLocation: data.transferType === 'airport-hotel' ? data.destination.name : 'Antalya Havalimanı',
+          pickupDate: data.pickupDate,
+          pickupTime: data.pickupTime,
+          passengerCount: data.passengerCount.toString(),
+          vehicleType: data.vehicleType,
+          totalAmount: priceCalculation?.totalPrice?.toFixed(2) || '0'
+        }
+      );
+      
+      if (emailSent) {
+        console.log('Confirmation email sent successfully');
+      }
+      
+      // 4. Redirect to success page
+      navigate(`/booking-success/${reservationId}`);
+      
+      toast.success('Rezervasyon başarıyla oluşturuldu!');
+    } catch (error) {
+      console.error('Reservation creation error:', error);
+      toast.error('Rezervasyon oluşturulurken hata oluştu');
+    }
+    
+    setIsLoading(false);
   };
 
   return (
@@ -406,11 +456,12 @@ export default function BookingPage() {
                       handlePayTRPayment();
                     }
                   }}
-                  disabled={isCalculatingPrice || (currentStep === 1 && totalPrice === 0)}
+                  disabled={isCalculatingPrice || isLoading || (currentStep === 1 && totalPrice === 0)}
                   className="ml-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span>
-                    {isCalculatingPrice ? 'İşleniyor...' : 
+                    {isLoading ? 'İşleniyor...' :
+                     isCalculatingPrice ? 'İşleniyor...' : 
                      currentStep === 3 ? 'Ödeme Yap & Rezervasyonu Tamamla' : 'Devam Et'}
                   </span>
                   <ArrowRight className="h-5 w-5" />

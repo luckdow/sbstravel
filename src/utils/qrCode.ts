@@ -11,3 +11,18 @@ export function generateQRCodeData(reservationId: string, qrCode: string): strin
     timestamp: Date.now()
   });
 }
+
+// Enhanced QR code generation for reservations
+export async function generateReservationQRCode(reservationId: string): Promise<string> {
+  const qrData = {
+    id: reservationId,
+    timestamp: Date.now(),
+    type: 'reservation',
+    verification: `SBS-${Date.now().toString(36).toUpperCase()}`
+  };
+  
+  // Generate a unique QR code string
+  const qrCode = `SBS-${reservationId}-${Date.now().toString(36).toUpperCase()}`;
+  
+  return qrCode;
+}
