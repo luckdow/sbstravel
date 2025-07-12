@@ -179,14 +179,23 @@ export default function DriverManagement() {
     problemNotes: ''
   });
 
-  const filteredDrivers = (drivers || []).filter(driver => {
-    const fullName = `${driver.firstName} ${driver.lastName}`.toLowerCase();
-    const matchesSearch = fullName.includes(searchTerm.toLowerCase()) ||
-                         driver.phone.includes(searchTerm) ||
-                         driver.id.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || driver.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  const filteredDrivers = React.useMemo(() => {
+    if (!Array.isArray(drivers)) {
+      console.warn('Drivers is not an array:', drivers);
+      return [];
+    }
+    
+    return drivers.filter(driver => {
+      if (!driver) return false;
+      
+      const fullName = `${driver.firstName || ''} ${driver.lastName || ''}`.toLowerCase();
+      const matchesSearch = fullName.includes(searchTerm.toLowerCase()) ||
+                           (driver.phone || '').includes(searchTerm) ||
+                           (driver.id || '').toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = statusFilter === 'all' || driver.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [drivers, searchTerm, statusFilter]);
 
   const handleAddDriver = async (newDriver: any) => {
     const driverWithFinancials = {

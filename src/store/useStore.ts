@@ -379,8 +379,20 @@ export const useStore = create<StoreState>((set, get) => ({
         customer = { 
           id: customerId, 
           ...reservationData.customerInfo,
-          totalReservations: 0
+          totalReservations: 0,
+          totalSpent: 0,
+          lastActivity: new Date(),
+          lastReservationDate: new Date(),
+          status: 'active' as const,
+          notes: '',
+          createdAt: new Date(),
+          updatedAt: new Date()
         };
+        
+        // Add customer to local state
+        set(state => ({
+          customers: [customer!, ...state.customers]
+        }));
       }
 
       // Create reservation
