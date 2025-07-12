@@ -99,12 +99,22 @@ export default function NotificationCenter() {
           <div className="p-4 border-b">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-gray-900">Bildirimler</h3>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center space-x-2">
+                {unreadCount > 0 && (
+                  <button
+                    onClick={markAllAsRead}
+                    className="text-xs text-blue-600 hover:text-blue-800"
+                  >
+                    Tümünü Okundu İşaretle
+                  </button>
+                )}
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
             
             {/* Filter Tabs */}
@@ -141,7 +151,10 @@ export default function NotificationCenter() {
               filteredNotifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className="p-4 border-b hover:bg-gray-50 transition-colors"
+                  onClick={() => notification.status !== 'read' && markAsRead(notification.id)}
+                  className={`p-4 border-b hover:bg-gray-50 transition-colors cursor-pointer ${
+                    notification.status !== 'read' ? 'bg-blue-50' : ''
+                  }`}
                 >
                   <div className="flex items-start space-x-3">
                     {/* Channel Icon */}

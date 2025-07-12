@@ -4,6 +4,7 @@ import { Search, Filter, Calendar, MapPin, User, Car, DollarSign, Eye, Edit, Tra
 import { getLocationString } from '../../../lib/utils/location';
 import { addReadableReservationNumbers, getDriverDisplayName } from '../../../utils/reservation';
 import ReservationDetailModal from './ReservationDetailModal';
+import AddReservationModal from './AddReservationModal';
 
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -27,6 +28,7 @@ export default function ReservationManagement() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedReservation, setSelectedReservation] = useState<any>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
   
   const { 
     reservations, 
@@ -34,6 +36,7 @@ export default function ReservationManagement() {
     fetchReservations, 
     fetchDrivers,
     updateReservationStatus,
+    deleteReservation,
     loading 
   } = useStore();
 
@@ -59,6 +62,12 @@ export default function ReservationManagement() {
     await updateReservationStatus(reservationId, 'assigned', driverId);
   };
 
+  const handleDeleteReservation = async (reservationId: string) => {
+    if (window.confirm('Bu rezervasyonu silmek istediğinizden emin misiniz?')) {
+      await deleteReservation(reservationId);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -67,7 +76,10 @@ export default function ReservationManagement() {
           <h1 className="text-2xl font-bold text-gray-800">Rezervasyon Yönetimi</h1>
           <p className="text-gray-600">Tüm transfer rezervasyonlarını yönetin</p>
         </div>
-        <button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300">
+        <button 
+          onClick={() => setShowAddModal(true)}
+          className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300"
+        >
           Yeni Rezervasyon
         </button>
       </div>
@@ -195,7 +207,7 @@ export default function ReservationManagement() {
                     </div>
                     <div className="text-sm font-medium text-green-600 flex items-center">
                       <DollarSign className="h-3 w-3 mr-1" />
-                      ${reservation.totalPrice || 0}
+                      ₺{Math.round(reservation.totalPrice || 0)}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -234,7 +246,10 @@ export default function ReservationManagement() {
                       <button className="text-green-600 hover:text-green-900">
                         <Edit className="h-4 w-4" />
                       </button>
-                      <button className="text-red-600 hover:text-red-900">
+                      <button 
+                        onClick={() => handleDeleteReservation(reservation.id!)}
+                        className="text-red-600 hover:text-red-900"
+                      >
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
@@ -252,6 +267,12 @@ export default function ReservationManagement() {
         isOpen={!!selectedReservation}
         onClose={() => setSelectedReservation(null)}
         reservation={selectedReservation}
+      />
+
+      {/* Add Reservation Modal */}
+      <AddReservationModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
       />
     </div>
   );
