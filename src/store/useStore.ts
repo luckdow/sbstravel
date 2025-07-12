@@ -379,8 +379,20 @@ export const useStore = create<StoreState>((set, get) => ({
         customer = { 
           id: customerId, 
           ...reservationData.customerInfo,
-          totalReservations: 0
+          totalReservations: 0,
+          totalSpent: 0,
+          lastActivity: new Date(),
+          lastReservationDate: new Date(),
+          status: 'active' as const,
+          notes: '',
+          createdAt: new Date(),
+          updatedAt: new Date()
         };
+        
+        // Add customer to local state
+        set(state => ({
+          customers: [customer!, ...state.customers]
+        }));
       }
 
       // Create reservation
@@ -503,22 +515,26 @@ export const useStore = create<StoreState>((set, get) => ({
         'Driver fetch'
       );
       
-      console.log('Successfully fetched drivers from Firebase:', drivers.length);
+      console.log('Successfully fetched drivers from Firebase:', drivers?.length || 0);
+      
+      // Ensure drivers is always an array
+      const validDrivers = Array.isArray(drivers) ? drivers : [];
       
       // Save to cache for offline use
-      FirebasePersistence.saveDrivers(drivers);
+      FirebasePersistence.saveDrivers(validDrivers);
       FirebasePersistence.updateLastSync();
       
-      set({ drivers });
+      set({ drivers: validDrivers });
       
     } catch (error) {
       console.error('Error fetching drivers from Firebase:', error);
       
       // Try to load from cache
       const cachedDrivers = FirebasePersistence.getDrivers();
-      if (cachedDrivers.length > 0) {
-        console.log('Using cached drivers:', cachedDrivers.length);
-        set({ drivers: cachedDrivers });
+      const validCachedDrivers = Array.isArray(cachedDrivers) ? cachedDrivers : [];
+      if (validCachedDrivers.length > 0) {
+        console.log('Using cached drivers:', validCachedDrivers.length);
+        set({ drivers: validCachedDrivers });
         toast.error('Firebase bağlantısı başarısız, önbellek veriler kullanılıyor');
       } else {
         console.warn('No cached drivers available, using mock data');
