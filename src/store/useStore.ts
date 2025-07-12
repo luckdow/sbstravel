@@ -8,6 +8,7 @@ import {
   ExtraService,
   Location
 } from '../types';
+import { persist } from 'zustand/middleware';
 import { generateQRCode } from '../utils/qrCode';
 import toast from 'react-hot-toast';
 
@@ -347,7 +348,9 @@ interface StoreState {
   initializeMockData: () => void;
 }
 
-export const useStore = create<StoreState>((set, get) => ({
+export const useStore = create<StoreState>()(
+  persist(
+    (set, get) => ({
   reservations: [],
   drivers: [],
   customers: [],
@@ -377,6 +380,7 @@ export const useStore = create<StoreState>((set, get) => ({
   // Create New Reservation
   createNewReservation: async (reservationData) => {
     try {
+      console.log('Creating new reservation:', reservationData);
       // Generate QR code
       const qrCode = generateQRCode();
       
@@ -413,7 +417,7 @@ export const useStore = create<StoreState>((set, get) => ({
       // Update local state
       set(state => ({
         reservations: [newReservation, ...state.reservations]
-      }));
+      }), false);
       
       toast.success('Rezervasyon başarıyla oluşturuldu!');
       return newReservation.id;
@@ -439,7 +443,7 @@ export const useStore = create<StoreState>((set, get) => ({
         reservations: state.reservations.map(res =>
           res.id === id ? { ...res, ...updates, updatedAt: new Date() } : res
         )
-      }));
+      }), false);
 
       if (driverId && status === 'assigned') {
         toast.success('Şoför başarıyla atandı!');
@@ -459,7 +463,7 @@ export const useStore = create<StoreState>((set, get) => ({
       // Remove from local state
       set(state => ({
         reservations: state.reservations.filter(res => res.id !== id)
-      }));
+      }), false);
       
       toast.success('Rezervasyon başarıyla silindi!');
     } catch (error) {
@@ -508,7 +512,7 @@ export const useStore = create<StoreState>((set, get) => ({
       // Update local state
       set(state => ({
         drivers: [...state.drivers, newDriver]
-      }));
+      }), false);
       
       toast.success('Şoför başarıyla eklendi!');
       return newDriver.id;
@@ -527,7 +531,7 @@ export const useStore = create<StoreState>((set, get) => ({
         drivers: state.drivers.map(driver =>
           driver.id === id ? { ...driver, ...updates } : driver
         )
-      }));
+      }), false);
       
       toast.success('Şoför bilgileri güncellendi!');
     } catch (error) {
@@ -542,7 +546,7 @@ export const useStore = create<StoreState>((set, get) => ({
       // Remove from local state
       set(state => ({
         drivers: state.drivers.filter(driver => driver.id !== id)
-      }));
+      }), false);
       
       toast.success('Şoför başarıyla silindi!');
     } catch (error) {
@@ -590,7 +594,7 @@ export const useStore = create<StoreState>((set, get) => ({
       // Update local state
       set(state => ({
         customers: [...state.customers, newCustomer]
-      }));
+      }), false);
       
       toast.success('Müşteri başarıyla eklendi!');
       return newCustomer.id;
@@ -609,7 +613,7 @@ export const useStore = create<StoreState>((set, get) => ({
         customers: state.customers.map(customer =>
           customer.id === id ? { ...customer, ...updates } : customer
         )
-      }));
+      }), false);
       
       toast.success('Müşteri bilgileri güncellendi!');
     } catch (error) {
@@ -624,7 +628,7 @@ export const useStore = create<StoreState>((set, get) => ({
       // Remove from local state
       set(state => ({
         customers: state.customers.filter(customer => customer.id !== id)
-      }));
+      }), false);
       
       toast.success('Müşteri başarıyla silindi!');
     } catch (error) {
@@ -673,7 +677,7 @@ export const useStore = create<StoreState>((set, get) => ({
       // Update local state
       set(state => ({
         vehicles: [...state.vehicles, newVehicle]
-      }));
+      }), false);
       
       toast.success('Araç başarıyla eklendi!');
       return newVehicle.id;
@@ -692,7 +696,7 @@ export const useStore = create<StoreState>((set, get) => ({
         vehicles: state.vehicles.map(vehicle =>
           vehicle.id === id ? { ...vehicle, ...updates, updatedAt: new Date() } : vehicle
         )
-      }));
+      }), false);
       
       toast.success('Araç bilgileri güncellendi!');
     } catch (error) {
@@ -707,7 +711,7 @@ export const useStore = create<StoreState>((set, get) => ({
       // Remove from local state
       set(state => ({
         vehicles: state.vehicles.filter(vehicle => vehicle.id !== id)
-      }));
+      }), false);
       
       toast.success('Araç başarıyla silindi!');
     } catch (error) {
@@ -751,7 +755,7 @@ export const useStore = create<StoreState>((set, get) => ({
       // Update local state
       set(state => ({
         extraServices: [...state.extraServices, newService]
-      }));
+      }), false);
       
       toast.success('Ek hizmet başarıyla eklendi!');
       return newService.id;
@@ -770,7 +774,7 @@ export const useStore = create<StoreState>((set, get) => ({
         extraServices: state.extraServices.map(service =>
           service.id === id ? { ...service, ...updates, updatedAt: new Date() } : service
         )
-      }));
+      }), false);
       
       toast.success('Ek hizmet bilgileri güncellendi!');
     } catch (error) {
@@ -785,7 +789,7 @@ export const useStore = create<StoreState>((set, get) => ({
       // Remove from local state
       set(state => ({
         extraServices: state.extraServices.filter(service => service.id !== id)
-      }));
+      }), false);
       
       toast.success('Ek hizmet başarıyla silindi!');
     } catch (error) {
@@ -826,7 +830,7 @@ export const useStore = create<StoreState>((set, get) => ({
       // Update local state
       set(state => ({
         locations: [...state.locations, newLocation]
-      }));
+      }), false);
       
       toast.success('Lokasyon başarıyla eklendi!');
       return newLocation.id;
@@ -845,7 +849,7 @@ export const useStore = create<StoreState>((set, get) => ({
         locations: state.locations.map(location =>
           location.id === id ? { ...location, ...updates } : location
         )
-      }));
+      }), false);
       
       toast.success('Lokasyon bilgileri güncellendi!');
     } catch (error) {
@@ -860,7 +864,7 @@ export const useStore = create<StoreState>((set, get) => ({
       // Remove from local state
       set(state => ({
         locations: state.locations.filter(location => location.id !== id)
-      }));
+      }), false);
       
       toast.success('Lokasyon başarıyla silindi!');
     } catch (error) {
@@ -931,5 +935,16 @@ export const useStore = create<StoreState>((set, get) => ({
     if (state.locations.length === 0) {
       set({ locations: mockLocations });
     }
+  },
+  {
+    name: 'sbs-travel-store',
+    partialize: (state) => ({
+      reservations: state.reservations,
+      drivers: state.drivers,
+      customers: state.customers,
+      vehicles: state.vehicles,
+      extraServices: state.extraServices,
+      locations: state.locations
+    }),
   }
-}));
+)));
