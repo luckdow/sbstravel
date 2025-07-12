@@ -31,6 +31,7 @@ export default function DriverManagement() {
     lastName: '',
     email: '',
     phone: '',
+    iban: '',
     licenseNumber: '',
     vehicleType: 'standard',
     status: 'available',
@@ -107,6 +108,7 @@ export default function DriverManagement() {
       lastName: driver.lastName,
       email: driver.email,
       phone: driver.phone,
+      iban: driver.iban || '',
       licenseNumber: driver.licenseNumber || '',
       vehicleType: driver.vehicleType || 'standard',
       status: driver.status || 'available',
@@ -123,6 +125,7 @@ export default function DriverManagement() {
       lastName: '',
       email: '',
       phone: '',
+      iban: '',
       licenseNumber: '',
       vehicleType: 'standard',
       status: 'available',
@@ -363,6 +366,16 @@ export default function DriverManagement() {
                 />
               </div>
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">IBAN</label>
+                <input
+                  type="text"
+                  value={driverForm.iban}
+                  onChange={(e) => setDriverForm({...driverForm, iban: e.target.value})}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
+                  placeholder="TR00 0000 0000 0000 0000 0000 00"
+                />
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Ehliyet Numarası</label>
                 <input
                   type="text"
@@ -470,6 +483,16 @@ export default function DriverManagement() {
                   value={driverForm.phone}
                   onChange={(e) => setDriverForm({...driverForm, phone: e.target.value})}
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">IBAN</label>
+                <input
+                  type="text"
+                  value={driverForm.iban}
+                  onChange={(e) => setDriverForm({...driverForm, iban: e.target.value})}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
+                  placeholder="TR00 0000 0000 0000 0000 0000 00"
                 />
               </div>
               <div>

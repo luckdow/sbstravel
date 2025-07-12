@@ -55,7 +55,7 @@ export default function BookingPage() {
   const [showPriceDetails, setShowPriceDetails] = useState(false);
   
   const navigate = useNavigate();
-  const { createNewReservation, vehicles, extraServices, fetchVehicles, fetchExtraServices } = useStore();
+  const { createNewReservation, vehicles, extraServices, fetchVehicles, fetchExtraServices, loading } = useStore();
   
   // Fetch vehicles and extra services when component mounts
   useEffect(() => {
@@ -92,7 +92,7 @@ export default function BookingPage() {
   // Calculate price when destination or vehicle type changes
   useEffect(() => {
     const calculatePricing = async () => {
-      if (watchedValues.destination && watchedValues.destination.lat !== 0 && watchedValues.vehicleType) {
+      if (watchedValues.destination && watchedValues.destination.name && watchedValues.vehicleType) {
         console.log('💰 Calculating price...');
         console.log('📍 Destination:', watchedValues.destination);
         console.log('🚗 Vehicle:', watchedValues.vehicleType);
@@ -509,7 +509,7 @@ export default function BookingPage() {
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-3">Araç Tipi Seçimi</label>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          {vehicles.length > 0 ? vehicles.map((vehicle) => (
+                          {vehicles && vehicles.length > 0 ? vehicles.map((vehicle) => (
                             <label key={vehicle.type} className="relative">
                               <input
                                 type="radio"

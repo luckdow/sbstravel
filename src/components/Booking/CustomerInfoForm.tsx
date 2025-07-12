@@ -28,7 +28,7 @@ export default function CustomerInfoForm({
   const toggleService = (serviceId: string) => {
     const currentServices = additionalServices || [];
     const newServices = currentServices.includes(serviceId)
-      ? currentServices.filter(id => id !== serviceId)
+      ? [...currentServices.filter(id => id !== serviceId)]
       : [...currentServices, serviceId];
     
     setValue('additionalServices', newServices);
@@ -123,18 +123,18 @@ export default function CustomerInfoForm({
           <p className="text-gray-600 mb-6">Transfer deneyiminizi daha konforlu hale getirmek için ek hizmetler seçebilirsiniz.</p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {extraServices.length > 0 ? extraServices.map((service) => {
-              const isSelected = (additionalServices || []).includes(service.id);
+            {extraServices && extraServices.length > 0 ? extraServices.map((service) => {
+              const isSelected = (additionalServices || []).includes(service.id || '');
               
               return (
-                <div
-                  key={service.id}
+                <div 
+                  key={service.id || `service-${service.name}`}
                   className={`relative border-2 rounded-xl p-4 cursor-pointer transition-all duration-300 ${
                     isSelected
                       ? 'border-blue-600 bg-blue-50'
                       : 'border-gray-200 hover:border-blue-300'
                   }`}
-                  onClick={() => toggleService(service.id)}
+                  onClick={() => service.id && toggleService(service.id)}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
@@ -166,7 +166,7 @@ export default function CustomerInfoForm({
               </div>
               <div className="mt-2 flex flex-wrap gap-2">
                 {(additionalServices || []).map((serviceId) => {
-                  const service = availableServices.find(s => s.id === serviceId);
+                  const service = extraServices.find(s => s.id === serviceId);
                   return service ? (
                     <span
                       key={serviceId}

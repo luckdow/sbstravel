@@ -45,6 +45,23 @@ export default function DriverFinancialsModal({ driver, onClose }: DriverFinanci
                 <p className="text-gray-600">Şoför Cari Hesabı</p>
               </div>
             </div>
+            
+            {/* IBAN Bilgisi */}
+            <div className="bg-blue-50 rounded-xl p-6 mb-8">
+              <div className="flex items-center space-x-3 mb-2">
+                <CreditCard className="h-6 w-6 text-blue-600" />
+                <h3 className="font-bold text-gray-800">Ödeme Bilgileri</h3>
+              </div>
+              <div className="space-y-2">
+                <div className="font-medium text-gray-800">IBAN:</div>
+                <div className="p-3 bg-white rounded-lg border border-blue-200 font-mono text-blue-700">
+                  {driver.iban || 'IBAN bilgisi girilmemiş'}
+                </div>
+                <p className="text-sm text-blue-600">
+                  Bu IBAN numarasına ödeme yapabilirsiniz. Ödeme yapmadan önce şoförle iletişime geçmeniz önerilir.
+                </p>
+              </div>
+            </div>
             <button
               onClick={onClose}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
