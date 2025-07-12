@@ -1,58 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, Edit, Trash2, MapPin, Navigation, AlertCircle, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
-
-// Mock locations data
-const mockLocations = [
-  {
-    id: 'loc-001',
-    name: 'Antalya Havalimanı (AYT)',
-    region: 'Antalya',
-    distance: 0,
-    lat: 36.8987,
-    lng: 30.7854
-  },
-  {
-    id: 'loc-002',
-    name: 'Kemer - Club Med Palmiye',
-    region: 'Kemer',
-    distance: 45,
-    lat: 36.6048,
-    lng: 30.5606
-  },
-  {
-    id: 'loc-003',
-    name: 'Belek - Regnum Carya',
-    region: 'Belek',
-    distance: 35,
-    lat: 36.8625,
-    lng: 31.0556
-  },
-  {
-    id: 'loc-004',
-    name: 'Side - Manavgat Resort',
-    region: 'Side',
-    distance: 65,
-    lat: 36.7673,
-    lng: 31.3890
-  },
-  {
-    id: 'loc-005',
-    name: 'Alanya - Crystal Hotel',
-    region: 'Alanya',
-    distance: 120,
-    lat: 36.5444,
-    lng: 32.0000
-  },
-  {
-    id: 'loc-006',
-    name: 'Kaş - Kas Resort',
-    region: 'Kaş',
-    distance: 180,
-    lat: 36.2020,
-    lng: 29.6414
-  }
-];
+import { useStore } from '../../../store/useStore';
 
 interface Location {
   id: string;
@@ -64,7 +13,7 @@ interface Location {
 }
 
 export default function LocationManagement() {
-  const [locations, setLocations] = useState<Location[]>(mockLocations);
+  const { locations, fetchLocations, addLocation, editLocation, deleteLocation } = useStore();
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -77,6 +26,10 @@ export default function LocationManagement() {
     lat: 0,
     lng: 0
   });
+  
+  useEffect(() => {
+    fetchLocations();
+  }, [fetchLocations]);
 
   const handleAddLocation = async () => {
     if (!formData.name || !formData.region || formData.distance <= 0) {
@@ -86,19 +39,7 @@ export default function LocationManagement() {
 
     setLoading(true);
     try {
-      // Create a new location with a unique ID
-      const newLocation = {
-        id: `loc-${Date.now()}`,
-        name: formData.name,
-        region: formData.region,
-        distance: formData.distance,
-        lat: formData.lat,
-        lng: formData.lng
-      };
-      
-      // Add to local state
-      setLocations([...locations, newLocation]);
-      
+      await addLocation(formData);
       toast.success('Lokasyon başarıyla eklendi');
       setShowAddModal(false);
       resetForm();
@@ -118,19 +59,7 @@ export default function LocationManagement() {
 
     setLoading(true);
     try {
-      // Update location in local state
-      setLocations(locations.map(loc => 
-        loc.id === selectedLocation.id 
-          ? {
-              ...loc,
-              name: formData.name,
-              region: formData.region,
-              distance: formData.distance,
-              lat: formData.lat,
-              lng: formData.lng
-            }
-          : loc
-      ));
+      await editLocation(selectedLocation.id, formData);
       
       toast.success('Lokasyon başarıyla güncellendi');
       setShowEditModal(false);
@@ -147,8 +76,7 @@ export default function LocationManagement() {
     if (window.confirm('Bu lokasyonu silmek istediğinizden emin misiniz?')) {
       setLoading(true);
       try {
-        // Remove location from local state
-        setLocations(locations.filter(loc => loc.id !== id));
+        await deleteLocation(id);
         
         toast.success('Lokasyon başarıyla silindi');
       } catch (error) {

@@ -253,6 +253,7 @@ export default function BookingPage() {
   const handlePayTRPayment = async () => {
     try {
       setIsCalculatingPrice(true);
+      console.log('Payment initiated:', reservationData);
       
       // Create reservation first
       const reservationData = {
@@ -264,6 +265,7 @@ export default function BookingPage() {
       const reservationId = await createNewReservation(reservationData);
       
       if (reservationId) {
+        console.log('Reservation created:', reservationId);
         // Send booking confirmation notification
         try {
           const notificationData = {
@@ -285,7 +287,7 @@ export default function BookingPage() {
           const notificationResult = await notificationService.sendBookingConfirmation(
             'temp-customer-id', // In real app, this would be the actual customer ID
             reservationId,
-            notificationData
+            notificationData as any
           );
 
           if (notificationResult.success) {
@@ -320,7 +322,7 @@ export default function BookingPage() {
             await notificationService.sendPaymentSuccess(
               'temp-customer-id',
               reservationId,
-              paymentData
+              paymentData as any
             );
           } catch (paymentNotificationError) {
             console.error('📧 Payment notification error:', paymentNotificationError);
