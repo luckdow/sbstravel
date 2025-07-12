@@ -166,7 +166,12 @@ export interface BookingFormData {
     lastName: string;
     email: string;
     phone: string;
+    flightNumber?: string;
+    specialRequests?: string;
   };
+  extraServices: string[];
+  paymentMethod: 'credit-card' | 'bank-transfer';
+  reservationId?: string;
 }
 
 export interface LocationData {

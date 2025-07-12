@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Plane, Users, Calendar, Clock, MapPin, Car, CreditCard, Building2 } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -12,6 +13,9 @@ import CustomerInfoForm from '../components/Booking/CustomerInfoForm';
 import PaymentSection from '../components/Payment/PaymentSection';
 import { useStore } from '../store/useStore';
 import { calculatePrice } from '../utils/pricing';
+import { generateQRCode, generateQRCodeData } from '../utils/qrCode';
+import { notificationService } from '../services/communication';
+import { getCustomerByEmail, createCustomer } from '../lib/firebase/collections';
 
 const bookingSchema = z.object({
   transferType: z.enum(['airport-hotel', 'hotel-airport']),
@@ -37,7 +41,8 @@ const bookingSchema = z.object({
     specialRequests: z.string().optional()
   }),
   extraServices: z.array(z.string()).default([]),
-  paymentMethod: z.enum(['credit-card', 'bank-transfer'])
+  paymentMethod: z.enum(['credit-card', 'bank-transfer']),
+  reservationId: z.string().optional()
 });
 
 type BookingFormData = z.infer<typeof bookingSchema>;
@@ -47,8 +52,11 @@ export default function BookingPage() {
   const [isCalculatingPrice, setIsCalculatingPrice] = useState(false);
   const [totalPrice, setTotalPrice] = useState(0);
   const [priceCalculation, setPriceCalculation] = useState<any>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [reservationId, setReservationId] = useState<string | null>(null);
   
-  const { vehicles, extraServices, settings } = useStore();
+  const navigate = useNavigate();
+  const { vehicles, extraServices, settings, createNewReservation } = useStore();
 
   const {
     register,
@@ -117,7 +125,134 @@ export default function BookingPage() {
   };
 
   const onSubmit = async (data: BookingFormData) => {
-    console.log('Form gönderildi:', data);
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
+    console.log('Starting reservation creation process...', data);
+    
+    try {
+      // 1. Customer Management - Auto-create customer if not exists
+      let customerId: string;
+      
+      const existingCustomer = await getCustomerByEmail(data.customerInfo.email);
+      
+      if (existingCustomer) {
+        customerId = existingCustomer.id!;
+        console.log('Found existing customer:', customerId);
+      } else {
+        // Create new customer
+        const newCustomerId = await createCustomer({
+          firstName: data.customerInfo.firstName,
+          lastName: data.customerInfo.lastName,
+          email: data.customerInfo.email,
+          phone: data.customerInfo.phone,
+          totalReservations: 0,
+          totalSpent: 0,
+          status: 'active'
+        });
+        
+        if (!newCustomerId) {
+          throw new Error('Failed to create customer');
+        }
+        
+        customerId = newCustomerId;
+        console.log('Created new customer:', customerId);
+      }
+
+      // 2. Generate QR Code
+      const qrCode = generateQRCode();
+      console.log('Generated QR code:', qrCode);
+
+      // 3. Create reservation with Firebase integration
+      const reservationData = {
+        customerId,
+        customerName: `${data.customerInfo.firstName} ${data.customerInfo.lastName}`,
+        customerEmail: data.customerInfo.email,
+        customerPhone: data.customerInfo.phone,
+        transferType: data.transferType,
+        pickupLocation: data.transferType === 'airport-hotel' ? 'Antalya Airport' : data.destination.name,
+        dropoffLocation: data.transferType === 'airport-hotel' ? data.destination.name : 'Antalya Airport',
+        pickupDate: data.pickupDate,
+        pickupTime: data.pickupTime,
+        passengerCount: data.passengerCount,
+        baggageCount: data.baggageCount,
+        vehicleType: data.vehicleType,
+        distance: priceCalculation?.distance || 0,
+        basePrice: priceCalculation?.basePrice || 0,
+        additionalServices: (data.extraServices || []).map(serviceId => {
+          const service = extraServices.find(s => s.id === serviceId);
+          return {
+            id: serviceId,
+            name: service?.name || 'Unknown Service',
+            price: service?.price || 0
+          };
+        }),
+        totalPrice: priceCalculation?.totalPrice || totalPrice,
+        status: 'pending' as const,
+        qrCode,
+        paymentStatus: 'pending' as const,
+        flightNumber: data.customerInfo.flightNumber
+      };
+
+      console.log('Creating reservation with data:', reservationData);
+      
+      const createdReservationId = await createNewReservation(reservationData);
+      
+      if (!createdReservationId) {
+        throw new Error('Failed to create reservation');
+      }
+
+      console.log('Reservation created successfully:', createdReservationId);
+      setReservationId(createdReservationId);
+
+      // 4. Send confirmation email notification
+      try {
+        const qrCodeData = generateQRCodeData(createdReservationId, qrCode);
+        
+        await notificationService.sendNotification({
+          customerId,
+          reservationId: createdReservationId,
+          template: 'booking_confirmation',
+          variables: {
+            customerName: reservationData.customerName,
+            customerEmail: reservationData.customerEmail,
+            customerPhone: reservationData.customerPhone,
+            bookingId: createdReservationId,
+            transferType: data.transferType === 'airport-hotel' ? 'Havalimanı → Otel' : 'Otel → Havalimanı',
+            pickupLocation: reservationData.pickupLocation,
+            dropoffLocation: reservationData.dropoffLocation,
+            pickupDate: data.pickupDate,
+            pickupTime: data.pickupTime,
+            passengerCount: data.passengerCount.toString(),
+            vehicleType: data.vehicleType,
+            totalPrice: reservationData.totalPrice.toString(),
+            qrCode: qrCodeData,
+            flightNumber: data.customerInfo.flightNumber || ''
+          },
+          immediate: true
+        });
+        
+        console.log('Confirmation email sent successfully');
+      } catch (emailError) {
+        console.error('Failed to send confirmation email:', emailError);
+        // Don't fail the entire process if email fails
+        toast.error('Rezervasyon oluşturuldu ancak e-posta gönderilemedi');
+      }
+
+      // 5. Navigate to payment or show success
+      toast.success('Rezervasyon başarıyla oluşturuldu! Ödeme adımına geçiliyor...');
+      
+      // Update form data with reservation ID for payment section
+      setValue('reservationId', createdReservationId);
+      
+      console.log('Reservation creation completed successfully');
+      
+    } catch (error) {
+      console.error('Reservation creation failed:', error);
+      toast.error('Rezervasyon oluşturulurken hata oluştu. Lütfen tekrar deneyin.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -344,8 +479,17 @@ export default function BookingPage() {
                 <PaymentSection
                   priceCalculation={priceCalculation}
                   bookingData={watchedValues}
+                  reservationId={reservationId}
                   onPaymentSuccess={(transactionId) => {
                     console.log('Payment successful, transaction ID:', transactionId);
+                    // Navigate to success page
+                    navigate('/payment/success', { 
+                      state: { 
+                        reservationId,
+                        transactionId,
+                        bookingData: watchedValues 
+                      } 
+                    });
                   }}
                 />
               )}
@@ -364,7 +508,7 @@ export default function BookingPage() {
                 
                 <button
                   type="button"
-                  onClick={() => {
+                  onClick={async () => {
                     if (currentStep === 1) {
                       if (!watchedValues.destination?.name) {
                         toast.error('Lütfen varış noktasını seçin');
@@ -398,20 +542,28 @@ export default function BookingPage() {
                         return;
                       }
                       
-                      setCurrentStep(3);
+                      // Create reservation before proceeding to payment
+                      await handleSubmit(onSubmit)();
+                      
+                      // Only proceed to payment if reservation was created successfully
+                      if (reservationId) {
+                        setCurrentStep(3);
+                      }
                       return;
                     }
                     
                     if (currentStep === 3) {
-                      handlePayTRPayment();
+                      // This is handled by PaymentSection now
+                      return;
                     }
                   }}
-                  disabled={isCalculatingPrice || (currentStep === 1 && totalPrice === 0)}
+                  disabled={isCalculatingPrice || isSubmitting || (currentStep === 1 && totalPrice === 0)}
                   className="ml-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span>
-                    {isCalculatingPrice ? 'İşleniyor...' : 
-                     currentStep === 3 ? 'Ödeme Yap & Rezervasyonu Tamamla' : 'Devam Et'}
+                    {isSubmitting ? 'Rezervasyon oluşturuluyor...' :
+                     isCalculatingPrice ? 'İşleniyor...' : 
+                     currentStep === 3 ? 'Ödemeye Geç' : 'Devam Et'}
                   </span>
                   <ArrowRight className="h-5 w-5" />
                 </button>

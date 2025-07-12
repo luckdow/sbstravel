@@ -4,6 +4,7 @@ import { CreditCard, Shield, Lock, CheckCircle, AlertCircle, DollarSign, Loader2
 import { PriceCalculation, BookingFormData } from '../../types';
 import { transactionService } from '../../lib/services/transaction-service';
 import { notificationService } from '../../lib/services/notification-service';
+import { updateReservation } from '../../lib/firebase/collections';
 import { useStore } from '../../store/useStore';
 import toast from 'react-hot-toast';
 
@@ -76,6 +77,21 @@ export default function PaymentSection({
       });
 
       if (result.success) {
+        // Update reservation status in Firebase
+        if (reservationId) {
+          try {
+            await updateReservation(reservationId, {
+              paymentStatus: 'completed',
+              paymentId: transaction.id,
+              status: 'confirmed'
+            });
+            console.log('Reservation payment status updated in Firebase');
+          } catch (updateError) {
+            console.error('Failed to update reservation status:', updateError);
+            // Don't fail the payment process if this fails
+          }
+        }
+
         if (paymentMethod === 'credit-card' && result.paymentUrl) {
           // For testing, we'll just simulate success
           toast.success('Test modu: Ödeme başarılı kabul edildi');
