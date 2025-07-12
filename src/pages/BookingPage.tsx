@@ -12,6 +12,10 @@ import CustomerInfoForm from '../components/Booking/CustomerInfoForm';
 import PaymentSection from '../components/Payment/PaymentSection';
 import { useStore } from '../store/useStore';
 import { calculatePrice } from '../utils/pricing';
+import { generateQRCode } from '../utils/qrCode';
+import { getCustomerByEmail, createCustomer } from '../lib/firebase/collections';
+import { notificationService } from '../lib/services/notification-service';
+import { useNavigate } from 'react-router-dom';
 
 const bookingSchema = z.object({
   transferType: z.enum(['airport-hotel', 'hotel-airport']),
@@ -27,7 +31,7 @@ const bookingSchema = z.object({
   pickupDate: z.string().min(1, 'Tarih seçiniz'),
   pickupTime: z.string().min(1, 'Saat seçiniz'),
   passengerCount: z.number().min(1).max(8),
-  luggageCount: z.number().min(0).max(10),
+  baggageCount: z.number().min(0).max(10),
   customerInfo: z.object({
     firstName: z.string().min(2, 'Ad en az 2 karakter olmalı'),
     lastName: z.string().min(2, 'Soyad en az 2 karakter olmalı'),
@@ -47,8 +51,10 @@ export default function BookingPage() {
   const [isCalculatingPrice, setIsCalculatingPrice] = useState(false);
   const [totalPrice, setTotalPrice] = useState(0);
   const [priceCalculation, setPriceCalculation] = useState<any>(null);
+  const [reservationId, setReservationId] = useState<string | null>(null);
   
-  const { vehicles, extraServices, settings } = useStore();
+  const { vehicles, extraServices, settings, createNewReservation } = useStore();
+  const navigate = useNavigate();
 
   const {
     register,
@@ -62,7 +68,7 @@ export default function BookingPage() {
     defaultValues: {
       transferType: 'airport-hotel',
       passengerCount: 1,
-      luggageCount: 1,
+      baggageCount: 1,
       extraServices: [],
       paymentMethod: 'credit-card'
     }
@@ -81,7 +87,7 @@ export default function BookingPage() {
             destination: watchedValues.destination.name,
             vehicleType: watchedValues.vehicleType,
             passengerCount: watchedValues.passengerCount,
-            luggageCount: watchedValues.luggageCount,
+            luggageCount: watchedValues.baggageCount,
             extraServices: watchedValues.extraServices || [],
             transferType: watchedValues.transferType
           });
@@ -102,7 +108,7 @@ export default function BookingPage() {
     watchedValues.destination,
     watchedValues.vehicleType,
     watchedValues.passengerCount,
-    watchedValues.luggageCount,
+    watchedValues.baggageCount,
     watchedValues.extraServices,
     watchedValues.transferType
   ]);
@@ -117,7 +123,128 @@ export default function BookingPage() {
   };
 
   const onSubmit = async (data: BookingFormData) => {
-    console.log('Form gönderildi:', data);
+    try {
+      setIsCalculatingPrice(true);
+      console.log('Form gönderildi:', data);
+      
+      // 1. Customer Management - Auto-create customer profile if not exists
+      let customerId: string;
+      let existingCustomer = null;
+      
+      try {
+        existingCustomer = await getCustomerByEmail(data.customerInfo.email);
+      } catch (error) {
+        console.log('Customer lookup failed, will create new:', error);
+      }
+      
+      if (existingCustomer) {
+        customerId = existingCustomer.id!;
+        toast.success('Mevcut müşteri bilgileri kullanılıyor');
+      } else {
+        // Create new customer
+        const customerData = {
+          firstName: data.customerInfo.firstName,
+          lastName: data.customerInfo.lastName,
+          email: data.customerInfo.email,
+          phone: data.customerInfo.phone,
+          totalReservations: 0,
+          totalSpent: 0,
+          status: 'active' as const
+        };
+        
+        const newCustomerId = await createCustomer(customerData);
+        if (!newCustomerId) {
+          throw new Error('Müşteri oluşturulamadı');
+        }
+        customerId = newCustomerId;
+        toast.success('Müşteri profili oluşturuldu');
+      }
+      
+      // 2. Generate QR Code
+      const qrCode = generateQRCode();
+      
+      // 3. Create Reservation
+      const reservationData = {
+        customerId,
+        customerName: `${data.customerInfo.firstName} ${data.customerInfo.lastName}`,
+        customerEmail: data.customerInfo.email,
+        customerPhone: data.customerInfo.phone,
+        
+        // Transfer details
+        transferType: data.transferType,
+        pickupLocation: data.transferType === 'airport-hotel' ? 'Antalya Havalimanı' : data.destination.name,
+        dropoffLocation: data.transferType === 'airport-hotel' ? data.destination.name : 'Antalya Havalimanı',
+        pickupDate: data.pickupDate,
+        pickupTime: data.pickupTime,
+        
+        // Passenger details
+        passengerCount: data.passengerCount,
+        baggageCount: data.baggageCount,
+        
+        // Vehicle and pricing
+        vehicleType: data.vehicleType,
+        distance: priceCalculation?.distance || 0,
+        basePrice: priceCalculation?.basePrice || 0,
+        additionalServices: data.extraServices.map(serviceId => {
+          const service = extraServices.find(s => s.id === serviceId);
+          return {
+            id: serviceId,
+            name: service?.name || '',
+            price: service?.price || 0
+          };
+        }),
+        totalPrice: totalPrice,
+        
+        // Status and QR
+        status: 'pending' as const,
+        qrCode,
+        paymentStatus: 'pending' as const,
+        
+        // Additional fields for compatibility
+        flightNumber: data.customerInfo.flightNumber || '',
+        specialRequests: data.customerInfo.specialRequests || ''
+      };
+      
+      const newReservationId = await createNewReservation(reservationData);
+      if (!newReservationId) {
+        throw new Error('Rezervasyon oluşturulamadı');
+      }
+      
+      setReservationId(newReservationId);
+      toast.success('Rezervasyon başarıyla oluşturuldu!');
+      
+      // 4. Send confirmation email with QR code
+      try {
+        await notificationService.sendReservationConfirmation(
+          newReservationId,
+          customerId,
+          data.customerInfo.email
+        );
+        
+        // Also send QR code via WhatsApp if phone number exists
+        if (data.customerInfo.phone) {
+          await notificationService.sendQRCodeWhatsApp(
+            newReservationId,
+            customerId,
+            data.customerInfo.phone
+          );
+        }
+      } catch (error) {
+        console.error('Notification sending failed:', error);
+        // Don't fail the whole process if notification fails
+        toast.error('Rezervasyon oluşturuldu ancak bildirim gönderilemedi');
+      }
+      
+      // 5. Move to payment step
+      setCurrentStep(3);
+      toast.success('Ödeme adımına geçiliyor...');
+      
+    } catch (error) {
+      console.error('Rezervasyon oluşturma hatası:', error);
+      toast.error(error instanceof Error ? error.message : 'Rezervasyon oluşturulurken hata oluştu');
+    } finally {
+      setIsCalculatingPrice(false);
+    }
   };
 
   return (
@@ -293,7 +420,7 @@ export default function BookingPage() {
                         Bagaj Sayısı
                       </label>
                       <select
-                        {...register('luggageCount', { valueAsNumber: true })}
+                        {...register('baggageCount', { valueAsNumber: true })}
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       >
                         {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
@@ -344,8 +471,17 @@ export default function BookingPage() {
                 <PaymentSection
                   priceCalculation={priceCalculation}
                   bookingData={watchedValues}
+                  reservationId={reservationId}
                   onPaymentSuccess={(transactionId) => {
                     console.log('Payment successful, transaction ID:', transactionId);
+                    // Navigate to success page
+                    navigate('/payment/success', { 
+                      state: { 
+                        reservationId,
+                        transactionId,
+                        customerInfo: watchedValues.customerInfo
+                      } 
+                    });
                   }}
                 />
               )}

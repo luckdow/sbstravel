@@ -25,6 +25,19 @@ export default function PaymentSection({
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [marketingAccepted, setMarketingAccepted] = useState(false);
   const navigate = useNavigate();
+
+  // Add safety check for priceCalculation
+  if (!priceCalculation) {
+    return (
+      <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">Fiyat Hesaplanıyor...</h2>
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Lütfen bekleyin...</p>
+        </div>
+      </div>
+    );
+  }
   const { settings, fetchSettings } = useStore();
 
   useEffect(() => {
