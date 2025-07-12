@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AdminLayout from '../../components/Admin/Layout/AdminLayout';
 import { Search, Filter, Car, Users, Luggage, DollarSign, Eye, Edit, Trash2, Plus, Upload, X, Loader2, Settings } from 'lucide-react';
 import { useStore } from '../../store/useStore';
@@ -118,7 +118,11 @@ export default function AdminVehiclesPage() {
   const [viewingVehicle, setViewingVehicle] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
-  const { addVehicle, editVehicle, deleteVehicle } = useStore();
+  const { vehicles, fetchVehicles, addVehicle, editVehicle, deleteVehicle } = useStore();
+
+  useEffect(() => {
+    fetchVehicles();
+  }, [fetchVehicles]);
 
   const [vehicleForm, setVehicleForm] = useState<VehicleForm>({
     name: '',
@@ -127,7 +131,7 @@ export default function AdminVehiclesPage() {
     licensePlate: '',
     passengerCapacity: 4,
     baggageCapacity: 4,
-    pricePerKm: 4.5,
+    pricePerKm: 1.8, // USD
     features: [],
     extraServices: [],
     status: 'active',
@@ -135,9 +139,9 @@ export default function AdminVehiclesPage() {
     imageUrls: []
   });
 
-  const filteredVehicles = mockVehicles.filter(vehicle => {
+  const filteredVehicles = vehicles.filter(vehicle => {
     const matchesSearch = vehicle.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         vehicle.plate.toLowerCase().includes(searchTerm.toLowerCase());
+                         (vehicle.licensePlate || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = typeFilter === 'all' || vehicle.type === typeFilter;
     const matchesStatus = statusFilter === 'all' || vehicle.status === statusFilter;
     return matchesSearch && matchesType && matchesStatus;
