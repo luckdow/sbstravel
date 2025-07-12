@@ -182,10 +182,10 @@ export default function RefundManager() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className="text-sm font-medium text-gray-900">
-                          İade: ${refund.refundAmount.toFixed(2)}
+                          İade: ${refund.refundAmount.toFixed(0)}
                         </div>
                         <div className="text-sm text-gray-500">
-                          Orijinal: ${refund.originalAmount.toFixed(2)}
+                          Orijinal: ${refund.originalAmount.toFixed(0)}
                         </div>
                       </div>
                     </td>
@@ -270,8 +270,8 @@ export default function RefundManager() {
                   <div>
                     <h3 className="font-semibold text-gray-800 mb-2">Tutar Bilgileri</h3>
                     <div className="bg-gray-50 rounded-xl p-4 space-y-2">
-                      <div><span className="font-medium">Orijinal Tutar:</span> ${selectedRefund.originalAmount.toFixed(2)}</div>
-                      <div><span className="font-medium">İade Tutarı:</span> ${selectedRefund.refundAmount.toFixed(2)}</div>
+                      <div><span className="font-medium">Orijinal Tutar:</span> ${selectedRefund.originalAmount.toFixed(0)}</div>
+                      <div><span className="font-medium">İade Tutarı:</span> ${selectedRefund.refundAmount.toFixed(0)}</div>
                       <div><span className="font-medium">İade Oranı:</span> {((selectedRefund.refundAmount / selectedRefund.originalAmount) * 100).toFixed(0)}%</div>
                     </div>
                   </div>

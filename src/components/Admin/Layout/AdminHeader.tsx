@@ -124,7 +124,7 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
                         {currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : 'Admin User'}
                       </p>
                       <p className="text-sm text-gray-600">
-                        {currentUser?.email || 'admin@ayttransfer.com'}
+                        {currentUser?.email || 'admin@sbstravel.com'}
                       </p>
                     </div>
                   </div>

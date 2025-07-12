@@ -47,7 +47,7 @@ export const mockDrivers: Driver[] = [
   {
     id: 'DRV-001',
     name: 'Mehmet Demir',
-    email: 'mehmet@ayttransfer.com',
+    email: 'mehmet@sbstravel.com',
     phone: '+90 532 111 2233',
     vehicle_type: 'premium',
     status: 'available',
@@ -60,7 +60,7 @@ export const mockDrivers: Driver[] = [
   {
     id: 'DRV-002',
     name: 'Ali Kaya',
-    email: 'ali@ayttransfer.com',
+    email: 'ali@sbstravel.com',
     phone: '+90 533 222 3344',
     vehicle_type: 'luxury',
     status: 'busy',

@@ -14,7 +14,7 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     // Demo login - gerçek sistemde authentication yapılacak
-    if (credentials.email === 'admin@ayttransfer.com' && credentials.password === 'admin123') {
+    if (credentials.email === 'admin@sbstravel.com' && credentials.password === 'admin123') {
       localStorage.setItem('adminToken', 'demo-admin-token');
       toast.success('Giriş başarılı!');
       navigate('/admin');
@@ -51,7 +51,7 @@ export default function AdminLoginPage() {
                   value={credentials.email}
                   onChange={(e) => setCredentials({...credentials, email: e.target.value})}
                   className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="admin@ayttransfer.com"
+                  placeholder="admin@sbstravel.com"
                   required
                 />
               </div>
@@ -93,7 +93,7 @@ export default function AdminLoginPage() {
           {/* Demo Credentials */}
           <div className="mt-6 p-4 bg-blue-50 rounded-xl">
             <h4 className="font-semibold text-blue-800 mb-2">Demo Giriş Bilgileri:</h4>
-            <p className="text-sm text-blue-700">E-posta: admin@ayttransfer.com</p>
+            <p className="text-sm text-blue-700">E-posta: admin@sbstravel.com</p>
             <p className="text-sm text-blue-700">Şifre: admin123</p>
           </div>
         </div>

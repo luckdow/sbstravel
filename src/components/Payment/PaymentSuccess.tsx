@@ -171,7 +171,7 @@ export default function PaymentSuccess({ paymentResult, reservationData }: Payme
                 <h4 className="font-semibold mb-2">İletişim:</h4>
                 <ul className="space-y-1">
                   <li>• 7/24 Destek: +90 242 123 45 67</li>
-                  <li>• E-posta: info@ayttransfer.com</li>
+                  <li>• E-posta: sbstravelinfo@gmail.com</li>
                   <li>• WhatsApp: +90 242 123 45 67</li>
                 </ul>
               </div>
