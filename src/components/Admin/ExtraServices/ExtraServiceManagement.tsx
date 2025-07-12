@@ -9,8 +9,8 @@ export default function ExtraServiceManagement() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [selectedService, setSelectedService] = useState<ExtraService | null>(null);
-  const [formData, setFormData] = useState<Omit<ExtraService, 'id' | 'createdAt' | 'updatedAt'>>({
+  const [selectedService, setSelectedService] = useState<any>(null);
+  const [formData, setFormData] = useState({
     name: '',
     description: '',
     price: 0,
@@ -47,6 +47,11 @@ export default function ExtraServiceManagement() {
   const handleEditService = async () => {
     if (!selectedService || !formData.name || !formData.description || formData.price <= 0) {
       toast.error('Lütfen tüm alanları doldurun');
+      return;
+    }
+
+    setLoading(true);
+    try {
       await editExtraService(selectedService.id, formData);
       
       toast.success('Ek hizmet başarıyla güncellendi');
@@ -76,7 +81,7 @@ export default function ExtraServiceManagement() {
     }
   };
 
-  const openEditModal = (service: ExtraService) => {
+  const openEditModal = (service: any) => {
     setSelectedService(service);
     setFormData({
       name: service.name,
@@ -101,7 +106,7 @@ export default function ExtraServiceManagement() {
     setSelectedService(null);
   };
 
-  const handleVehicleTypeToggle = (type: 'standard' | 'premium' | 'luxury') => {
+  const handleVehicleTypeToggle = (type: string) => {
     if (formData.applicableVehicleTypes.includes(type)) {
       setFormData({
         ...formData,
@@ -148,7 +153,7 @@ export default function ExtraServiceManagement() {
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 flex items-center space-x-2"
+          className="bg-gradient-to-r from-purple-600 to-green-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 flex items-center space-x-2"
         >
           <Plus className="h-5 w-5" />
           <span>Yeni Ek Hizmet</span>
@@ -164,7 +169,7 @@ export default function ExtraServiceManagement() {
             placeholder="Ek hizmet ara..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
           />
         </div>
       </div>
@@ -202,7 +207,7 @@ export default function ExtraServiceManagement() {
               {loading ? (
                 <tr>
                   <td colSpan={7} className="px-6 py-8 text-center">
-                    <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto" />
+                    <Loader2 className="h-8 w-8 animate-spin text-purple-600 mx-auto" />
                     <p className="mt-2 text-gray-500">Ek hizmetler yükleniyor...</p>
                   </td>
                 </tr>
@@ -217,7 +222,7 @@ export default function ExtraServiceManagement() {
                   <tr key={service.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <Tag className="h-5 w-5 text-blue-600 mr-3" />
+                        <Tag className="h-5 w-5 text-purple-600 mr-3" />
                         <div className="text-sm font-medium text-gray-900">{service.name}</div>
                       </div>
                     </td>
@@ -258,7 +263,7 @@ export default function ExtraServiceManagement() {
                       <div className="flex space-x-3">
                         <button
                           onClick={() => openEditModal(service)}
-                          className="text-blue-600 hover:text-blue-900"
+                          className="text-purple-600 hover:text-purple-900"
                         >
                           <Edit className="h-5 w-5" />
                         </button>
@@ -292,7 +297,7 @@ export default function ExtraServiceManagement() {
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                   placeholder="Örn: Bebek Koltuğu"
                 />
               </div>
@@ -302,7 +307,7 @@ export default function ExtraServiceManagement() {
                   value={formData.description}
                   onChange={(e) => setFormData({...formData, description: e.target.value})}
                   rows={3}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                   placeholder="Hizmet açıklaması"
                 />
               </div>
@@ -312,7 +317,7 @@ export default function ExtraServiceManagement() {
                   type="number"
                   value={formData.price}
                   onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value)})}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                   placeholder="Örn: 10"
                   min="0"
                   step="0.01"
@@ -323,7 +328,7 @@ export default function ExtraServiceManagement() {
                 <select
                   value={formData.category}
                   onChange={(e) => setFormData({...formData, category: e.target.value as any})}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                 >
                   <option value="comfort">Konfor</option>
                   <option value="assistance">Yardım</option>
@@ -337,9 +342,9 @@ export default function ExtraServiceManagement() {
                     <label key={type} className="flex items-center space-x-2">
                       <input
                         type="checkbox"
-                        checked={formData.applicableVehicleTypes.includes(type as any)}
-                        onChange={() => handleVehicleTypeToggle(type as any)}
-                        className="h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
+                        checked={formData.applicableVehicleTypes.includes(type)}
+                        onChange={() => handleVehicleTypeToggle(type)}
+                        className="h-4 w-4 text-purple-600 rounded focus:ring-purple-500"
                       />
                       <span className="text-gray-700 capitalize">{type}</span>
                     </label>
@@ -352,7 +357,7 @@ export default function ExtraServiceManagement() {
                     type="checkbox"
                     checked={formData.isActive}
                     onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
-                    className="h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
+                    className="h-4 w-4 text-purple-600 rounded focus:ring-purple-500"
                   />
                   <span className="text-gray-700">Aktif</span>
                 </label>
@@ -368,7 +373,7 @@ export default function ExtraServiceManagement() {
               <button
                 onClick={handleAddService}
                 disabled={loading}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center"
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-green-600 text-white rounded-xl hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center"
               >
                 {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Ekle'}
               </button>
@@ -391,7 +396,7 @@ export default function ExtraServiceManagement() {
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                 />
               </div>
               <div>
@@ -400,7 +405,7 @@ export default function ExtraServiceManagement() {
                   value={formData.description}
                   onChange={(e) => setFormData({...formData, description: e.target.value})}
                   rows={3}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                 />
               </div>
               <div>
@@ -409,7 +414,7 @@ export default function ExtraServiceManagement() {
                   type="number"
                   value={formData.price}
                   onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value)})}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                   min="0"
                   step="0.01"
                 />
@@ -419,7 +424,7 @@ export default function ExtraServiceManagement() {
                 <select
                   value={formData.category}
                   onChange={(e) => setFormData({...formData, category: e.target.value as any})}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                 >
                   <option value="comfort">Konfor</option>
                   <option value="assistance">Yardım</option>
@@ -433,9 +438,9 @@ export default function ExtraServiceManagement() {
                     <label key={type} className="flex items-center space-x-2">
                       <input
                         type="checkbox"
-                        checked={formData.applicableVehicleTypes.includes(type as any)}
-                        onChange={() => handleVehicleTypeToggle(type as any)}
-                        className="h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
+                        checked={formData.applicableVehicleTypes.includes(type)}
+                        onChange={() => handleVehicleTypeToggle(type)}
+                        className="h-4 w-4 text-purple-600 rounded focus:ring-purple-500"
                       />
                       <span className="text-gray-700 capitalize">{type}</span>
                     </label>
@@ -448,7 +453,7 @@ export default function ExtraServiceManagement() {
                     type="checkbox"
                     checked={formData.isActive}
                     onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
-                    className="h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
+                    className="h-4 w-4 text-purple-600 rounded focus:ring-purple-500"
                   />
                   <span className="text-gray-700">Aktif</span>
                 </label>
@@ -464,7 +469,7 @@ export default function ExtraServiceManagement() {
               <button
                 onClick={handleEditService}
                 disabled={loading}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center"
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-green-600 text-white rounded-xl hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center"
               >
                 {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Güncelle'}
               </button>

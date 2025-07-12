@@ -3,22 +3,13 @@ import { Search, Plus, Edit, Trash2, MapPin, Navigation, AlertCircle, Loader2 } 
 import toast from 'react-hot-toast';
 import { useStore } from '../../../store/useStore';
 
-interface Location {
-  id: string;
-  name: string;
-  region: string;
-  distance: number;
-  lat: number;
-  lng: number;
-}
-
 export default function LocationManagement() {
   const { locations, fetchLocations, addLocation, editLocation, deleteLocation } = useStore();
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<any>(null);
   const [formData, setFormData] = useState({
     name: '',
     region: '',
@@ -88,7 +79,7 @@ export default function LocationManagement() {
     }
   };
 
-  const openEditModal = (location: Location) => {
+  const openEditModal = (location: any) => {
     setSelectedLocation(location);
     setFormData({
       name: location.name,
@@ -126,7 +117,7 @@ export default function LocationManagement() {
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 flex items-center space-x-2"
+          className="bg-gradient-to-r from-purple-600 to-green-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 flex items-center space-x-2"
         >
           <Plus className="h-5 w-5" />
           <span>Yeni Lokasyon</span>
@@ -142,7 +133,7 @@ export default function LocationManagement() {
             placeholder="Lokasyon ara..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
           />
         </div>
       </div>
@@ -174,7 +165,7 @@ export default function LocationManagement() {
               {loading ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-8 text-center">
-                    <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto" />
+                    <Loader2 className="h-8 w-8 animate-spin text-purple-600 mx-auto" />
                     <p className="mt-2 text-gray-500">Lokasyonlar yükleniyor...</p>
                   </td>
                 </tr>
@@ -189,7 +180,7 @@ export default function LocationManagement() {
                   <tr key={location.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <MapPin className="h-5 w-5 text-blue-600 mr-3" />
+                        <MapPin className="h-5 w-5 text-purple-600 mr-3" />
                         <div className="text-sm font-medium text-gray-900">{location.name}</div>
                       </div>
                     </td>
@@ -208,7 +199,7 @@ export default function LocationManagement() {
                       <div className="flex space-x-3">
                         <button
                           onClick={() => openEditModal(location)}
-                          className="text-blue-600 hover:text-blue-900"
+                          className="text-purple-600 hover:text-purple-900"
                         >
                           <Edit className="h-5 w-5" />
                         </button>
@@ -242,7 +233,7 @@ export default function LocationManagement() {
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                   placeholder="Örn: Kemer - Club Med Palmiye"
                 />
               </div>
@@ -252,7 +243,7 @@ export default function LocationManagement() {
                   type="text"
                   value={formData.region}
                   onChange={(e) => setFormData({...formData, region: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                   placeholder="Örn: Kemer"
                 />
               </div>
@@ -262,7 +253,7 @@ export default function LocationManagement() {
                   type="number"
                   value={formData.distance}
                   onChange={(e) => setFormData({...formData, distance: parseFloat(e.target.value)})}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                   placeholder="Örn: 45"
                   min="0"
                   step="0.1"
@@ -275,7 +266,7 @@ export default function LocationManagement() {
                     type="number"
                     value={formData.lat}
                     onChange={(e) => setFormData({...formData, lat: parseFloat(e.target.value)})}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                     placeholder="Örn: 36.6048"
                     step="0.0001"
                   />
@@ -286,7 +277,7 @@ export default function LocationManagement() {
                     type="number"
                     value={formData.lng}
                     onChange={(e) => setFormData({...formData, lng: parseFloat(e.target.value)})}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                     placeholder="Örn: 30.5606"
                     step="0.0001"
                   />
@@ -310,7 +301,7 @@ export default function LocationManagement() {
               <button
                 onClick={handleAddLocation}
                 disabled={loading}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center"
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-green-600 text-white rounded-xl hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center"
               >
                 {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Ekle'}
               </button>
@@ -333,7 +324,7 @@ export default function LocationManagement() {
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                 />
               </div>
               <div>
@@ -342,7 +333,7 @@ export default function LocationManagement() {
                   type="text"
                   value={formData.region}
                   onChange={(e) => setFormData({...formData, region: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                 />
               </div>
               <div>
@@ -351,7 +342,7 @@ export default function LocationManagement() {
                   type="number"
                   value={formData.distance}
                   onChange={(e) => setFormData({...formData, distance: parseFloat(e.target.value)})}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                   min="0"
                   step="0.1"
                 />
@@ -363,7 +354,7 @@ export default function LocationManagement() {
                     type="number"
                     value={formData.lat}
                     onChange={(e) => setFormData({...formData, lat: parseFloat(e.target.value)})}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                     step="0.0001"
                   />
                 </div>
@@ -373,7 +364,7 @@ export default function LocationManagement() {
                     type="number"
                     value={formData.lng}
                     onChange={(e) => setFormData({...formData, lng: parseFloat(e.target.value)})}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                     step="0.0001"
                   />
                 </div>
@@ -389,7 +380,7 @@ export default function LocationManagement() {
               <button
                 onClick={handleEditLocation}
                 disabled={loading}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center"
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-green-600 text-white rounded-xl hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center"
               >
                 {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Güncelle'}
               </button>
