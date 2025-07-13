@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { User, Calendar, MapPin, Clock, DollarSign, QrCode, Phone, Mail, Star, Download, Eye, Plus, X } from 'lucide-react';
+import { User, Calendar, MapPin, Clock, DollarSign, QrCode, Phone, Mail, Star, Download, Eye, Plus, X, Home, ArrowRight } from 'lucide-react';
 import QRCodeDisplay from 'react-qr-code';
 import { getVehicleTypeDisplayName } from '../utils/vehicle';
 import { generateCustomerViewURL } from '../utils/qrCode';
@@ -150,22 +150,36 @@ export default function CustomerPanel() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      {/* Modern Header */}
       <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-800">Müşteri Paneli</h1>
-              <p className="text-gray-600">
-                Hoş geldiniz, {customerData ? `${customerData.firstName} ${customerData.lastName}` : 'Değerli Müşterimiz'}
-              </p>
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
+                <User className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-800">Müşteri Paneli</h1>
+                <p className="text-gray-600">
+                  Hoş geldiniz, {customerData ? `${customerData.firstName} ${customerData.lastName}` : 'Değerli Müşterimiz'}
+                </p>
+              </div>
             </div>
-            <Link
-              to="/"
-              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300"
-            >
-              Ana Sayfa
-            </Link>
+            <div className="flex space-x-3">
+              <Link
+                to="/booking"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 flex items-center space-x-2"
+              >
+                <Plus className="h-5 w-5" />
+                <span>Yeni Rezervasyon</span>
+              </Link>
+              <Link
+                to="/"
+                className="bg-gray-100 text-gray-700 px-6 py-3 rounded-xl font-semibold hover:bg-gray-200 transition-colors"
+              >
+                <Home className="h-5 w-5" />
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -180,16 +194,25 @@ export default function CustomerPanel() {
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-bold text-gray-800">Geçmiş Rezervasyonlarım</h2>
-                  <Link
-                    to="/booking"
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 flex items-center space-x-2"
-                  >
-                    <Plus className="h-4 w-4" />
-                    <span>Yeni Rezervasyon</span>
-                  </Link>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {customerReservations.length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="bg-gray-100 rounded-full p-4 w-16 h-16 mx-auto mb-4">
+                      <Calendar className="h-8 w-8 text-gray-400 mx-auto" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-600 mb-2">Henüz rezervasyonunuz yok</h3>
+                    <p className="text-gray-500 mb-4">İlk rezervasyonunuzu oluşturmak için aşağıdaki butona tıklayın.</p>
+                    <Link
+                      to="/booking"
+                      className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300"
+                    >
+                      <Plus className="h-4 w-4" />
+                      <span>İlk Rezervasyonu Oluştur</span>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
                   {customerReservations.length === 0 ? (
                     <div className="col-span-2 text-center py-12">
                       <div className="bg-gray-100 rounded-full p-4 w-16 h-16 mx-auto mb-4">
@@ -207,7 +230,7 @@ export default function CustomerPanel() {
                     </div>
                   ) : (
                     customerReservations.map((reservation) => (
-                      <div key={reservation.id} className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
+                      <div key={reservation.id} className="bg-gray-50 rounded-2xl p-6 border border-gray-200 hover:shadow-md transition-shadow">
                         <div className="flex items-center justify-between mb-4">
                           <div className="font-bold text-gray-800">{reservation.id}</div>
                           <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${statusColors[reservation.status as keyof typeof statusColors] || statusColors.pending}`}>
@@ -249,19 +272,16 @@ export default function CustomerPanel() {
                             <QrCode className="h-4 w-4" />
                             <span>QR GÖR</span>
                           </button>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
+                          <button 
+                            onClick={() => handleDownloadInvoice(reservation)}
+                            className="flex-1 bg-purple-600 text-white py-2 px-4 rounded-xl font-semibold hover:bg-purple-700 transition-colors flex items-center justify-center space-x-2"
+                          >
+                            <Download className="h-4 w-4" />
         </div>
       </div>
-
-      {/* Reservation Details Modal */}
       {showDetailsModal && selectedReservation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
             {/* Header */}
@@ -272,6 +292,14 @@ export default function CustomerPanel() {
                   <p className="text-blue-100 mt-1">#{selectedReservation.id}</p>
                 </div>
                 <button 
+                  onClick={() => setShowDetailsModal(false)}
+                  className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                >
+                  <X className="h-6 w-6 text-white" />
+                </button>
+              </div>
+                  <p className="text-blue-100 mt-1">#{selectedReservation.id}</p>
+                </div>
                   onClick={() => setShowDetailsModal(false)}
                   className="p-2 hover:bg-white/20 rounded-lg transition-colors"
                 >
@@ -428,9 +456,27 @@ export default function CustomerPanel() {
                 >
                   <X className="h-5 w-5 text-white" />
                 </button>
+                <h3 className="flex items-center font-bold text-gray-800 mb-4">
+                  <MapPin className="h-5 w-5 mr-2 text-blue-600" />
+                  Güzergah Bilgileri
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between py-3 border-b border-gray-200">
+                    <span className="text-gray-600">Kalkış Noktası</span>
+                    <span className="font-semibold text-gray-800">{selectedReservation.pickupLocation}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-3 border-b border-gray-200">
+                    <span className="text-gray-600">Varış Noktası</span>
+                    <span className="font-semibold text-gray-800">{selectedReservation.dropoffLocation}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-3">
+                    <span className="text-gray-600">Transfer Tarihi</span>
+                    <span className="font-semibold text-gray-800">{selectedReservation.pickupDate} - {selectedReservation.pickupTime}</span>
+                  </div>
+                </div>
               </div>
-            </div>
-            
+              <div className="space-y-4">
+                <div>
             <div className="p-8 text-center">
               {/* QR Code */}
               <div className="bg-white p-6 rounded-2xl border-4 border-gray-100 shadow-lg inline-block mb-6">
@@ -499,7 +545,131 @@ export default function CustomerPanel() {
                   </button>
                 </div>
               </div>
-            </div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Güzergah:</span>
+                      <span className="font-semibold text-gray-800">{selectedReservation.pickupLocation} → {selectedReservation.dropoffLocation}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Tarih:</span>
+                      <span className="font-semibold text-gray-800">{selectedReservation.pickupDate}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Saat:</span>
+                      <span className="font-semibold text-gray-800">{selectedReservation.pickupTime}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Action Buttons */}
+                <div className="space-y-3 pt-4">
+                  <button 
+                    onClick={() => {
+                      const url = generateCustomerViewURL(selectedReservation.id, selectedReservation.qrCode || `QR_${selectedReservation.id}`);
+                      window.open(url, '_blank');
+                    }}
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-300"
+                  >
+                    QR Sayfasını Aç
+                  </button>
+                  <button 
+                    onClick={() => {
+                      const url = generateCustomerViewURL(selectedReservation.id, selectedReservation.qrCode || `QR_${selectedReservation.id}`);
+                      if (navigator.share) {
+                        navigator.share({
+                          title: 'SBS Transfer QR Kodu',
+                          text: `Transfer QR Kodu - ${selectedReservation.pickupLocation} → ${selectedReservation.dropoffLocation}`,
+                          url: url
+                        });
+                      } else {
+                        navigator.clipboard.writeText(url);
+                        toast.success('QR kod linki panoya kopyalandı!');
+                      }
+                    }}
+                    className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 px-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-300"
+                  >
+
+              {/* Driver Information (if assigned) */}
+              {selectedReservation.status === 'assigned' && selectedReservation.driverId && (
+                <div className="bg-indigo-50 rounded-2xl p-6">
+                  <h3 className="flex items-center font-bold text-indigo-800 mb-4">
+                    <User className="h-5 w-5 mr-2" />
+                    Şoför Bilgileri
+                  </h3>
+                  <div className="space-y-2">
+                    <p className="text-indigo-700">
+                      <strong>Şoför:</strong> {getDriverName(selectedReservation.driverId)}
+                    </p>
+                    <p className="text-sm text-indigo-600">
+                      Şoförünüz atanmıştır. Transfer günü sizinle iletişime geçecektir.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Vehicle & Price Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-blue-50 rounded-2xl p-6">
+                  <h3 className="flex items-center font-bold text-blue-800 mb-4">
+                    <Star className="h-5 w-5 mr-2" />
+                    Araç Bilgileri
+                  </h3>
+                  <div className="space-y-2">
+                    <p className="text-blue-700">
+                      <strong>Araç Tipi:</strong> {getVehicleTypeDisplayName(selectedReservation.vehicleType || selectedReservation.vehicle || 'standard')}
+                    </p>
+                    <p className="text-blue-700">
+                      <strong>Yolcu Sayısı:</strong> {selectedReservation.passengerCount} kişi
+                    </p>
+                    <p className="text-blue-700">
+                      <strong>Bagaj Sayısı:</strong> {selectedReservation.baggageCount} adet
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-green-50 rounded-2xl p-6">
+                  <h3 className="flex items-center font-bold text-green-800 mb-4">
+                    <DollarSign className="h-5 w-5 mr-2" />
+                    Ödeme Bilgileri
+                  </h3>
+                  <div className="space-y-2">
+
+              {/* Customer Information */}
+              <div className="bg-purple-50 rounded-2xl p-6">
+                <h3 className="flex items-center font-bold text-purple-800 mb-4">
+                  <User className="h-5 w-5 mr-2" />
+                  Müşteri Bilgileri
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <span className="text-purple-600 text-sm">Ad Soyad</span>
+                    <p className="font-semibold text-purple-800">
+                      {customerData ? `${customerData.firstName} ${customerData.lastName}` : 'Belirtilmemiş'}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-purple-600 text-sm">E-posta</span>
+                    <p className="font-semibold text-purple-800">{customerData?.email || 'Belirtilmemiş'}</p>
+                  </div>
+                  <div>
+                    <span className="text-purple-600 text-sm">Telefon</span>
+                    <p className="font-semibold text-purple-800">{customerData?.phone || 'Belirtilmemiş'}</p>
+                  </div>
+                  <div>
+                    <span className="text-purple-600 text-sm">Rezervasyon Tarihi</span>
+                    <p className="font-semibold text-purple-800">
+                      {selectedReservation.createdAt ? new Date(selectedReservation.createdAt.toDate?.() || selectedReservation.createdAt).toLocaleDateString('tr-TR') : 'Belirtilmemiş'}
+                    </p>
+                  </div>
+                </div>
+                      <strong>Ödeme Durumu:</strong> {selectedReservation.paymentStatus === 'completed' ? 'Tamamlandı' : 'Beklemede'}
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4">
+                <button 
+                  onClick={() => handleDownloadInvoice(selectedReservation)}
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-6 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 flex items-center justify-center space-x-3"
+                >
           </div>
         </div>
       )}
