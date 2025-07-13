@@ -9,6 +9,7 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // Check if user is logged in
   const [customerName, setCustomerName] = useState('');
 
   useEffect(() => {
@@ -18,6 +19,12 @@ export default function Header() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+  
+  // Check if user is logged in
+  const isLoggedIn = () => {
+    const customerSession = localStorage.getItem('sbs_customer_session');
+    return !!customerSession;
+  };
 
   useEffect(() => {
     // Müşteri oturumunu kontrol et
@@ -117,6 +124,19 @@ export default function Header() {
               <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </Link>
           </div>
+          
+          {/* Customer Login/Profile Button */}
+          <Link
+            to={isLoggedIn() ? "/profile" : "/customer/login"}
+            className={`p-2 rounded-full ${
+              isScrolled 
+                ? 'bg-gray-100 text-gray-700 hover:bg-gray-200' 
+                : 'bg-white/10 text-white hover:bg-white/20'
+            } transition-colors mr-4`}
+            title={isLoggedIn() ? "Profilim" : "Giriş Yap"}
+          >
+            <User className="h-5 w-5" />
+          </Link>
 
           <button 
             className={`lg:hidden p-2 rounded-lg transition-colors ${
@@ -149,6 +169,12 @@ export default function Header() {
                 </Link>
               ))}
               <Link to="/booking" className="block w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-semibold mt-4 text-center">
+                </button>
+              </Link>
+              
+              <Link to={isLoggedIn() ? "/profile" : "/customer/login"}>
+                <button className="w-full bg-gray-600 text-white py-3 rounded-xl font-semibold mt-4">
+                  {isLoggedIn() ? "Profilim" : "Giriş Yap"}
                 </button>
               </Link>
               {!isLoggedIn && (

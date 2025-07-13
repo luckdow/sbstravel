@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { v4 as uuidv4 } from 'uuid';
 
 interface GoogleSignInButtonProps {
   onSuccess: (user: any) => void;
@@ -13,10 +13,12 @@ export default function GoogleSignInButton({
 }: GoogleSignInButtonProps) {
   const [loading, setLoading] = useState(false);
 
+  // Simulated Google sign-in
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
-      // Google ile giriş simülasyonu
+      // Simulate a delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
       // Gerçek bir uygulamada burada Firebase veya başka bir auth sağlayıcısı kullanılır
       
       // Demo kullanıcı bilgileri
@@ -27,14 +29,19 @@ export default function GoogleSignInButton({
       
       // Kısa bir gecikme ekleyerek gerçek bir API çağrısı simüle ediyoruz
       setTimeout(() => {
-        toast.success('Google ile giriş başarılı!');
-        onSuccess(mockUser);
-        setLoading(false);
-      }, 1000);
+      // Create a mock Google user
+      const mockUser = {
+        id: uuidv4(),
+        name: 'Google User',
+        email: 'google.user@gmail.com',
+        picture: 'https://lh3.googleusercontent.com/a/default-user'
+      };
       
-      return;
+      // Call the success callback
+      onSuccess(mockUser, requiredRole || 'customer');
+      toast.success('Google ile giriş başarılı!');
     } catch (error) {
-      console.error('Google sign-in error:', error);
+      console.error('Simulated Google sign-in error:', error);
       toast.error('Google ile giriş sırasında bir hata oluştu');
       setLoading(false);
     } finally {
@@ -47,7 +54,7 @@ export default function GoogleSignInButton({
       type="button"
       onClick={handleGoogleSignIn}
       disabled={loading}
-      className={`w-full bg-white text-gray-700 border border-gray-300 py-3 px-6 rounded-xl font-semibold hover:bg-gray-50 hover:shadow-md transition-all duration-300 disabled:opacity-50 flex items-center justify-center space-x-3 ${className}`}
+      className={`w-full bg-white text-gray-700 border border-gray-300 py-3 px-6 rounded-xl font-semibold hover:bg-gray-50 hover:shadow-md transition-all duration-300 disabled:opacity-50 flex items-center justify-center space-x-3 ${className || ''}`}
     >
       {loading ? (
         <>
@@ -79,4 +86,3 @@ export default function GoogleSignInButton({
       )}
     </button>
   );
-}

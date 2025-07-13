@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { User, Lock, Mail, Eye, EyeOff, Loader2 } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { setCustomerSession } from '../../utils/customerSession';
 import GoogleSignInButton from '../../components/GoogleSignInButton';
 import { setCustomerSession } from '../../utils/customerSession';
 
@@ -11,6 +11,18 @@ export default function CustomerLoginPage() {
   const [loading, setLoading] = useState(false);
   const [isRegister, setIsRegister] = useState(false);
   const navigate = useNavigate();
+  
+  // Simplified Google success handler
+  const handleGoogleSuccess = (user: any) => {
+    // Create customer session with Google user data
+    setCustomerSession({
+      customerId: 'google-' + Date.now(),
+      firstName: user.name?.split(' ')[0] || 'Google',
+      lastName: user.name?.split(' ').slice(1).join(' ') || 'User',
+      email: user.email || '',
+      phone: '',
+      createdAt: new Date()
+    });
 
   const handleGoogleSuccess = async (user: { email: string; name: string }) => {
     try {
@@ -19,21 +31,8 @@ export default function CustomerLoginPage() {
       const firstName = nameParts[0];
       const lastName = nameParts.slice(1).join(' ') || '';
       
-      setCustomerSession({
-        customerId: 'google_' + Date.now(),
-        firstName,
-        lastName,
-        email: user.email,
-        phone: '',
-        createdAt: new Date()
-      });
-      
-      toast.success('Google ile giriş başarılı!');
-      navigate('/profile');
-    } catch (error) {
-      console.error('Google sign-in error:', error);
-      toast.error('Google ile giriş sırasında bir hata oluştu');
-    }
+    toast.success('Google ile giriş başarılı!');
+    navigate('/profile');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -41,25 +40,23 @@ export default function CustomerLoginPage() {
     setLoading(true);
 
     try {
-      // Basitleştirilmiş giriş işlemi
-      // Gerçek bir uygulamada burada API'ye istek atılır
+      // Simplified login - just create a customer session
+      // In a real app, you would validate credentials against a database
       
-      // Demo kullanıcı bilgileri
-      setCustomerSession({
-        customerId: 'email_' + Date.now(),
-        firstName: 'Demo',
-        lastName: 'Kullanıcı',
-        email: credentials.email,
-        phone: '',
-        createdAt: new Date()
-      });
-      
-      toast.success('Giriş başarılı!');
-      navigate('/profile');
-    } catch (error) {
+      // For demo purposes, accept any email/password
+      if (credentials.email && credentials.password) {
+        setCustomerSession({
+          customerId: 'email-' + Date.now(),
+          firstName: credentials.email.split('@')[0] || 'Müşteri',
+          lastName: 'Kullanıcı',
+          email: credentials.email,
+          phone: '',
+          createdAt: new Date()
+        });
+        toast.success('Giriş başarılı');
       console.error('Login error:', error);
       toast.error('İşlem sırasında bir hata oluştu');
-    } finally {
+    } finally { 
       setLoading(false);
     }
   };
@@ -114,8 +111,8 @@ export default function CustomerLoginPage() {
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  onClick={() => { 
+                  className="text-purple-600 hover:text-purple-700 text-sm font-medium" 
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
@@ -168,7 +165,7 @@ export default function CustomerLoginPage() {
           {/* Google Sign In */}
           <GoogleSignInButton 
             onSuccess={handleGoogleSuccess}
-            requiredRole="customer"
+            className="w-full"
           />
 
           {/* Register Link */}
@@ -184,4 +181,3 @@ export default function CustomerLoginPage() {
       </div>
     </div>
   );
-}
