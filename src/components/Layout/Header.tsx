@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X, Plane, Phone, MapPin, Globe, User } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { isCustomerSessionValid, getCustomerSession } from '../../utils/customerSession';
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
