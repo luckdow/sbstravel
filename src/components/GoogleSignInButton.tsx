@@ -29,17 +29,18 @@ export default function GoogleSignInButton({
       
       // Kısa bir gecikme ekleyerek gerçek bir API çağrısı simüle ediyoruz
       setTimeout(() => {
-      // Create a mock Google user
-      const mockUser = {
-        id: uuidv4(),
-        name: 'Google User',
-        email: 'google.user@gmail.com',
-        picture: 'https://lh3.googleusercontent.com/a/default-user'
-      };
-      
-      // Call the success callback
-      onSuccess(mockUser, requiredRole || 'customer');
-      toast.success('Google ile giriş başarılı!');
+        // Create a mock Google user
+        const mockUser = {
+          id: uuidv4(),
+          name: 'Google User',
+          email: 'google.user@gmail.com',
+          picture: 'https://lh3.googleusercontent.com/a/default-user'
+        };
+        
+        // Call the success callback
+        onSuccess(mockUser, requiredRole || 'customer');
+        toast.success('Google ile giriş başarılı!');
+      }, 1000);
     } catch (error) {
       console.error('Simulated Google sign-in error:', error);
       toast.error('Google ile giriş sırasında bir hata oluştu');
@@ -86,3 +87,4 @@ export default function GoogleSignInButton({
       )}
     </button>
   );
+}
