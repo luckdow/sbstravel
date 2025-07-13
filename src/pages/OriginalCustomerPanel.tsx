@@ -233,8 +233,6 @@ export default function OriginalCustomerPanel() {
                             <h4 className="font-semibold text-gray-800 text-lg">
                               {reservation.route || `${reservation.pickupLocation} → ${reservation.dropoffLocation}`}
                             </h4>
-                              {reservation.route || `${reservation.pickupLocation} → ${reservation.dropoffLocation}`}
-                            </h4>
                             <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600">
                               <div className="flex items-center space-x-1">
                                 <Calendar className="h-4 w-4" />
