@@ -18,7 +18,7 @@ export default function VehicleSelection({
   vehicles: providedVehicles
 }: VehicleSelectionProps) {
   // Use provided vehicles from admin panel only - no fallback to ensure dynamic behavior
-  const vehiclesToDisplay = providedVehicles || [];
+  const vehiclesToDisplay = providedVehicles?.filter(v => v.isActive) || [];
 
   const isVehicleSuitable = (vehicle: any) => {
     return vehicle.passengerCapacity >= (passengerCount || 1) && vehicle.baggageCapacity >= (baggageCount || 1);

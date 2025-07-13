@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MapPin, Search, Navigation, Loader2, Star, Clock } from 'lucide-react';
 import { LocationData } from '../../types';
+import { GoogleMapsService } from '../../lib/google-maps';
 
 interface LocationSearchProps {
   value: LocationData | null;
@@ -135,34 +136,18 @@ export default function LocationSearch({
             dest.name.toLowerCase().includes(value.name.toLowerCase())
           );
 
-          // Then search with Google Places (simulated for now)
-          const mockResults = [
-            {
-              name: `${value.name} - Otel`,
-              formatted_address: `${value.name}, Antalya, Türkiye`,
-              geometry: {
-                location: {
-                  lat: () => 36.8969 + Math.random() * 0.5,
-                  lng: () => 30.7133 + Math.random() * 0.5
-                }
-              }
-            },
-            {
-              name: `${value.name} Resort`,
-              formatted_address: `${value.name} Resort, Antalya, Türkiye`,
-              geometry: {
-                location: {
-                  lat: () => 36.8969 + Math.random() * 0.5,
-                  lng: () => 30.7133 + Math.random() * 0.5
-                }
-              }
-            }
-          ];
+          // Use real Google Places API instead of mock data
+          const googleMapsService = GoogleMapsService.getInstance();
+          const googleResults = await googleMapsService.searchPlaces(value.name);
 
-          setSuggestions([...popularMatches, ...mockResults].slice(0, 8));
+          setSuggestions([...popularMatches, ...googleResults].slice(0, 8));
         } catch (error) {
           console.error('Error searching places:', error);
-          setSuggestions([]);
+          // Fallback to popular destinations only if Google API fails
+          const popularMatches = popularDestinations.filter(dest => 
+            dest.name.toLowerCase().includes(value.name.toLowerCase())
+          );
+          setSuggestions(popularMatches);
         } finally {
           setIsLoading(false);
         }

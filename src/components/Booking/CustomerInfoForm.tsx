@@ -141,7 +141,7 @@ export default function CustomerInfoForm({
                 <Plane className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
                   type="text"
-                  {...register('flightNumber')}
+                  {...register('customerInfo.flightNumber')}
                   placeholder="Örn: TK1234, PC1234"
                   className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
                 />
@@ -174,7 +174,7 @@ export default function CustomerInfoForm({
                     <div className="flex-1">
                       <h4 className="font-semibold text-gray-800">{service.name}</h4>
                       <p className="text-sm text-gray-600">{service.description}</p>
-                      <p className="text-sm text-blue-600 font-semibold">${(service.price / 30).toFixed(2)}</p>
+                      <p className="text-sm text-blue-600 font-semibold">${service.price}</p>
                     </div>
                     <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
                       isSelected
