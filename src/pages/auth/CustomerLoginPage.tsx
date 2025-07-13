@@ -12,14 +12,14 @@ export default function CustomerLoginPage() {
   const [isRegister, setIsRegister] = useState(false);
   const navigate = useNavigate();
 
-  const handleGoogleSuccess = async (user: { email: string; name: string }, role: string) => {
+  const handleGoogleSuccess = async (user: { email: string; name: string }, role?: string) => {
     try {
       // For customer login, accept any role but authenticate in local system
-      const result = await authService.authenticateGoogleUser(user, role as any);
+      const result = await authService.authenticateGoogleUser(user, 'customer');
       
       if (result.success) {
         toast.success('Google ile giriş başarılı!');
-        navigate('/');
+        navigate('/profile');
       } else {
         toast.error(result.error || 'Google ile giriş başarısız');
       }

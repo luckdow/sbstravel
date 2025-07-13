@@ -4,7 +4,7 @@ import { signInWithGoogle } from '../lib/firebase/auth';
 import toast from 'react-hot-toast';
 
 interface GoogleSignInButtonProps {
-  onSuccess: (user: any, role: string) => void;
+  onSuccess: (user: any, role?: string) => void;
   requiredRole?: 'admin' | 'driver' | 'customer';
   className?: string;
 }
@@ -19,11 +19,11 @@ export default function GoogleSignInButton({
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
-      const result = await signInWithGoogle(requiredRole);
+      const result = await signInWithGoogle(requiredRole || 'customer');
       
       if (result.success) {
         toast.success('Google ile giriş başarılı!');
-        onSuccess(result.user, result.role);
+        onSuccess(result.user, result.role || 'customer');
       } else {
         toast.error(result.error || 'Google ile giriş başarısız');
       }
