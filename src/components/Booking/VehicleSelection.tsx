@@ -17,10 +17,10 @@ export default function VehicleSelection({
   baggageCount = 1,
   vehicles: providedVehicles
 }: VehicleSelectionProps) {
-  // Safe filtering with fallback - handle missing isActive field
+  // Filter for active vehicles only - explicit filtering for booking screen
   const vehiclesToDisplay = providedVehicles?.filter(v => {
-    // If isActive field exists, use it. If not, consider vehicle active by default
-    return v.isActive !== false;
+    // Only show vehicles that are explicitly marked as active
+    return v.isActive === true;
   }) || [];
 
   // Debug logging to help identify vehicle loading issues

@@ -70,6 +70,7 @@ interface StoreState {
   
   // Vehicles
   fetchVehicles: () => Promise<void>;
+  fetchActiveVehicles: () => Promise<void>;
   addVehicle: (vehicle: Partial<Vehicle>) => Promise<string | null>;
   editVehicle: (id: string, updates: Partial<Vehicle>) => Promise<void>;
   deleteVehicle: (id: string) => Promise<void>;
@@ -337,11 +338,46 @@ export const useStore = create<StoreState>((set, get) => ({
     }
   },
 
+  fetchActiveVehicles: async () => {
+    set({ loading: true });
+    try {
+      const vehiclesSnapshot = await getDocs(vehiclesRef);
+      const allVehicles = vehiclesSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Vehicle[];
+      
+      // Filter only active vehicles for booking screen
+      const activeVehicles = allVehicles.filter(vehicle => vehicle.isActive === true);
+      
+      // Only update vehicles if we got results from Firestore
+      if (allVehicles.length > 0) {
+        console.log('Fetched vehicles from Firestore:', allVehicles.length, 'Active:', activeVehicles.length);
+        set({ vehicles: activeVehicles, loading: false });
+      } else {
+        // If no Firestore data, use existing vehicles but filter for active ones
+        const currentState = get();
+        const existingActiveVehicles = currentState.vehicles.filter(vehicle => vehicle.isActive === true);
+        console.log('No vehicles fetched from Firestore, using existing active vehicles:', existingActiveVehicles.length);
+        set({ vehicles: existingActiveVehicles, loading: false });
+      }
+    } catch (error) {
+      console.error('Error fetching active vehicles:', error);
+      // On error, use existing vehicles but filter for active ones
+      const currentState = get();
+      const existingActiveVehicles = currentState.vehicles.filter(vehicle => vehicle.isActive === true);
+      console.log('Fetch failed, using existing active vehicles:', existingActiveVehicles.length);
+      set({ vehicles: existingActiveVehicles, loading: false });
+    }
+  },
+
   addVehicle: async (vehicle) => {
     try {
       const docRef = await addDoc(vehiclesRef, {
         ...vehicle,
-        createdAt: Timestamp.now()
+        isActive: vehicle.isActive !== undefined ? vehicle.isActive : true, // Default to true if not specified
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now()
       });
       toast.success('Araç başarıyla eklendi');
       return docRef.id;
@@ -355,7 +391,11 @@ export const useStore = create<StoreState>((set, get) => ({
   editVehicle: async (id, updates) => {
     try {
       const docRef = doc(vehiclesRef, id);
-      await updateDoc(docRef, updates);
+      await updateDoc(docRef, {
+        ...updates,
+        isActive: updates.isActive !== undefined ? updates.isActive : true, // Preserve or default to true
+        updatedAt: Timestamp.now()
+      });
       toast.success('Araç bilgileri güncellendi');
     } catch (error) {
       console.error('Error updating vehicle:', error);

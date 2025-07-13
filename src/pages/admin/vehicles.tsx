@@ -240,9 +240,14 @@ export default function AdminVehiclesPage() {
                        vehicle.status === 'maintenance' ? 'Bakımda' : 'Pasif'}
                     </div>
                   </div>
-                  <div className="absolute bottom-4 left-4">
+                  <div className="absolute bottom-4 left-4 space-y-2">
                     <div className="bg-black/50 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-semibold capitalize">
                       {vehicle.type}
+                    </div>
+                    <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      vehicle.isActive ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
+                    }`}>
+                      {vehicle.isActive ? 'Rezervasyona Açık' : 'Rezervasyona Kapalı'}
                     </div>
                   </div>
                 </div>
@@ -430,6 +435,21 @@ export default function AdminVehiclesPage() {
                     ))}
                   </div>
                 </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Rezervasyon Durumu</label>
+                  <select
+                    value={vehicleForm.isActive ? 'active' : 'inactive'}
+                    onChange={(e) => setVehicleForm({...vehicleForm, isActive: e.target.value === 'active'})}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
+                  >
+                    <option value="active">Rezervasyona Açık</option>
+                    <option value="inactive">Rezervasyona Kapalı</option>
+                  </select>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Bu ayar aracın rezervasyon ekranında görünüp görünmeyeceğini belirler
+                  </p>
+                </div>
               </div>
               <div className="p-6 border-t border-gray-200 flex space-x-3">
                 <button
@@ -578,6 +598,21 @@ export default function AdminVehiclesPage() {
                       </label>
                     ))}
                   </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Rezervasyon Durumu</label>
+                  <select
+                    value={vehicleForm.isActive ? 'active' : 'inactive'}
+                    onChange={(e) => setVehicleForm({...vehicleForm, isActive: e.target.value === 'active'})}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
+                  >
+                    <option value="active">Rezervasyona Açık</option>
+                    <option value="inactive">Rezervasyona Kapalı</option>
+                  </select>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Bu ayar aracın rezervasyon ekranında görünüp görünmeyeceğini belirler
+                  </p>
                 </div>
               </div>
               <div className="p-6 border-t border-gray-200 flex space-x-3">
