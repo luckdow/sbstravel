@@ -116,7 +116,8 @@ export default function Header() {
               <div>
                 <p className="font-semibold">0850 123 45 67</p>
                 <p className="text-xs opacity-75">7/24 Destek</p>
-            )}
+              </div>
+            </div>
           </div>
           
           {/* Customer Login/Profile Button */}
