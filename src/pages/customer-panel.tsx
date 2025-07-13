@@ -12,6 +12,8 @@ import toast from 'react-hot-toast';
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
   confirmed: 'bg-blue-100 text-blue-800',
+  assigned: 'bg-purple-100 text-purple-800',
+  started: 'bg-indigo-100 text-indigo-800',
   completed: 'bg-green-100 text-green-800',
   cancelled: 'bg-red-100 text-red-800'
 };
@@ -19,6 +21,8 @@ const statusColors = {
 const statusLabels = {
   pending: 'Beklemede',
   confirmed: 'Onaylandı',
+  assigned: 'Şoför Atandı',
+  started: 'Transfer Başladı',
   completed: 'Tamamlandı',
   cancelled: 'İptal Edildi'
 };
@@ -31,7 +35,7 @@ export default function CustomerPanel() {
   const [customerReservations, setCustomerReservations] = useState<any[]>([]);
   const navigate = useNavigate();
   const location = useLocation();
-  const { reservations, fetchReservations, fetchSettings } = useStore();
+  const { reservations, fetchReservations, fetchSettings, drivers, fetchDrivers } = useStore();
 
   useEffect(() => {
     // Check for customer session
@@ -45,10 +49,11 @@ export default function CustomerPanel() {
     if (session) {
       setCustomerData(session);
       
-      // Fetch latest reservations and settings
+      // Fetch latest reservations, settings, and drivers
       Promise.all([
         fetchReservations(),
-        fetchSettings()
+        fetchSettings(),
+        fetchDrivers()
       ]).then(() => {
         // Filter reservations for this customer
         const customerReservations = reservations.filter(r => 
@@ -58,7 +63,7 @@ export default function CustomerPanel() {
         setCustomerReservations(customerReservations);
       });
     }
-  }, [navigate, fetchReservations, fetchSettings]);
+  }, [navigate, fetchReservations, fetchSettings, fetchDrivers]);
 
   // Separate effect for one-time success notification
   useEffect(() => {
@@ -75,6 +80,20 @@ export default function CustomerPanel() {
       window.history.replaceState({}, '', location.pathname);
     }
   }, []); // Empty dependency array - runs only once
+
+  // Helper function to get driver name
+  const getDriverName = (driverId: string) => {
+    const driver = drivers.find(d => d.id === driverId);
+    return driver ? `${driver.firstName} ${driver.lastName}` : 'Şoför';
+  };
+
+  // Helper function to get status display
+  const getStatusDisplay = (reservation: any) => {
+    if (reservation.status === 'assigned' && reservation.driverId) {
+      return `${statusLabels.assigned} - ${getDriverName(reservation.driverId)}`;
+    }
+    return statusLabels[reservation.status as keyof typeof statusLabels] || statusLabels.pending;
+  };
 
   const handleViewDetails = (reservation: any) => {
     setSelectedReservation(reservation);
@@ -191,8 +210,8 @@ export default function CustomerPanel() {
                       <div key={reservation.id} className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
                         <div className="flex items-center justify-between mb-4">
                           <div className="font-bold text-gray-800">{reservation.id}</div>
-                          <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${statusColors[reservation.status as keyof typeof statusColors]}`}>
-                            {statusLabels[reservation.status as keyof typeof statusLabels]}
+                          <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${statusColors[reservation.status as keyof typeof statusColors] || statusColors.pending}`}>
+                            {getStatusDisplay(reservation)}
                           </span>
                         </div>
 
@@ -264,8 +283,8 @@ export default function CustomerPanel() {
             <div className="p-8 space-y-8">
               {/* Status Badge */}
               <div className="flex items-center justify-center">
-                <span className={`inline-flex px-6 py-3 rounded-full text-lg font-semibold ${statusColors[selectedReservation.status as keyof typeof statusColors]}`}>
-                  {statusLabels[selectedReservation.status as keyof typeof statusLabels]}
+                <span className={`inline-flex px-6 py-3 rounded-full text-lg font-semibold ${statusColors[selectedReservation.status as keyof typeof statusColors] || statusColors.pending}`}>
+                  {getStatusDisplay(selectedReservation)}
                 </span>
               </div>
 
@@ -290,6 +309,24 @@ export default function CustomerPanel() {
                   </div>
                 </div>
               </div>
+
+              {/* Driver Information (if assigned) */}
+              {selectedReservation.status === 'assigned' && selectedReservation.driverId && (
+                <div className="bg-indigo-50 rounded-2xl p-6">
+                  <h3 className="flex items-center font-bold text-indigo-800 mb-4">
+                    <User className="h-5 w-5 mr-2" />
+                    Şoför Bilgileri
+                  </h3>
+                  <div className="space-y-2">
+                    <p className="text-indigo-700">
+                      <strong>Şoför:</strong> {getDriverName(selectedReservation.driverId)}
+                    </p>
+                    <p className="text-sm text-indigo-600">
+                      Şoförünüz atanmıştır. Transfer günü sizinle iletişime geçecektir.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* Vehicle & Price Information */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
