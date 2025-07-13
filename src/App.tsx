@@ -88,7 +88,7 @@ function App() {
         
         {/* Customer Panel Routes */}
         <Route path="/profile" element={
-          <ProtectedRoute requiredRole="customer">
+          <ProtectedRoute requiredRole="customer" fallbackPath="/customer/login">
             <OriginalCustomerPanel />
           </ProtectedRoute>
         } />

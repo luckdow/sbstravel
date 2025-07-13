@@ -42,30 +42,35 @@ export default function OriginalCustomerPanel() {
   // Check customer session and load data
   useEffect(() => {
     // Check for customer session
-    if (!isCustomerSessionValid()) {
+    const sessionValid = isCustomerSessionValid();
+    console.log('Customer session valid:', sessionValid);
+    
+    if (!sessionValid) {
       // Check if user is coming from payment success with registration error
       if (location.state?.registrationError) {
         toast.error('Oturum açılamadı. Lütfen giriş yapın.');
         setShowLoginModal(true);
       } else {
-        toast.error('Oturum süreniz dolmuş. Lütfen yeniden giriş yapın.');
-        navigate('/booking');
-        return;
+        console.log('Showing login modal due to invalid session');
+        setShowLoginModal(true);
+        return; 
       }
     }
 
     const session = getCustomerSession();
     if (session) {
+      console.log('Setting customer data from session:', session);
       setCustomerData(session);
       
       // Fetch latest reservations
       fetchReservations().then(() => {
         // Filter reservations for this customer
-        const customerReservations = reservations.filter(r => 
+        const customerReservs = reservations.filter(r => 
           r.customerId === session.customerId || 
           (r.customerEmail === session.email && r.customerName?.includes(session.firstName))
         );
-        setCustomerReservations(customerReservations);
+        console.log('Found customer reservations:', customerReservs.length);
+        setCustomerReservations(customerReservs);
       });
     }
   }, [navigate, fetchReservations, reservations]);

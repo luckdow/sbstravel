@@ -104,6 +104,16 @@ export default function PaymentSuccessPage() {
                   rememberMe: true
                 });
                 
+                // Force save to localStorage to ensure it's available
+                localStorage.setItem('sbs_customer_session', JSON.stringify({
+                  customerId,
+                  firstName: customerInfo.firstName,
+                  lastName: customerInfo.lastName,
+                  email: customerInfo.email,
+                  phone: customerInfo.phone,
+                  createdAt: new Date().toISOString()
+                }));
+                
                 if (loginResult.success) {
                   console.log('User auto-logged in');
                   
