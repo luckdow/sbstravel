@@ -230,9 +230,7 @@ export default function OriginalCustomerPanel() {
                       <div key={reservation.id} className="border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow">
                         <div className="flex justify-between items-start mb-4">
                           <div>
-                            <h4 className="font-semibold text-gray-800 text-lg">
-                              {reservation.route || `${reservation.pickupLocation} → ${reservation.dropoffLocation}`}
-                            </h4>
+                            <h4 className="font-semibold text-gray-800 text-lg">{reservation.route || `${reservation.pickupLocation} → ${reservation.dropoffLocation}`}</h4>
                             <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600">
                               <div className="flex items-center space-x-1">
                                 <Calendar className="h-4 w-4" />
@@ -265,7 +263,9 @@ export default function OriginalCustomerPanel() {
                           </div>
                           <div className="flex items-center space-x-2 text-gray-700">
                             <QrCode className="h-4 w-4 text-purple-600" />
-                            <span className="text-sm">{reservation.qrCode ? 'QR Kodu Mevcut' : 'QR Kodu Yok'}</span>
+                            <span className="text-sm cursor-pointer hover:text-blue-600" onClick={() => reservation.qrCode && generateQRCode(reservation)}>
+                              {reservation.qrCode ? 'QR Kodu Göster' : 'QR Kodu Yok'}
+                            </span>
                           </div>
                         </div>
 
@@ -307,15 +307,23 @@ export default function OriginalCustomerPanel() {
       </div>
       
       {/* Reservation Detail Modal */}
-      {showDetailModal && selectedReservation && (
+     {showDetailModal && selectedReservation && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-t-xl">
-              <h3 className="text-xl font-bold">Rezervasyon Detayları</h3>
-              <p className="text-blue-100">#{selectedReservation.id}</p>
+          <div className="bg-white rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-t-xl flex justify-between items-center">
+              <div>
+                <h3 className="text-lg font-bold">Rezervasyon Detayları</h3>
+                <p className="text-blue-100 text-sm">#{selectedReservation.id}</p>
+              </div>
+              <button 
+                onClick={() => setShowDetailModal(false)}
+                className="text-white hover:text-blue-200 transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
             
-            <div className="p-6 space-y-6">
+            <div className="p-4 space-y-4">
               {/* Status */}
               <div className="bg-gray-50 rounded-lg p-4">
                 <h4 className="font-semibold text-gray-900 mb-2">Durum</h4>
@@ -436,11 +444,36 @@ export default function OriginalCustomerPanel() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
 
-            <div className="p-6 border-t border-gray-200">
+      {/* QR Code Modal */}
+      {showQRModal && selectedReservation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-md w-full p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Transfer QR Kodu</h3>
+              <button 
+                onClick={() => setShowQRModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <div className="text-center">
+              {qrCodeUrl && (
+                <div className="mb-4 bg-white p-4 rounded-lg border-2 border-gray-200 inline-block">
+                  <img src={qrCodeUrl} alt="QR Code" className="mx-auto w-48 h-48" />
+                </div>
+              )}
+              <p className="text-sm text-gray-600 mb-4">
+                Bu QR kodu şoförünüze göstererek rezervasyonunuzu doğrulayabilirsiniz.
+              </p>
               <button
-                onClick={() => setShowDetailModal(false)}
-                className="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                onClick={() => setShowQRModal(false)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Kapat
               </button>
@@ -448,7 +481,6 @@ export default function OriginalCustomerPanel() {
           </div>
         </div>
       )}
-      
       <Footer />
     </div>
   );
