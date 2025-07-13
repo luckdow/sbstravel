@@ -127,15 +127,15 @@ export default function PaymentSection({
         // Show success message
         toast.success('🎉 Test modu: Rezervasyon başarıyla oluşturuldu!');
         
-        // Navigate to success page with transaction info
-        navigate('/payment/success', { 
-          state: { 
-            transaction: mockTransaction,
-            method: paymentMethod,
-            reservationId: currentReservationId,
-            isTestMode: true
-          } 
-        });
+        // Redirect to customer panel after successful payment
+        setTimeout(() => {
+          navigate('/profile', { 
+            state: { 
+              newReservation: true,
+              reservationId: currentReservationId 
+            } 
+          });
+        }, 1500);
 
         // Call success callback
         if (onPaymentSuccess) {
@@ -186,14 +186,16 @@ export default function PaymentSection({
           // Show bank transfer success
           toast.success('Havale bilgileri e-posta adresinize gönderildi');
           
-          // Navigate to success page with transaction info
-          navigate('/payment/success', { 
-            state: { 
-              transaction: result.transaction,
-              method: 'bank-transfer',
-              reservationId: currentReservationId
-            } 
-          });
+          // Redirect to customer panel after successful bank transfer setup
+          setTimeout(() => {
+            navigate('/profile', { 
+              state: { 
+                newReservation: true,
+                reservationId: currentReservationId,
+                paymentMethod: 'bank-transfer'
+              } 
+            });
+          }, 1500);
         }
 
         // Call success callback

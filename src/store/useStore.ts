@@ -301,10 +301,33 @@ export const useStore = create<StoreState>((set, get) => ({
 
   addCustomer: async (customer) => {
     try {
+      // Check if customer already exists by email
+      if (customer.email) {
+        const { customers } = get();
+        const existingCustomer = customers.find(c => c.email === customer.email);
+        
+        if (existingCustomer) {
+          console.log('Customer already exists:', existingCustomer.id);
+          toast.success('Müşteri bilgileri kullanıldı');
+          return existingCustomer.id!;
+        }
+      }
+
       const docRef = await addDoc(customersRef, {
         ...customer,
         createdAt: Timestamp.now()
       });
+      
+      // Update local state immediately to prevent duplicate creation
+      const newCustomer = {
+        id: docRef.id,
+        ...customer,
+        createdAt: Timestamp.now()
+      };
+      set(state => ({
+        customers: [...state.customers, newCustomer]
+      }));
+      
       toast.success('Müşteri başarıyla eklendi');
       return docRef.id;
     } catch (error) {
