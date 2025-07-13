@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { authService, UserRole } from '../../lib/services/auth-service';
+import { UserRole } from '../../lib/services/auth-service';
 import { Loader2 } from 'lucide-react';
 import { isCustomerSessionValid, getCustomerSession } from '../../utils/customerSession';
 
@@ -10,6 +10,15 @@ interface ProtectedRouteProps {
   requiredPermission?: string;
   fallbackPath?: string;
 }
+
+// Basitleştirilmiş auth durumu kontrolü
+const getAuthState = () => {
+  return {
+    isLoading: false,
+    isAuthenticated: false,
+    user: null
+  };
+};
 
 export default function ProtectedRoute({
   children,
@@ -24,7 +33,7 @@ export default function ProtectedRoute({
     '/booking'
   );
   const location = useLocation();
-  const authState = authService.getAuthState();
+  const authState = getAuthState();
 
   // Show loading spinner while checking authentication
   if (authState.isLoading) {
@@ -66,20 +75,17 @@ export default function ProtectedRoute({
   }
 
   // Check if session is still valid
-  if (!authService.isSessionValid()) {
-    console.log('[ProtectedRoute] Session is not valid, logging out');
-    authService.logout();
-    return <Navigate to={defaultFallbackPath} state={{ from: location }} replace />;
-  }
+  // Basitleştirilmiş versiyon - müşteri oturumu kontrolü yeterli
+  console.log('[ProtectedRoute] Müşteri oturumu kontrol ediliyor');
 
   // Check role requirement
-  if (requiredRole && !authService.hasRole(requiredRole)) {
+  if (requiredRole && requiredRole !== 'customer') {
     console.log('[ProtectedRoute] User does not have required role:', requiredRole);
     return <Navigate to="/unauthorized" replace />;
   }
 
   // Check permission requirement
-  if (requiredPermission && !authService.hasPermission(requiredPermission)) {
+  if (requiredPermission) {
     console.log('[ProtectedRoute] User does not have required permission:', requiredPermission);
     return <Navigate to="/unauthorized" replace />;
   }

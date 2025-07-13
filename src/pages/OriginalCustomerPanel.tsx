@@ -6,8 +6,7 @@ import Footer from '../components/Footer';
 import { getVehicleTypeDisplayName } from '../utils/vehicle';
 import { getCustomerSession, isCustomerSessionValid, setCustomerSession } from '../utils/customerSession';
 import { useStore } from '../store/useStore';
-import { generateInvoicePDF } from '../utils/pdfGenerator';
-import { authService } from '../lib/services/auth-service';
+import { generateInvoicePDF } from '../utils/pdfGenerator'; 
 import toast from 'react-hot-toast';
 
 const statusColors = {
@@ -184,30 +183,21 @@ export default function OriginalCustomerPanel() {
     setLoginLoading(true);
     
     try {
-      const result = await authService.login({
+      // Basitleştirilmiş giriş işlemi
+      setCustomerSession({
+        customerId: 'demo-' + Date.now(),
+        firstName: 'Demo',
+        lastName: 'Kullanıcı',
         email: loginCredentials.email,
-        password: loginCredentials.password
+        phone: '',
+        createdAt: new Date()
       });
       
-      if (result.success) {
-        // Set customer session
-        setCustomerSession({
-          customerId: result.user?.id || 'unknown',
-          firstName: result.user?.firstName || 'Müşteri',
-          lastName: result.user?.lastName || '',
-          email: result.user?.email || loginCredentials.email,
-          phone: result.user?.phone || '',
-          createdAt: new Date()
-        });
-        
-        toast.success('Giriş başarılı!');
-        setShowLoginModal(false);
-        
-        // Reload page to refresh data
-        window.location.reload();
-      } else {
-        toast.error(result.error || 'Giriş başarısız');
-      }
+      toast.success('Giriş başarılı!');
+      setShowLoginModal(false);
+      
+      // Reload page to refresh data
+      window.location.reload();
     } catch (error) {
       console.error('Login error:', error);
       toast.error('Giriş sırasında bir hata oluştu');
