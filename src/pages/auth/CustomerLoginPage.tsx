@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { User, Lock, Mail, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { setCustomerSession } from '../../utils/customerSession';
-import toast from 'react-hot-toast';
 import GoogleSignInButton from '../../components/GoogleSignInButton';
 
 export default function CustomerLoginPage() {
@@ -14,10 +13,20 @@ export default function CustomerLoginPage() {
   
   const handleGoogleSuccess = async (user: { email: string; name: string }) => {
     try {
-      // Google ile giriş için basitleştirilmiş oturum oluşturma
+      // Google ile giriş için oturum oluşturma
       const nameParts = user.name?.split(' ') || ['Kullanıcı', ''];
       const firstName = nameParts[0];
       const lastName = nameParts.slice(1).join(' ') || '';
+      
+      // Kullanıcı oturumu oluştur
+      setCustomerSession({
+        customerId: user.id || 'google-' + Date.now(),
+        firstName,
+        lastName,
+        email: user.email,
+        phone: '',
+        createdAt: new Date()
+      });
       
       toast.success('Google ile giriş başarılı!');
       navigate('/profile');

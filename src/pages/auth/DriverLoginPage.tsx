@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Car, Lock, User, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { auth } from '../../config/firebase';
 import toast from 'react-hot-toast';
 import GoogleSignInButton from '../../components/GoogleSignInButton';
 
@@ -10,10 +12,15 @@ export default function DriverLoginPage() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleGoogleSuccess = (user: { email: string; name: string }) => {
-    // Şoför rolü için Google girişi
-    toast.success('Google ile giriş başarılı!');
-    navigate('/driver');
+  const handleGoogleSuccess = (user: any) => {
+    // Şoför rolünü kontrol et - gerçek uygulamada veritabanından kontrol edilir
+    if (user.email.includes('sofor') || user.email.includes('driver')) {
+      localStorage.setItem('driverToken', 'firebase-driver-token');
+      toast.success('Şoför girişi başarılı!');
+      navigate('/driver');
+    } else {
+      toast.error('Bu e-posta adresi şoför yetkisine sahip değil');
+    }
   };
 
   const handleLogin = async (e: React.FormEvent) => {

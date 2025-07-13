@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { User, Mail, Phone, Lock, Eye, EyeOff, Loader2, ArrowLeft } from 'lucide-react';
 import { authService } from '../../lib/services/auth-service';
+import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { auth } from '../../config/firebase';
+import { setCustomerSession } from '../../utils/customerSession';
 import toast from 'react-hot-toast';
 import GoogleSignInButton from '../../components/GoogleSignInButton';
 
@@ -19,9 +22,24 @@ export default function CustomerRegisterPage() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleGoogleSuccess = (user: { email: string; name: string }) => {
+  const handleGoogleSuccess = (user: any) => {
+    // Google ile giriş yapan kullanıcıyı müşteri olarak kaydet
+    const nameParts = user.name?.split(' ') || ['Kullanıcı', ''];
+    const firstName = nameParts[0];
+    const lastName = nameParts.slice(1).join(' ') || '';
+    
+    // Kullanıcı oturumu oluştur
+    setCustomerSession({
+      customerId: user.id || 'google-' + Date.now(),
+      firstName,
+      lastName,
+      email: user.email,
+      phone: '',
+      createdAt: new Date()
+    });
+    
     toast.success('Google ile kayıt başarılı!');
-    navigate('/customer');
+    navigate('/profile');
   };
 
   const handleRegister = async (e: React.FormEvent) => {
