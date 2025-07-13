@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
-import { User, Calendar, Clock, DollarSign, QrCode, Phone, Mail, Star, Download, Eye, Plus, CheckCircle, Home } from 'lucide-react';
+import { User, Calendar, Clock, DollarSign, QrCode, Phone, Mail, Star, Download, Eye, Plus, CheckCircle, Home, FileText, Car, CreditCard, MapPin } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { getVehicleTypeDisplayName } from '../utils/vehicle';
 import { getCustomerSession, isCustomerSessionValid } from '../utils/customerSession';
 import { useStore } from '../store/useStore';
+import { generateInvoicePDF } from '../utils/pdfGenerator';
 import toast from 'react-hot-toast';
 
 const statusColors = {
@@ -27,6 +28,8 @@ export default function OriginalCustomerPanel() {
   const navigate = useNavigate();
   const [customerData, setCustomerData] = useState<Record<string, unknown> | null>(null);
   const [customerReservations, setCustomerReservations] = useState<Record<string, unknown>[]>([]);
+  const [selectedReservation, setSelectedReservation] = useState<any>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   const [showNewReservationMessage, setShowNewReservationMessage] = useState(false);
   const { reservations, fetchReservations } = useStore();
 
@@ -74,6 +77,11 @@ export default function OriginalCustomerPanel() {
     }
   }, [location.state, location.pathname]);
 
+  const handleViewDetails = (reservation: Record<string, unknown>) => {
+    setSelectedReservation(reservation);
+    setShowDetailModal(true);
+  };
+
   const customerInfo = customerData ? {
     firstName: customerData.firstName,
     lastName: customerData.lastName,
@@ -83,21 +91,47 @@ export default function OriginalCustomerPanel() {
     totalSpent: customerReservations.reduce((sum, r) => sum + (r.amount || 0), 0)
   } : {
     firstName: 'Müşteri',
-    lastName: '',
+    lastName: 'Adı',
     email: 'musteri@example.com',
     phone: '+90 5XX XXX XX XX',
     totalReservations: 0,
     totalSpent: 0
   };
 
-  const handleViewDetails = (reservation: Record<string, unknown>) => {
-    // Simple alert for now - could be expanded to a modal
-    alert(`Rezervasyon Detayları:\n\nNo: ${reservation.id}\nRota: ${reservation.route || reservation.pickupLocation + ' → ' + reservation.dropoffLocation}\nTarih: ${reservation.date || reservation.pickupDate}\nSaat: ${reservation.time || reservation.pickupTime}`);
-  };
-
-  const handleDownloadInvoice = (reservation: Record<string, unknown>) => {
-    // Simple alert for now - could be expanded to actual download
-    alert(`Fatura indirilecek: ${reservation.id}`);
+  const handleDownloadInvoice = async (reservation: any) => {
+    try {
+      // Prepare invoice data
+      const invoiceData = {
+        reservation: {
+          id: reservation.id || 'RES-001',
+          pickupLocation: reservation.pickupLocation || reservation.route?.split(' → ')[0] || 'Antalya Havalimanı',
+          dropoffLocation: reservation.dropoffLocation || reservation.route?.split(' → ')[1] || 'Kemer',
+          pickupDate: reservation.pickupDate || reservation.date || new Date().toLocaleDateString('tr-TR'),
+          pickupTime: reservation.pickupTime || reservation.time || '14:30',
+          totalPrice: reservation.totalPrice || reservation.amount || 85.00,
+          vehicleType: reservation.vehicleType || 'standard',
+          customerName: `${customerInfo.firstName} ${customerInfo.lastName}`,
+          customerEmail: customerInfo.email,
+          customerPhone: customerInfo.phone,
+          qrCode: reservation.qrCode || 'QR_' + Date.now()
+        },
+        company: {
+          name: 'SBS TRAVEL',
+          address: 'Muratpaşa Mah. Atatürk Cad. No:123/A Muratpaşa/ANTALYA',
+          phone: '+90 242 123 45 67',
+          email: 'sbstravelinfo@gmail.com',
+          taxNumber: '1234567890',
+          bankName: 'Türkiye İş Bankası',
+          iban: 'TR12 0006 4000 0011 2345 6789 01'
+        }
+      };
+      
+      await generateInvoicePDF(invoiceData);
+      toast.success('Fatura başarıyla oluşturuldu!');
+    } catch (error) {
+      console.error('Error generating invoice:', error);
+      toast.error('Fatura oluşturulurken bir hata oluştu');
+    }
   };
 
   return (
@@ -199,6 +233,8 @@ export default function OriginalCustomerPanel() {
                             <h4 className="font-semibold text-gray-800 text-lg">
                               {reservation.route || `${reservation.pickupLocation} → ${reservation.dropoffLocation}`}
                             </h4>
+                              {reservation.route || `${reservation.pickupLocation} → ${reservation.dropoffLocation}`}
+                            </h4>
                             <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600">
                               <div className="flex items-center space-x-1">
                                 <Calendar className="h-4 w-4" />
@@ -213,6 +249,11 @@ export default function OriginalCustomerPanel() {
                           <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[reservation.status || 'confirmed']}`}>
                             {statusLabels[reservation.status || 'confirmed']}
                           </span>
+                          {reservation.driverId && (
+                            <span className="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 ml-2">
+                              Şoför Atandı
+                            </span>
+                          )}
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
@@ -221,12 +262,12 @@ export default function OriginalCustomerPanel() {
                             <span className="text-sm text-gray-700">${(reservation.amount || reservation.totalPrice || 0).toFixed(2)}</span>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <QrCode className="h-4 w-4 text-purple-600" />
-                            <span className="text-sm text-gray-700">{reservation.qrCode || 'QR Kodu'}</span>
-                          </div>
-                          <div className="flex items-center space-x-2">
                             <Star className="h-4 w-4 text-yellow-600" />
                             <span className="text-sm text-gray-700">{getVehicleTypeDisplayName(reservation.vehicleType || 'standard')}</span>
+                          </div>
+                          <div className="flex items-center space-x-2 text-gray-700">
+                            <QrCode className="h-4 w-4 text-purple-600" />
+                            <span className="text-sm">{reservation.qrCode ? 'QR Kodu Mevcut' : 'QR Kodu Yok'}</span>
                           </div>
                         </div>
 
@@ -235,15 +276,15 @@ export default function OriginalCustomerPanel() {
                             onClick={() => handleViewDetails(reservation)}
                             className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
                           >
-                            <Eye className="h-4 w-4" />
-                            <span>Detaylar</span>
+                            <FileText className="h-4 w-4" />
+                            <span>DETAY</span>
                           </button>
                           <button 
                             onClick={() => handleDownloadInvoice(reservation)}
                             className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
                           >
-                            <Download className="h-4 w-4" />
-                            <span>Fatura</span>
+                            <CreditCard className="h-4 w-4" />
+                            <span>FATURA</span>
                           </button>
                         </div>
                       </div>
@@ -266,6 +307,149 @@ export default function OriginalCustomerPanel() {
           </div>
         </div>
       </div>
+      
+      {/* Reservation Detail Modal */}
+      {showDetailModal && selectedReservation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-t-xl">
+              <h3 className="text-xl font-bold">Rezervasyon Detayları</h3>
+              <p className="text-blue-100">#{selectedReservation.id}</p>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              {/* Status */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h4 className="font-semibold text-gray-900 mb-2">Durum</h4>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[selectedReservation.status]}`}>
+                  {statusLabels[selectedReservation.status]}
+                </span>
+                {selectedReservation.driverId && (
+                  <span className="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 ml-2">
+                    Şoför Atandı
+                  </span>
+                )}
+              </div>
+
+              {/* Trip Information */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h4 className="font-semibold text-gray-900 mb-3">Seyahat Bilgileri</h4>
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <MapPin className="w-5 h-5 text-green-600" />
+                    <div>
+                      <p className="text-sm text-gray-600">Kalkış</p>
+                      <p className="font-medium">
+                        {selectedReservation.pickupLocation || selectedReservation.route?.split(' → ')[0] || 'Antalya Havalimanı'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <MapPin className="w-5 h-5 text-red-600" />
+                    <div>
+                      <p className="text-sm text-gray-600">Varış</p>
+                      <p className="font-medium">
+                        {selectedReservation.dropoffLocation || selectedReservation.route?.split(' → ')[1] || 'Kemer'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex items-center space-x-3">
+                      <Calendar className="w-5 h-5 text-blue-600" />
+                      <div>
+                        <p className="text-sm text-gray-600">Tarih</p>
+                        <p className="font-medium">{selectedReservation.date || selectedReservation.pickupDate}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <Clock className="w-5 h-5 text-purple-600" />
+                      <div>
+                        <p className="text-sm text-gray-600">Saat</p>
+                        <p className="font-medium">{selectedReservation.time || selectedReservation.pickupTime}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Customer Information */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h4 className="font-semibold text-gray-900 mb-3">Müşteri Bilgileri</h4>
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <User className="w-5 h-5 text-gray-600" />
+                    <div>
+                      <p className="text-sm text-gray-600">Ad Soyad</p>
+                      <p className="font-medium">{customerInfo.firstName} {customerInfo.lastName}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Phone className="w-5 h-5 text-gray-600" />
+                    <div>
+                      <p className="text-sm text-gray-600">Telefon</p>
+                      <p className="font-medium">{customerInfo.phone}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Mail className="w-5 h-5 text-gray-600" />
+                    <div>
+                      <p className="text-sm text-gray-600">E-posta</p>
+                      <p className="font-medium">{customerInfo.email}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Vehicle Information */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h4 className="font-semibold text-gray-900 mb-3">Araç Bilgileri</h4>
+                <div className="flex items-center space-x-3">
+                  <Car className="w-5 h-5 text-gray-600" />
+                  <div>
+                    <p className="text-sm text-gray-600">Araç Tipi</p>
+                    <p className="font-medium">{getVehicleTypeDisplayName(selectedReservation.vehicleType || selectedReservation.vehicle || 'standard')}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Driver Information */}
+              {selectedReservation.driverId && (
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="font-semibold text-gray-900 mb-3">Şoför Bilgileri</h4>
+                  <div className="flex items-center space-x-3">
+                    <User className="w-5 h-5 text-gray-600" />
+                    <div>
+                      <p className="text-sm text-gray-600">Şoför</p>
+                      <p className="font-medium">{selectedReservation.driverName || 'Atanmış Şoför'}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Price Information */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h4 className="font-semibold text-gray-900 mb-3">Ücret Bilgileri</h4>
+                <div className="flex items-center space-x-3">
+                  <CreditCard className="w-5 h-5 text-gray-600" />
+                  <div>
+                    <p className="text-sm text-gray-600">Toplam Ücret</p>
+                    <p className="font-medium text-lg">${selectedReservation.amount || selectedReservation.totalPrice || 0}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-gray-200">
+              <button
+                onClick={() => setShowDetailModal(false)}
+                className="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                Kapat
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
       <Footer />
     </div>
