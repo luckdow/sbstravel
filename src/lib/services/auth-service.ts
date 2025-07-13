@@ -528,7 +528,7 @@ export class AuthService {
       case 'admin':
         return '/admin';
       case 'customer':
-        return '/customer-panel';
+        return '/profile';
       case 'driver':
         return '/driver';
       default:
