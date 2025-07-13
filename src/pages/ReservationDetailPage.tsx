@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { CheckCircle, MapPin, Calendar, User, Plane, QrCode, Home, ArrowRight } from 'lucide-react';
+import { CheckCircle, MapPin, Calendar, User, Plane, Home, ArrowRight } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import Header from '../components/Header';
 import Footer from '../components/Footer';

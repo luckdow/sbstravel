@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
-import { User, Calendar, MapPin, Clock, DollarSign, QrCode, Phone, Mail, Star, Download, Eye, Plus, CheckCircle, Home } from 'lucide-react';
+import { User, Calendar, Clock, DollarSign, QrCode, Phone, Mail, Star, Download, Eye, Plus, CheckCircle, Home } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { getVehicleTypeDisplayName } from '../utils/vehicle';
@@ -25,8 +25,8 @@ const statusLabels = {
 export default function OriginalCustomerPanel() {
   const location = useLocation();
   const navigate = useNavigate();
-  const [customerData, setCustomerData] = useState<any>(null);
-  const [customerReservations, setCustomerReservations] = useState<any[]>([]);
+  const [customerData, setCustomerData] = useState<Record<string, unknown> | null>(null);
+  const [customerReservations, setCustomerReservations] = useState<Record<string, unknown>[]>([]);
   const [showNewReservationMessage, setShowNewReservationMessage] = useState(false);
   const { reservations, fetchReservations } = useStore();
 
@@ -72,7 +72,7 @@ export default function OriginalCustomerPanel() {
       // Hide message after 5 seconds
       setTimeout(() => setShowNewReservationMessage(false), 5000);
     }
-  }, [location.state]);
+  }, [location.state, location.pathname]);
 
   const customerInfo = customerData ? {
     firstName: customerData.firstName,
@@ -90,12 +90,12 @@ export default function OriginalCustomerPanel() {
     totalSpent: 0
   };
 
-  const handleViewDetails = (reservation: any) => {
+  const handleViewDetails = (reservation: Record<string, unknown>) => {
     // Simple alert for now - could be expanded to a modal
     alert(`Rezervasyon Detayları:\n\nNo: ${reservation.id}\nRota: ${reservation.route || reservation.pickupLocation + ' → ' + reservation.dropoffLocation}\nTarih: ${reservation.date || reservation.pickupDate}\nSaat: ${reservation.time || reservation.pickupTime}`);
   };
 
-  const handleDownloadInvoice = (reservation: any) => {
+  const handleDownloadInvoice = (reservation: Record<string, unknown>) => {
     // Simple alert for now - could be expanded to actual download
     alert(`Fatura indirilecek: ${reservation.id}`);
   };
