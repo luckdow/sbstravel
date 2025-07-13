@@ -70,7 +70,11 @@ export default function CustomerInfoForm({
                 type="text"
                 {...register('customerInfo.firstName')}
                 placeholder="Adınızı girin"
-                className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                className={`w-full pl-12 pr-4 py-4 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-300 ${
+                  errors.customerInfo?.firstName 
+                    ? 'border-red-500 focus:ring-red-500' 
+                    : 'border-gray-200 focus:ring-blue-500'
+                }`}
               />
             </div>
             {errors.customerInfo?.firstName && (
@@ -86,7 +90,11 @@ export default function CustomerInfoForm({
                 type="text"
                 {...register('customerInfo.lastName')}
                 placeholder="Soyadınızı girin"
-                className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                className={`w-full pl-12 pr-4 py-4 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-300 ${
+                  errors.customerInfo?.lastName 
+                    ? 'border-red-500 focus:ring-red-500' 
+                    : 'border-gray-200 focus:ring-blue-500'
+                }`}
               />
             </div>
             {errors.customerInfo?.lastName && (
@@ -104,7 +112,11 @@ export default function CustomerInfoForm({
                 type="email"
                 {...register('customerInfo.email')}
                 placeholder="ornek@email.com"
-                className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                className={`w-full pl-12 pr-4 py-4 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-300 ${
+                  errors.customerInfo?.email 
+                    ? 'border-red-500 focus:ring-red-500' 
+                    : 'border-gray-200 focus:ring-blue-500'
+                }`}
               />
             </div>
             {errors.customerInfo?.email && (
@@ -121,7 +133,11 @@ export default function CustomerInfoForm({
                 type="tel"
                 {...register('customerInfo.phone')}
                 placeholder="+90 5XX XXX XX XX"
-                className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                className={`w-full pl-12 pr-4 py-4 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-300 ${
+                  errors.customerInfo?.phone 
+                    ? 'border-red-500 focus:ring-red-500' 
+                    : 'border-gray-200 focus:ring-blue-500'
+                }`}
               />
             </div>
             {errors.customerInfo?.phone && (
