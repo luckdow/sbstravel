@@ -61,7 +61,7 @@ export default function BookingPage() {
     const { initializeMockData } = useStore.getState();
     initializeMockData();
     
-    fetchVehicles();
+    fetchVehicles(); // Use regular fetchVehicles to preserve demo data when Firestore is offline
     fetchExtraServices();
   }, [fetchVehicles, fetchExtraServices]);
 
