@@ -529,15 +529,80 @@ export const useStore = create<StoreState>((set, get) => ({
 
   // Mock data initialization
   initializeMockData: () => {
-    if (isInitialized()) return;
+    // Always initialize demo data for testing (comment out in production)
+    // if (isInitialized()) return;
     
-    // Initialize with empty arrays
+    // Initialize with demo vehicles for testing the booking flow fixes
+    const demoVehicles = [
+      {
+        id: '1',
+        type: 'standard',
+        name: 'Ekonomik Transfer',
+        model: 'Volkswagen Caddy',
+        image: 'https://images.pexels.com/photos/116675/pexels-photo-116675.jpeg?auto=compress&cs=tinysrgb&w=800',
+        passengerCapacity: 4,
+        baggageCapacity: 4,
+        pricePerKm: 3.5,
+        features: ['Klima', 'Müzik Sistemi', 'Temiz Araç'],
+        isActive: true,
+        status: 'active'
+      },
+      {
+        id: '2',
+        type: 'premium',
+        name: 'Konfor Transfer',
+        model: 'Mercedes Vito',
+        image: 'https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg?auto=compress&cs=tinysrgb&w=800',
+        passengerCapacity: 8,
+        baggageCapacity: 8,
+        pricePerKm: 5.0,
+        features: ['Premium İç Mekan', 'Wi-Fi', 'Su İkramı'],
+        isActive: true,
+        status: 'active'
+      },
+      {
+        id: '3',
+        type: 'luxury',
+        name: 'VIP Transfer',
+        model: 'Mercedes V-Class',
+        image: 'https://images.pexels.com/photos/1545743/pexels-photo-1545743.jpeg?auto=compress&cs=tinysrgb&w=800',
+        passengerCapacity: 6,
+        baggageCapacity: 6,
+        pricePerKm: 8.0,
+        features: ['Lüks Deri Döşeme', 'VIP Karşılama', 'Soğuk İçecek'],
+        isActive: true,
+        status: 'active'
+      }
+    ];
+
+    const demoExtraServices = [
+      {
+        id: '1',
+        name: 'Havalimanı Karşılama',
+        description: 'Tabelali karşılama hizmeti',
+        price: 15,
+        category: 'assistance',
+        isActive: true,
+        applicableVehicleTypes: ['standard', 'premium', 'luxury']
+      },
+      {
+        id: '2',
+        name: 'İçecek İkramı',
+        description: 'Su ve meşrubat ikramı',
+        price: 10,
+        category: 'comfort',
+        isActive: true,
+        applicableVehicleTypes: ['premium', 'luxury']
+      }
+    ];
+    
+    // Initialize with demo data
     set({
       reservations: [],
       drivers: [],
       customers: [],
-      vehicles: [],
-      extraServices: [],
+      vehicles: demoVehicles,
+      extraServices: demoExtraServices,
       locations: []
     });
     
