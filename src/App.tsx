@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import ErrorBoundary from './components/Error/ErrorBoundary';
 import { useStore } from './store/useStore';
@@ -89,6 +89,7 @@ function App() {
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
         
         {/* Customer Panel Routes */}
+        <Route path="/customer" element={<Navigate to="/profile" replace />} />
         <Route path="/profile" element={
           <ProtectedRoute requiredRole="customer">
             <ProfilePage />

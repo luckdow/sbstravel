@@ -21,7 +21,7 @@ export default function CustomerRegisterPage() {
 
   const handleGoogleSuccess = (user: { email: string; name: string }) => {
     toast.success('Google ile kayıt başarılı!');
-    navigate('/customer');
+    navigate('/profile');
   };
 
   const handleRegister = async (e: React.FormEvent) => {
