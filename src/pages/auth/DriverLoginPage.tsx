@@ -10,12 +10,10 @@ export default function DriverLoginPage() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleGoogleSuccess = (user: { email: string; name: string }, role: string) => {
-    if (role === 'driver') {
-      navigate('/driver');
-    } else {
-      toast.error('Bu hesap şoför yetkisine sahip değil');
-    }
+  const handleGoogleSuccess = (user: { email: string; name: string }) => {
+    // Şoför rolü için Google girişi
+    toast.success('Google ile giriş başarılı!');
+    navigate('/driver');
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -121,6 +119,7 @@ export default function DriverLoginPage() {
           {/* Google Sign In */}
           <GoogleSignInButton 
             onSuccess={handleGoogleSuccess}
+            className="w-full"
           />
         </div>
       </div>

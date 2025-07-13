@@ -11,20 +11,16 @@ export default function AdminLoginPage() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleGoogleSuccess = async (user: { email: string; name: string }, role: string) => {
+  const handleGoogleSuccess = async (user: { email: string; name: string }) => {
     try {
-      if (role === 'admin') {
-        // Authenticate user in local auth service
-        const result = await authService.authenticateGoogleUser(user, 'admin');
-        
-        if (result.success) {
-          toast.success('Admin Google girişi başarılı!');
-          navigate('/admin');
-        } else {
-          toast.error(result.error || 'Google ile giriş başarısız');
-        }
+      // Authenticate user in local auth service
+      const result = await authService.authenticateGoogleUser(user, 'admin');
+      
+      if (result.success) {
+        toast.success('Admin Google girişi başarılı!');
+        navigate('/admin');
       } else {
-        toast.error('Bu hesap admin yetkisine sahip değil');
+        toast.error(result.error || 'Google ile giriş başarısız');
       }
     } catch (error) {
       console.error('Google sign-in error:', error);
@@ -160,6 +156,7 @@ export default function AdminLoginPage() {
           {/* Google Sign In */}
           <GoogleSignInButton 
             onSuccess={handleGoogleSuccess}
+            className="w-full"
           />
         </div>
       </div>

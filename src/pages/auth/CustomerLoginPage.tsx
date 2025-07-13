@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { User, Lock, Mail, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { setCustomerSession } from '../../utils/customerSession';
 import toast from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import GoogleSignInButton from '../../components/GoogleSignInButton';
 
 export default function CustomerLoginPage() {
@@ -46,6 +47,7 @@ export default function CustomerLoginPage() {
         });
         toast.success('Giriş başarılı');
       }
+      navigate('/profile');
     } catch (error) {
       console.error('Login error:', error);
       toast.error('İşlem sırasında bir hata oluştu');

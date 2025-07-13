@@ -222,6 +222,7 @@ export default function CustomerRegisterPage() {
           {/* Google Sign In */}
           <GoogleSignInButton 
             onSuccess={handleGoogleSuccess}
+            className="w-full"
           />
 
           {/* Login Link */}

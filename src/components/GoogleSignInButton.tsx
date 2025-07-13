@@ -23,10 +23,6 @@ export default function GoogleSignInButton({
       // Gerçek bir uygulamada burada Firebase veya başka bir auth sağlayıcısı kullanılır
       
       // Demo kullanıcı bilgileri
-      const mockUser = {
-        email: 'google-user@example.com',
-        name: 'Google Kullanıcı'
-      };
       
       // Kısa bir gecikme ekleyerek gerçek bir API çağrısı simüle ediyoruz
       setTimeout(() => {
