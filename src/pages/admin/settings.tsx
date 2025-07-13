@@ -11,8 +11,14 @@ import {
   Building,
   RefreshCw,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Landmark,
+  Plus,
+  Edit,
+  Trash2
 } from 'lucide-react';
+import { useStore } from '../../store/useStore';
+import BankAccountModal from '../../components/Admin/BankAccountModal';
 import toast from 'react-hot-toast';
 
 interface SystemSettings {
@@ -42,6 +48,7 @@ interface SystemSettings {
 }
 
 export default function AdminSettingsPage() {
+  const [activeTab, setActiveTab] = useState('company');
   const [settings, setSettings] = useState<SystemSettings>({
     pricing: {
       standard: 4.5,
@@ -69,7 +76,21 @@ export default function AdminSettingsPage() {
   });
   
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('company');
+  const [showBankModal, setShowBankModal] = useState(false);
+  const [editingBank, setEditingBank] = useState<any>(null);
+  
+  const { 
+    bankAccounts, 
+    fetchBankAccounts, 
+    addBankAccount, 
+    editBankAccount, 
+    deleteBankAccount,
+    setPrimaryBankAccount 
+  } = useStore();
+
+  useEffect(() => {
+    fetchBankAccounts();
+  }, [fetchBankAccounts]);
 
   const saveSettings = async () => {
     setLoading(true);
@@ -147,7 +168,8 @@ export default function AdminSettingsPage() {
               {[
                 { id: 'company', label: 'Şirket Bilgileri', icon: Building },
                 { id: 'pricing', label: 'Fiyatlandırma', icon: DollarSign },
-                { id: 'payment', label: 'Ödeme', icon: CreditCard }
+                { id: 'payment', label: 'Ödeme', icon: CreditCard },
+                { id: 'bank', label: 'Banka Hesapları', icon: Landmark }
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -413,7 +435,106 @@ export default function AdminSettingsPage() {
                 </div>
               </div>
             )}
+
+            {/* Bank Accounts */}
+            {activeTab === 'bank' && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-bold text-gray-800">Banka Hesapları</h2>
+                  <button
+                    onClick={() => setShowBankModal(true)}
+                    className="bg-purple-600 text-white px-4 py-2 rounded-xl font-semibold hover:bg-purple-700 transition-colors flex items-center space-x-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span>Hesap Ekle</span>
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {bankAccounts.map((account) => (
+                    <div key={account.id} className={`border-2 rounded-xl p-4 ${account.isPrimary ? 'border-purple-500 bg-purple-50' : 'border-gray-200'}`}>
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="font-semibold text-gray-800">{account.bankName}</h3>
+                        <div className="flex items-center space-x-2">
+                          {account.isPrimary && (
+                            <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-lg text-xs font-semibold">
+                              Birincil
+                            </span>
+                          )}
+                          <button
+                            onClick={() => {
+                              setEditingBank(account);
+                              setShowBankModal(true);
+                            }}
+                            className="p-1 text-gray-500 hover:text-purple-600"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (window.confirm('Bu banka hesabını silmek istediğinizden emin misiniz?')) {
+                                deleteBankAccount(account.id!);
+                              }
+                            }}
+                            className="p-1 text-gray-500 hover:text-red-600"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2 text-sm">
+                        <div><strong>Hesap Sahibi:</strong> {account.accountHolder}</div>
+                        <div><strong>IBAN:</strong> {account.iban}</div>
+                        {account.branchName && (
+                          <div><strong>Şube:</strong> {account.branchName}</div>
+                        )}
+                      </div>
+
+                      {!account.isPrimary && (
+                        <button
+                          onClick={() => setPrimaryBankAccount(account.id!)}
+                          className="mt-3 w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+                        >
+                          Birincil Yap
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  
+                  {bankAccounts.length === 0 && (
+                    <div className="col-span-2 text-center py-8 text-gray-500">
+                      <Landmark className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                      <p>Henüz banka hesabı eklenmemiş</p>
+                      <p className="text-sm">Müşteriler için banka hesap bilgilerini ekleyin</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
+
+        {/* Bank Account Modal */}
+        {showBankModal && (
+          <BankAccountModal
+            isOpen={showBankModal}
+            onClose={() => {
+              setShowBankModal(false);
+              setEditingBank(null);
+            }}
+            account={editingBank}
+            onSave={async (accountData) => {
+              if (editingBank) {
+                await editBankAccount(editingBank.id, accountData);
+              } else {
+                await addBankAccount(accountData);
+              }
+              await fetchBankAccounts();
+              setShowBankModal(false);
+              setEditingBank(null);
+            }}
+          />
+        )}
         </div>
       </div>
     </AdminLayout>

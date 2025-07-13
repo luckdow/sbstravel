@@ -109,6 +109,7 @@ export interface Reservation {
   // Passenger details
   passengerCount: number;
   baggageCount: number;
+  flightNumber?: string;
   
   // Vehicle and pricing
   vehicleType: 'standard' | 'premium' | 'luxury';
@@ -304,4 +305,19 @@ export interface NotificationStats {
   read: number;
   failed: number;
   cost: number;
+}
+
+export interface BankAccount {
+  id?: string;
+  bankName: string;
+  accountHolder: string;
+  iban: string;
+  branchName?: string;
+  branchCode?: string;
+  accountNumber?: string;
+  isActive: boolean;
+  isPrimary: boolean;
+  notes?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }

@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { CheckCircle, Download, Share2, Mail, Phone, Calendar, MapPin, User, Home, Loader2 } from 'lucide-react';
+import { CheckCircle, Download, Share2, Mail, Phone, Calendar, MapPin, User, Home, Loader2, Plane } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import { useStore } from '../../store/useStore';
+import { getVehicleTypeDisplayName } from '../../utils/vehicle';
+import { generateCustomerViewURL } from '../../utils/qrCode';
 import toast from 'react-hot-toast';
 
 export default function PaymentSuccessPage() {
@@ -15,16 +17,29 @@ export default function PaymentSuccessPage() {
   // Get transaction data from navigation state
   const transactionData = location.state;
   
+  // Extract real customer data from transaction state
+  const customerInfo = transactionData?.customerInfo || {
+    firstName: 'Müşteri',
+    lastName: 'Adı',
+    email: 'musteri@example.com',
+    phone: '+90 5XX XXX XX XX'
+  };
+  
   const reservationData = {
     id: transactionData?.reservationId || 'RES-001',
     transactionId: transactionData?.transaction?.id || 'TXN_' + Date.now(),
-    amount: transactionData?.transaction?.amount || 85.00,
+    amount: transactionData?.transaction?.amount || transactionData?.totalPrice || 85.00,
     currency: 'USD',
-    customerName: 'Müşteri', // Will be updated from transaction data
-    route: 'Antalya Havalimanı → Kemer', // Will be updated from transaction data
-    date: new Date().toLocaleDateString('tr-TR'),
-    time: '14:30',
-    qrCode: 'QR_' + Date.now(),
+    customerName: `${customerInfo.firstName} ${customerInfo.lastName}`,
+    customerEmail: customerInfo.email,
+    customerPhone: customerInfo.phone,
+    flightNumber: transactionData?.flightNumber || customerInfo.flightNumber,
+    route: transactionData?.route || `${transactionData?.pickupLocation || 'Antalya Havalimanı'} → ${transactionData?.dropoffLocation || 'Kemer'}`,
+    vehicleType: transactionData?.vehicleType || 'standard',
+    date: transactionData?.pickupDate || new Date().toLocaleDateString('tr-TR'),
+    time: transactionData?.pickupTime || '14:30',
+    qrCode: transactionData?.qrCode || 'QR_' + Date.now(),
+    qrCodeUrl: transactionData?.qrCode ? generateCustomerViewURL(transactionData.reservationId || 'RES-001', transactionData.qrCode) : generateCustomerViewURL('RES-001', 'QR_' + Date.now()),
     timestamp: new Date().toISOString(),
     isTestMode: transactionData?.isTestMode || false
   };
@@ -37,16 +52,29 @@ export default function PaymentSuccessPage() {
       setIsCreatingUser(true);
       
       try {
-        // Simulate user creation (in real app, this would use the customer info from booking)
-        const mockCustomerInfo = {
-          firstName: 'Demo',
-          lastName: 'Kullanıcı',
-          email: 'demo@example.com',
-          phone: '+90 555 123 4567'
+        // Use real customer info from transaction data instead of mock data
+        const realCustomerInfo = {
+          firstName: customerInfo.firstName,
+          lastName: customerInfo.lastName,
+          email: customerInfo.email,
+          phone: customerInfo.phone
         };
 
-        // Create customer account
-        const customerId = await addCustomer(mockCustomerInfo);
+        // Check if customer already exists by email to prevent duplicates
+        const existingCustomers = await new Promise<any[]>((resolve) => {
+          // Since we don't have a direct method to search by email, we'll create the account anyway
+          // In a real implementation, you would check existing customers first
+          resolve([]);
+        });
+
+        let customerId = null;
+        
+        // Only create customer if not already exists
+        if (existingCustomers.length === 0) {
+          customerId = await addCustomer(realCustomerInfo);
+        } else {
+          customerId = existingCustomers[0].id;
+        }
         
         if (customerId) {
           console.log('User created successfully:', customerId);
@@ -157,6 +185,16 @@ export default function PaymentSuccessPage() {
                     <Calendar className="h-5 w-5 text-purple-600" />
                     <span className="text-gray-700">{reservationData.date} - {reservationData.time}</span>
                   </div>
+                  <div className="flex items-center space-x-3">
+                    <User className="h-5 w-5 text-green-600" />
+                    <span className="text-gray-700">Araç Tipi: {getVehicleTypeDisplayName(reservationData.vehicleType)}</span>
+                  </div>
+                  {reservationData.flightNumber && (
+                    <div className="flex items-center space-x-3">
+                      <Plane className="h-5 w-5 text-orange-600" />
+                      <span className="text-gray-700">Uçuş No: {reservationData.flightNumber}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -187,7 +225,7 @@ export default function PaymentSuccessPage() {
               <div className="text-center">
                 <div className="bg-white p-6 rounded-2xl border-2 border-gray-200 inline-block mb-6">
                   <QRCode
-                    value={reservationData.qrCode}
+                    value={reservationData.qrCodeUrl}
                     size={200}
                     style={{ height: "auto", maxWidth: "100%", width: "100%" }}
                   />

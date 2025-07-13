@@ -1,4 +1,5 @@
 import { Reservation } from '../types';
+import { getVehicleTypeDisplayName } from '../utils/vehicle';
 
 export interface EmailConfig {
   enabled: boolean;
@@ -128,7 +129,7 @@ export class EmailService {
               </div>
               <div class="detail-row">
                 <span class="detail-label">Araç Tipi:</span>
-                <span class="detail-value">${reservation.vehicleType === 'standard' ? 'Standart' : reservation.vehicleType === 'premium' ? 'Premium' : 'Lüks'}</span>
+                <span class="detail-value">${getVehicleTypeDisplayName(reservation.vehicleType)}</span>
               </div>
               <div class="detail-row">
                 <span class="detail-label">Mesafe:</span>
