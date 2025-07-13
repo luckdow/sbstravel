@@ -105,6 +105,7 @@ interface StoreState {
   // Mock data initialization
   initializeMockData: () => void;
   settings: SystemSettings | null;
+  fetchSettings: () => Promise<void>;
 }
 
 interface DriverFinancials {
@@ -126,6 +127,13 @@ interface SystemSettings {
     phone: string;
     email: string;
     address: string;
+    bankName?: string;
+    iban?: string;
+  };
+  payment?: {
+    paytr?: {
+      enabled: boolean;
+    };
   };
 }
 
@@ -587,6 +595,61 @@ export const useStore = create<StoreState>((set, get) => ({
       vehiclesInUse: vehicles.filter(v => v.status === 'in-use').length,
       pendingReservations: reservations.filter(r => r.status === 'pending').length
     };
+  },
+
+  // Settings
+  fetchSettings: async () => {
+    try {
+      // Initialize default settings if not present
+      const defaultSettings: SystemSettings = {
+        pricing: {
+          standard: 3.5,
+          premium: 5.0,
+          luxury: 8.0,
+          commissionRate: 0.25
+        },
+        company: {
+          name: 'SBS TRAVEL Ltd. Şti.',
+          phone: '+90 242 123 45 67',
+          email: 'info@sbstravel.com',
+          address: 'Antalya, Turkey',
+          bankName: 'Türkiye İş Bankası',
+          iban: 'TR12 0006 4000 0011 2345 6789 01'
+        },
+        payment: {
+          paytr: {
+            enabled: false
+          }
+        }
+      };
+      
+      set({ settings: defaultSettings });
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+      // Set default settings even if fetch fails
+      const defaultSettings: SystemSettings = {
+        pricing: {
+          standard: 3.5,
+          premium: 5.0,
+          luxury: 8.0,
+          commissionRate: 0.25
+        },
+        company: {
+          name: 'SBS TRAVEL Ltd. Şti.',
+          phone: '+90 242 123 45 67',
+          email: 'info@sbstravel.com',
+          address: 'Antalya, Turkey',
+          bankName: 'Türkiye İş Bankası',
+          iban: 'TR12 0006 4000 0011 2345 6789 01'
+        },
+        payment: {
+          paytr: {
+            enabled: false
+          }
+        }
+      };
+      set({ settings: defaultSettings });
+    }
   },
 
   // Mock data initialization
