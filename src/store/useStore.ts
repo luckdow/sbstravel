@@ -321,9 +321,18 @@ export const useStore = create<StoreState>((set, get) => ({
         id: doc.id,
         ...doc.data()
       })) as Vehicle[];
-      set({ vehicles, loading: false });
+      
+      // Only update vehicles if we got results, preserve existing ones if fetch fails/empty
+      if (vehicles.length > 0) {
+        console.log('Fetched vehicles from Firestore:', vehicles.length);
+        set({ vehicles, loading: false });
+      } else {
+        console.log('No vehicles fetched from Firestore, keeping existing vehicles');
+        set({ loading: false });
+      }
     } catch (error) {
       console.error('Error fetching vehicles:', error);
+      console.log('Fetch failed, keeping existing vehicles');
       set({ loading: false });
     }
   },
@@ -377,9 +386,18 @@ export const useStore = create<StoreState>((set, get) => ({
         id: doc.id,
         ...doc.data()
       })) as ExtraService[];
-      set({ extraServices, loading: false });
+      
+      // Only update services if we got results, preserve existing ones if fetch fails/empty
+      if (extraServices.length > 0) {
+        console.log('Fetched extra services from Firestore:', extraServices.length);
+        set({ extraServices, loading: false });
+      } else {
+        console.log('No extra services fetched from Firestore, keeping existing services');
+        set({ loading: false });
+      }
     } catch (error) {
       console.error('Error fetching extra services:', error);
+      console.log('Fetch failed, keeping existing extra services');
       set({ loading: false });
     }
   },
@@ -529,8 +547,10 @@ export const useStore = create<StoreState>((set, get) => ({
 
   // Mock data initialization
   initializeMockData: () => {
-    // Always initialize demo data for testing (comment out in production)
-    // if (isInitialized()) return;
+    // Check if already initialized to prevent reset during form interactions
+    if (isInitialized()) return;
+    
+    console.log('Initializing mock data for first time...');
     
     // Initialize with demo vehicles for testing the booking flow fixes
     const demoVehicles = [
