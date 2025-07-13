@@ -16,6 +16,7 @@ import ContactPage from './pages/ContactPage';
 import TransferInfoPage from './pages/TransferInfoPage';
 import FAQPage from './pages/FAQPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
+import ProfilePage from './pages/ProfilePage';
 
 // Admin Pages
 import AdminLoginPage from './pages/auth/AdminLoginPage';
@@ -82,6 +83,7 @@ function App() {
         <Route path="/transfer-info" element={<TransferInfoPage />} />
         <Route path="/faq" element={<FAQPage />} />
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
         
         {/* Admin Routes */}
         <Route path="/admin/login" element={<AdminLoginPage />} />

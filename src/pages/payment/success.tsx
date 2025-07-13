@@ -1,24 +1,81 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { useSearchParams } from 'react-router-dom';
-import { CheckCircle, Download, Share2, Mail, Phone, Calendar, MapPin, User, Home } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { CheckCircle, Download, Share2, Mail, Phone, Calendar, MapPin, User, Home, Loader2 } from 'lucide-react';
 import QRCode from 'react-qr-code';
+import { useStore } from '../../store/useStore';
+import toast from 'react-hot-toast';
 
 export default function PaymentSuccessPage() {
-  const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [isCreatingUser, setIsCreatingUser] = useState(false);
+  const [userCreated, setUserCreated] = useState(false);
+  const { addCustomer } = useStore();
+  
+  // Get transaction data from navigation state
+  const transactionData = location.state;
   
   const reservationData = {
-    id: searchParams.get('order_id') || 'RES-001',
-    transactionId: 'TXN_' + Date.now(),
-    amount: parseFloat(searchParams.get('amount') || '85.00'),
+    id: transactionData?.reservationId || 'RES-001',
+    transactionId: transactionData?.transaction?.id || 'TXN_' + Date.now(),
+    amount: transactionData?.transaction?.amount || 85.00,
     currency: 'USD',
-    customerName: decodeURIComponent(searchParams.get('customer') || 'Müşteri'),
-    route: 'Antalya Havalimanı → Kemer',
+    customerName: 'Müşteri', // Will be updated from transaction data
+    route: 'Antalya Havalimanı → Kemer', // Will be updated from transaction data
     date: new Date().toLocaleDateString('tr-TR'),
     time: '14:30',
     qrCode: 'QR_' + Date.now(),
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    isTestMode: transactionData?.isTestMode || false
   };
+
+  // Auto-create user account and redirect to profile
+  useEffect(() => {
+    const createUserAndRedirect = async () => {
+      if (isCreatingUser || userCreated) return;
+      
+      setIsCreatingUser(true);
+      
+      try {
+        // Simulate user creation (in real app, this would use the customer info from booking)
+        const mockCustomerInfo = {
+          firstName: 'Demo',
+          lastName: 'Kullanıcı',
+          email: 'demo@example.com',
+          phone: '+90 555 123 4567'
+        };
+
+        // Create customer account
+        const customerId = await addCustomer(mockCustomerInfo);
+        
+        if (customerId) {
+          console.log('User created successfully:', customerId);
+          setUserCreated(true);
+          
+          // Show success message
+          toast.success('Hesabınız oluşturuldu! Profil sayfasına yönlendiriliyorsunuz...');
+          
+          // Redirect to profile/dashboard after 3 seconds
+          setTimeout(() => {
+            navigate('/profile', { 
+              state: { 
+                newUser: true, 
+                reservationId: reservationData.id,
+                customerId: customerId
+              } 
+            });
+          }, 3000);
+        }
+      } catch (error) {
+        console.error('Error creating user:', error);
+        // Don't show error to user, continue with success page
+      } finally {
+        setIsCreatingUser(false);
+      }
+    };
+
+    createUserAndRedirect();
+  }, [addCustomer, navigate, reservationData.id, isCreatingUser, userCreated]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-20">
@@ -29,10 +86,32 @@ export default function PaymentSuccessPage() {
             <div className="inline-flex items-center justify-center w-24 h-24 bg-green-100 rounded-full mb-6">
               <CheckCircle className="h-12 w-12 text-green-600" />
             </div>
-            <h1 className="text-4xl font-bold text-gray-800 mb-4">🎉 Rezervasyon Tamamlandı!</h1>
+            <h1 className="text-4xl font-bold text-gray-800 mb-4">
+              🎉 Rezervasyon Tamamlandı!
+              {reservationData.isTestMode && <span className="text-lg text-blue-600 block mt-2">(Test Modu)</span>}
+            </h1>
             <p className="text-xl text-gray-600">
-              Transfer rezervasyonunuz başarıyla oluşturuldu ve ödemeniz alındı.
+              Transfer rezervasyonunuz başarıyla oluşturuldu{reservationData.isTestMode ? ' (test modunda)' : ' ve ödemeniz alındı'}.
             </p>
+            
+            {/* User creation status */}
+            {isCreatingUser && (
+              <div className="mt-6 p-4 bg-blue-50 rounded-xl">
+                <div className="flex items-center justify-center space-x-3">
+                  <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                  <span className="text-blue-700">Hesabınız oluşturuluyor...</span>
+                </div>
+              </div>
+            )}
+            
+            {userCreated && (
+              <div className="mt-6 p-4 bg-green-50 rounded-xl">
+                <div className="flex items-center justify-center space-x-3">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  <span className="text-green-700">Hesabınız oluşturuldu! Profil sayfasına yönlendiriliyorsunuz...</span>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -156,7 +235,7 @@ export default function PaymentSuccessPage() {
                 </div>
           {/* Navigation */}
           <div className="text-center mt-8 space-y-4">
-            <div className="text-center">
+            <div className="flex justify-center space-x-6">
               <Link
                 to="/"
                 className="inline-flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors text-sm"
@@ -164,13 +243,28 @@ export default function PaymentSuccessPage() {
                 <Home className="h-4 w-4" />
                 <span>Ana Sayfaya Dön</span>
               </Link>
+              
+              {userCreated && (
+                <Link
+                  to="/profile"
+                  className="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-800 transition-colors text-sm font-semibold"
+                >
+                  <User className="h-4 w-4" />
+                  <span>Profilime Git</span>
+                </Link>
+              )}
             </div>
             
             {/* Auto redirect message */}
             <div className="mt-6 p-4 bg-blue-50 rounded-xl">
               <p className="text-sm text-blue-700">
-                📧 Fatura e-posta adresinize gönderildi. QR kodunuzu kaydetmeyi unutmayın!
+                📧 {reservationData.isTestMode ? 'Test modunda email gönderimi simüle edildi' : 'Fatura e-posta adresinize gönderildi'}. QR kodunuzu kaydetmeyi unutmayın!
               </p>
+              {userCreated && (
+                <p className="text-sm text-green-700 mt-2">
+                  🎉 Hesabınız oluşturuldu! 3 saniye içinde profil sayfasına yönlendirileceksiniz.
+                </p>
+              )}
             </div>
           </div>
         </div>

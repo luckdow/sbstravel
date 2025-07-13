@@ -582,7 +582,7 @@ export default function BookingPage() {
                     if (currentStep === 2) {
                       console.log('Step 2 validation starting...');
                       
-                      // Validate customer info fields
+                      // Validate customer info fields only - NO reservation creation
                       const isValid = await trigger(['customerInfo.firstName', 'customerInfo.lastName', 'customerInfo.email', 'customerInfo.phone']);
                       
                       console.log('Step 2 validation result:', isValid);
@@ -592,27 +592,7 @@ export default function BookingPage() {
                         return;
                       }
                       
-                      // Check if price calculation is still in progress
-                      if (isCalculatingPrice) {
-                        toast.error('Fiyat hesaplaması devam ediyor, lütfen bekleyin');
-                        return;
-                      }
-                      
-                      // Validate that price calculation is available and valid
-                      if (!priceCalculation || !priceCalculation.distance || priceCalculation.totalPrice <= 0) {
-                        console.error('Price calculation validation failed:', {
-                          priceCalculation,
-                          isCalculatingPrice,
-                          hasDistance: !!priceCalculation?.distance,
-                          totalPrice: priceCalculation?.totalPrice
-                        });
-                        
-                        toast.error('Fiyat hesaplaması tamamlanmamış. Lütfen bir önceki adıma dönüp bilgileri kontrol edin.');
-                        return;
-                      }
-                      
-                      console.log('Step 2 validation passed, moving to step 3');
-                      console.log('Price calculation valid:', priceCalculation);
+                      console.log('Step 2 validation passed, moving to step 3 (no reservation creation)');
                       setCurrentStep(3);
                       return;
                     }
@@ -622,12 +602,11 @@ export default function BookingPage() {
                       console.log('Step 3 - payment section handles payment');
                     }
                   }}
-                  disabled={isCalculatingPrice || (currentStep === 1 && !watchedValues.destination?.name && totalPrice === 0) || (currentStep === 2 && (!priceCalculation || priceCalculation.totalPrice <= 0))}
+                  disabled={isCalculatingPrice || (currentStep === 1 && !watchedValues.destination?.name && totalPrice === 0)}
                   className="ml-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span>
                     {isCalculatingPrice ? 'Fiyat hesaplanıyor...' : 
-                     currentStep === 2 && (!priceCalculation || priceCalculation.totalPrice <= 0) ? 'Fiyat hesaplaması bekleniyor...' :
                      currentStep === 3 ? 'Ödeme Yap & Rezervasyonu Tamamla' : 'Devam Et'}
                   </span>
                   <ArrowRight className="h-5 w-5" />
