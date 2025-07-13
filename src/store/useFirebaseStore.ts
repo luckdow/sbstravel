@@ -66,12 +66,16 @@ export const useFirebaseStore = create<FirebaseState>((set, get) => ({
   // Create New Reservation
   createNewReservation: async (reservationData) => {
     try {
+      console.log('Creating new reservation with data:', reservationData);
+      
       // Generate QR code
       const qrCode = generateQRCode();
+      console.log('Generated QR code:', qrCode);
       
       // Check if customer exists, if not create one
       let customer = await getCustomerByEmail(reservationData.customerInfo.email);
       if (!customer) {
+        console.log('Creating new customer...');
         const customerId = await createCustomer({
           firstName: reservationData.customerInfo.firstName,
           lastName: reservationData.customerInfo.lastName,
@@ -85,6 +89,11 @@ export const useFirebaseStore = create<FirebaseState>((set, get) => ({
           totalReservations: 0,
           createdAt: new Date()
         };
+        console.log('Customer created successfully:', customerId);
+      } else {
+        console.log('Existing customer found:', customer.id);
+        // Update customer's total reservations
+        customer.totalReservations = (customer.totalReservations || 0) + 1;
       }
 
       // Create reservation
@@ -111,12 +120,14 @@ export const useFirebaseStore = create<FirebaseState>((set, get) => ({
         status: 'pending',
         qrCode,
         paymentStatus: 'completed', // Assuming payment is completed
-        additionalServices: []
+        additionalServices: reservationData.additionalServices || []
       };
 
+      console.log('Creating reservation in Firebase...');
       const reservationId = await createReservation(reservation);
+      console.log('Reservation created with ID:', reservationId);
       
-      // Update local state
+      // Create full reservation object for notifications
       const newReservation: Reservation = { 
         id: reservationId, 
         ...reservation,
@@ -124,16 +135,35 @@ export const useFirebaseStore = create<FirebaseState>((set, get) => ({
         updatedAt: new Date()
       };
       
+      // Update local state
       set(state => ({
         reservations: [newReservation, ...state.reservations]
       }));
+
+      try {
+        // Send automated email notification with QR code
+        console.log('Sending email notification...');
+        const { emailService } = await import('../lib/email-service');
+        const emailSent = await emailService.sendReservationConfirmation(newReservation, qrCode);
+        
+        if (emailSent) {
+          console.log('✅ Email notification sent successfully');
+          toast.success('Rezervasyon oluşturuldu! Onay e-postası gönderildi.');
+        } else {
+          console.warn('⚠️ Email notification failed');
+          toast.success('Rezervasyon oluşturuldu!');
+        }
+      } catch (emailError) {
+        console.error('Email notification error:', emailError);
+        toast.success('Rezervasyon oluşturuldu!');
+      }
       
-      toast.success('Rezervasyon başarıyla oluşturuldu!');
       return reservationId;
       
     } catch (error) {
       console.error('Error creating reservation:', error);
-      toast.error('Rezervasyon oluşturulurken hata oluştu');
+      const errorMessage = error instanceof Error ? error.message : 'Rezervasyon oluşturulurken hata oluştu';
+      toast.error(errorMessage);
       return null;
     }
   },
@@ -150,6 +180,21 @@ export const useFirebaseStore = create<FirebaseState>((set, get) => ({
         const reservation = get().reservations.find(r => r.id === id);
         if (reservation) {
           await createCommission(id, driverId, reservation.totalPrice);
+          
+          // Send driver notification with QR code
+          try {
+            console.log('Sending driver notification...');
+            const { emailService } = await import('../lib/email-service');
+            const emailSent = await emailService.sendDriverNotification(driverId, reservation, reservation.qrCode);
+            
+            if (emailSent) {
+              console.log('✅ Driver notification sent successfully');
+            } else {
+              console.warn('⚠️ Driver notification failed');
+            }
+          } catch (emailError) {
+            console.error('Driver notification error:', emailError);
+          }
         }
       }
 
@@ -163,7 +208,7 @@ export const useFirebaseStore = create<FirebaseState>((set, get) => ({
       }));
 
       if (driverId && status === 'assigned') {
-        toast.success('Şoför başarıyla atandı!');
+        toast.success('Şoför başarıyla atandı ve bilgilendirildi!');
       } else {
         toast.success('Rezervasyon durumu güncellendi!');
       }
