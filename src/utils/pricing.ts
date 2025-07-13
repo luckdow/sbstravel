@@ -1,3 +1,5 @@
+import { useStore } from '../store/useStore';
+
 export const VEHICLE_PRICING = {
   standard: 4.5, // USD per KM
   premium: 6.5,  // USD per KM
@@ -14,7 +16,7 @@ export function calculatePriceStatic(distance: number, vehicleType: keyof typeof
   return distance * VEHICLE_PRICING[vehicleType];
 }
 
-// Main async pricing function that uses dynamic data
+// Main async pricing function that uses dynamic data from admin panel
 export async function calculatePrice(params: {
   destination: string;
   vehicleType: string;
@@ -29,6 +31,9 @@ export async function calculatePrice(params: {
   total: number;
   totalPrice: number;
 }> {
+  // Get store instance to access vehicles and extra services data
+  const store = useStore.getState();
+  
   // For now, use a mock distance calculation based on destination
   // This should be replaced with Google Maps API integration
   const mockDistances: { [key: string]: number } = {
@@ -45,36 +50,43 @@ export async function calculatePrice(params: {
   const destinationKey = params.destination.toLowerCase();
   const distance = mockDistances[destinationKey] || mockDistances['default'];
   
-  // Get vehicle pricing (should come from admin panel in future)
-  const vehiclePricing = {
-    standard: 4.5,
-    premium: 6.5,
-    luxury: 8.5
-  };
+  // Get vehicle pricing from admin panel vehicles store
+  let pricePerKm = VEHICLE_PRICING.standard; // Fallback to default
+  
+  if (store.vehicles && store.vehicles.length > 0) {
+    const selectedVehicle = store.vehicles.find(v => 
+      v.type === params.vehicleType || v.id === params.vehicleType
+    );
+    if (selectedVehicle && selectedVehicle.pricePerKm) {
+      // Convert from TL to USD (assuming pricePerKm is in TL, convert to USD)
+      // Using approximate rate: 1 USD = 30 TL
+      pricePerKm = selectedVehicle.pricePerKm / 30;
+    }
+  }
 
-  const pricePerKm = vehiclePricing[params.vehicleType as keyof typeof vehiclePricing] || vehiclePricing.standard;
   const basePrice = distance * pricePerKm;
   
-  // Calculate extra services price (mock data for now)
-  const servicePrices: { [key: string]: number } = {
-    'baby-seat': 15,
-    'meet-greet': 10,
-    'extra-stop': 25,
-    'wifi': 5
-  };
-  
-  const servicesPrice = params.extraServices.reduce((total, serviceId) => {
-    return total + (servicePrices[serviceId] || 0);
-  }, 0);
+  // Calculate extra services price using dynamic data from admin panel
+  let servicesPrice = 0;
+  if (store.extraServices && store.extraServices.length > 0 && params.extraServices.length > 0) {
+    servicesPrice = params.extraServices.reduce((total, serviceId) => {
+      const service = store.extraServices.find(s => s.id === serviceId);
+      if (service) {
+        // Convert service price from TL to USD
+        return total + (service.price / 30);
+      }
+      return total;
+    }, 0);
+  }
 
   const total = basePrice + servicesPrice;
 
   return {
     distance,
-    basePrice,
-    servicesPrice,
-    total,
-    totalPrice: total
+    basePrice: Math.round(basePrice * 100) / 100, // Round to 2 decimal places
+    servicesPrice: Math.round(servicesPrice * 100) / 100,
+    total: Math.round(total * 100) / 100,
+    totalPrice: Math.round(total * 100) / 100
   };
 }
 

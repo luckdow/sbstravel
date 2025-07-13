@@ -53,7 +53,13 @@ export default function BookingPage() {
   const [reservationId, setReservationId] = useState<string | null>(null);
   const [qrCode, setQrCode] = useState<string | null>(null);
   
-  const { vehicles, extraServices, settings, createNewReservation, addCustomer } = useStore();
+  const { vehicles, extraServices, settings, createNewReservation, addCustomer, fetchVehicles, fetchExtraServices } = useStore();
+
+  // Fetch vehicles and extra services when component mounts
+  useEffect(() => {
+    fetchVehicles();
+    fetchExtraServices();
+  }, [fetchVehicles, fetchExtraServices]);
 
   const {
     register,
@@ -404,7 +410,7 @@ export default function BookingPage() {
                       <div className="flex justify-between items-center">
                         <span className="text-lg font-semibold text-gray-900">Toplam Tutar:</span>
                         <span className="text-2xl font-bold text-blue-600">
-                          {isCalculatingPrice ? 'Hesaplanıyor...' : totalPrice > 0 ? `${totalPrice} TL` : '189 TL'}
+                          {isCalculatingPrice ? 'Hesaplanıyor...' : totalPrice > 0 ? `$${totalPrice}` : '$63'}
                         </span>
                       </div>
                       {totalPrice === 0 && (
@@ -473,7 +479,6 @@ export default function BookingPage() {
                         toast.error('Lütfen transfer saatini seçin');
                         return;
                       }
-                      // Remove the totalPrice check to allow progress
                       
                       setCurrentStep(2);
                       return;
