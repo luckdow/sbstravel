@@ -83,11 +83,6 @@ export default function Header() {
                 <span className="font-medium">Giriş Yap</span>
               </Link>
             )}
-             
-            <Link to="/booking" className="relative group bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/25 hover:scale-105">
-              <span className="relative z-10">Rezervasyon</span>
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </Link>
           </div>
           
           <nav className="hidden lg:flex items-center space-x-8">
@@ -121,12 +116,7 @@ export default function Header() {
               <div>
                 <p className="font-semibold">0850 123 45 67</p>
                 <p className="text-xs opacity-75">7/24 Destek</p>
-              </div>
-            </div>
-            <Link to="/booking" className="relative group bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/25 hover:scale-105"> 
-              <span className="relative z-10">Rezervasyon</span>
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </Link>
+            )}
           </div>
           
           {/* Customer Login/Profile Button */}
