@@ -39,8 +39,8 @@ export default function CustomerInfoForm({
   const getTotalServicesCost = () => {
     return (watchedValues.extraServices || []).reduce((total: number, serviceId: string) => {
       const service = extraServices.find(s => s.id === serviceId);
-      // Convert from TL to USD
-      return total + ((service?.price || 0) / 30);
+      // Use service price directly as specified in requirements
+      return total + (service?.price || 0);
     }, 0);
   };
 

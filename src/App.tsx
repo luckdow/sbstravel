@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import ErrorBoundary from './components/Error/ErrorBoundary';
+import { useStore } from './store/useStore';
 
 // Test Component
 import SimpleTest from './components/SimpleTest';
@@ -53,6 +54,13 @@ import QuickAccess from './components/Navigation/QuickAccess';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
 
 function App() {
+  const { initializeMockData } = useStore();
+  
+  // Initialize demo data for testing
+  useEffect(() => {
+    initializeMockData();
+  }, [initializeMockData]);
+
   return (
     <ErrorBoundary
       onError={(error, errorInfo) => {
