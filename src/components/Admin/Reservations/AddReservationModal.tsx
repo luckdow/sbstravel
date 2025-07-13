@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, User, MapPin, Calendar, Clock, Car, Users, Package } from 'lucide-react';
+import { X, User, MapPin, Calendar, Clock, Car, Users, Package, Plane } from 'lucide-react';
 import { useStore } from '../../../store/useStore';
 import toast from 'react-hot-toast';
 
