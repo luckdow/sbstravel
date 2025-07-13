@@ -31,7 +31,7 @@ export default function TransferHero() {
               <div className="space-y-6">
                 <div className="flex items-center space-x-3">
                   <div className="flex items-center space-x-1">
-                    {[...Array(5)].map((_, i) => (
+                    {[...Array(5)].map((star, i) => (
                       <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
                     ))}
                   </div>
