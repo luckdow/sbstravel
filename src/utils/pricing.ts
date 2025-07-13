@@ -1,147 +1,151 @@
-// sbstravel-main/src/utils/pricing.ts
+import { useStore } from '../store/useStore';
+import { googleMapsService } from '../lib/google-maps';
+import { ANTALYA_AIRPORT } from '../config/google-maps';
 
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
-import { calculateDistance } from './googleMaps'; // calculateDistance fonksiyonunun projenizde olduğunu varsayıyoruz
+export const VEHICLE_PRICING = {
+  standard: 4.5, // USD per KM
+  premium: 6.5,  // USD per KM
+  luxury: 8.5    // USD per KM
+} as const;
 
-// Firestore veritabanı bağlantısı
-const db = getFirestore();
+export const COMMISSION_RATES = {
+  company: 0.25, // 25% to company
+  driver: 0.75   // 75% to driver
+} as const;
 
-// Ekstra servis ücretlerini ve son alınma zamanını önbelleğe almak için değişkenler
-let extraServicesCache: { [key: string]: number } = {};
-let extraServicesLastFetched = 0;
-
-/**
- * Firestore'dan ekstra servis ücretlerini çeker ve 5 dakika boyunca önbellekte tutar.
- */
-async function getExtraServices(): Promise<{ [key: string]: number }> {
-  const now = Date.now();
-  // Önbellek 5 dakikadan daha yeniyse ve boş değilse, önbellekten dön
-  if (now - extraServicesLastFetched < 300000 && Object.keys(extraServicesCache).length > 0) {
-    return extraServicesCache;
-  }
-
-  try {
-    const servicesDocRef = doc(db, 'config', 'extraServices');
-    const servicesDocSnap = await getDoc(servicesDocRef);
-
-    if (servicesDocSnap.exists()) {
-      const servicesData = servicesDocSnap.data();
-      // Firestore'dan gelen veriyi { serviceKey: price } formatına dönüştür
-      extraServicesCache = Object.entries(servicesData).reduce((acc, [key, value]) => {
-        if (typeof value === 'object' && value !== null && typeof value.price === 'number') {
-          acc[key] = value.price;
-        }
-        return acc;
-      }, {} as { [key: string]: number });
-
-      extraServicesLastFetched = now; // Son alınma zamanını güncelle
-      console.log('Fetched extra services from Firestore:', extraServicesCache);
-      return extraServicesCache;
-    } else {
-      console.error("Ekstra servis ayarları Firestore'da bulunamadı.");
-      return {};
-    }
-  } catch (error) {
-    console.error("Ekstra servisler alınırken hata oluştu:", error);
-    return {}; // Hata durumunda boş nesne dön
-  }
+// Static pricing for fallback
+export function calculatePriceStatic(distance: number, vehicleType: keyof typeof VEHICLE_PRICING): number {
+  return distance * VEHICLE_PRICING[vehicleType];
 }
 
-/**
- * Verilen parametrelere göre transfer ücretini hesaplar.
- */
+// Main async pricing function that uses Google Maps for accurate distance calculation
 export async function calculatePrice(params: {
-  destination: string | { name: string; [key: string]: any }; // Hedefin string veya nesne olabileceğini belirtir
-  vehicleType: string;
-  passengerCount: number;
-  luggageCount: number;
-  extraServices: string[];
-  transferType: string;
+  destination: string | { name: string; [key: string]: any }; // Allow destination to be string or object
+  vehicleType: string;
+  passengerCount: number;
+  luggageCount: number;
+  extraServices: string[];
+  transferType: string;
 }): Promise<{
-  distance: number;
-  basePrice: number;
-  servicesPrice: number;
-  total: number;
-  totalPrice: number;
+  distance: number;
+  basePrice: number;
+  servicesPrice: number;
+  total: number;
+  totalPrice: number;
 }> {
-  console.log('=== PRICE CALCULATION STARTED ===');
-  console.log('Destination:', params.destination);
-  console.log('Vehicle type:', params.vehicleType);
-  console.log('Transfer type:', params.transferType);
+  console.log('Calculating price for:', params);
 
-  // Gerekli alanların kontrolü
-  if (!params.destination || !params.vehicleType) {
-    console.log('Fiyat hesaplama atlandı - gerekli alanlar eksik');
-    const missingFields: { [key: string]: any } = {};
-    if (!params.destination) missingFields.destination = params.destination;
-    if (!params.vehicleType) missingFields.vehicleType = params.vehicleType;
-    console.log('Eksik alan kontrolü:', missingFields);
-    throw new Error("Gerekli alanlar eksik: Varış noktası ve araç tipi belirtilmelidir.");
-  }
-
-  console.log('Fiyat hesaplama parametreleri:', params);
-
-  // =================================================================
-  // *** HATA DÜZELTMESİ BURADA ***
-  // `destination` parametresini normalleştiriyoruz.
-  // Bu parametre, bir metin (örneğin "Kemer") veya Google Places'ten
-  // gelen bir konum nesnesi ({ name: "Kemer", ... }) olabilir.
-  // `destinationName` değişkeninin her zaman metin olmasını sağlıyoruz.
+  // *** FIX STARTS HERE ***
+  // Normalize destination parameter. It can be a string or a location object from Google Places.
+  // We need to ensure we pass a string or a compatible LatLng object to the mapping service.
   const destinationName = typeof params.destination === 'string'
     ? params.destination
     : params.destination.name;
-  // *** HATA DÜZELTMESİ SONU ***
-  // =================================================================
+  // *** FIX ENDS HERE ***
+  
+  // Get store instance to access vehicles and extra services data
+  const store = useStore.getState();
+  
+  let distance = 45; // Default fallback distance
+  
+  try {
+    // Use Google Maps to get accurate distance
+    const origin = params.transferType === 'airport-hotel' ? ANTALYA_AIRPORT : destinationName;
+    const destinationForRoute = params.transferType === 'airport-hotel' ? destinationName : ANTALYA_AIRPORT;
+    
+    console.log('Calculating route from', origin, 'to', destinationForRoute);
+        
+    const routeResult = await googleMapsService.calculateRoute(origin, destinationForRoute);
+    
+    if (routeResult && routeResult.distance > 0) {
+      distance = routeResult.distance;
+      console.log(`Google Maps distance: ${distance}km`);
+    } else {
+      console.warn('Google Maps failed, using fallback distance calculation');
+      // Fallback to static distance calculation
+      const mockDistances: { [key: string]: number } = {
+        'kemer': 42,
+        'antalya': 12,
+        'belek': 35,
+        'side': 65,
+        'alanya': 120,
+        'kas': 190,
+        'kalkan': 200,
+        'default': 45
+      };
 
-  // Araç bilgilerini Firestore'dan al
-  const vehicleDocRef = doc(db, 'vehicles', params.vehicleType);
-  const vehicleSnap = await getDoc(vehicleDocRef);
+      const destinationKey = destinationName.toLowerCase();
+      distance = mockDistances[destinationKey] || mockDistances['default'];
+      console.log(`Using fallback distance for ${destinationKey}: ${distance}km`);
+    }
+  } catch (error) {
+    console.error('Error calculating distance with Google Maps:', error);
+    // Use fallback distance calculation
+    const mockDistances: { [key: string]: number } = {
+      'kemer': 42,
+      'antalya': 12,
+      'belek': 35,
+      'side': 65,
+      'alanya': 120,
+      'kas': 190,
+      'kalkan': 200,
+      'default': 45
+    };
 
-  if (!vehicleSnap.exists()) {
-    console.error("Araç bulunamadı!");
-    throw new Error('Seçilen araç veritabanında bulunamadı!');
-  }
+    const destinationKey = destinationName.toLowerCase();
+    distance = mockDistances[destinationKey] || mockDistances['default'];
+    console.log(`Error fallback - using distance for ${destinationKey}: ${distance}km`);
+  }
+  
+  // Get vehicle pricing from admin panel vehicles store - use pricePerKm directly
+  let pricePerKm = VEHICLE_PRICING.standard; // Fallback to default
+  
+  if (store.vehicles && store.vehicles.length > 0) {
+    const selectedVehicle = store.vehicles.find(v => 
+      v.type === params.vehicleType || v.id === params.vehicleType
+    );
+    if (selectedVehicle && selectedVehicle.pricePerKm) {
+      // Use admin panel pricePerKm directly as specified in requirements - NO CURRENCY CONVERSION
+      pricePerKm = selectedVehicle.pricePerKm;
+      console.log(`Using vehicle pricePerKm: ${pricePerKm}`);
+    }
+  } else {
+    console.log(`Using fallback pricePerKm for ${params.vehicleType}: ${pricePerKm}`);
+  }
 
-  const vehicleData = vehicleSnap.data();
-  const pricePerKm = vehicleData.pricePerKm;
+  const basePrice = distance * pricePerKm;
+  
+  // Calculate extra services price using dynamic data from admin panel - use price directly 
+  let servicesPrice = 0;
+  if (store.extraServices && store.extraServices.length > 0 && params.extraServices.length > 0) {
+    servicesPrice = params.extraServices.reduce((total, serviceId) => {
+      const service = store.extraServices.find(s => s.id === serviceId);
+      if (service) {
+        // Use service price directly as specified in requirements - NO CURRENCY CONVERSION
+        console.log(`Adding service ${service.name}: ${service.price}`);
+        return total + service.price;
+      }
+      return total;
+    }, 0);
+  }
 
-  if (typeof pricePerKm !== 'number') {
-      console.error('Geçersiz pricePerKm değeri:', pricePerKm);
-      throw new Error('Araç için geçerli bir kilometre ücreti bulunamadı.');
-  }
-  console.log(`Kullanılan araç km ücreti: ${pricePerKm}`);
+  const total = basePrice + servicesPrice;
 
-  // Başlangıç noktasını sabit olarak belirliyoruz (Örn: Antalya Havalimanı)
-  const origin = { lat: 36.8987, lng: 30.8005 };
+  const result = {
+    distance,
+    basePrice: Math.round(basePrice * 100) / 100, // Round to 2 decimal places
+    servicesPrice: Math.round(servicesPrice * 100) / 100,
+    total: Math.round(total * 100) / 100,
+    totalPrice: Math.round(total * 100) / 100
+  };
+  
+  console.log('Price calculation result:', result);
+  return result;
+}
 
-  // Mesafeyi hesapla
-  console.log(`Rota hesaplanıyor:`, origin, `-> ${destinationName}`);
-  const distanceInKm = await calculateDistance(origin, destinationName);
-  console.log(`Google Maps mesafesi: ${distanceInKm}km`);
-
-  // Temel ücreti hesapla (mesafe * km ücreti)
-  const basePrice = distanceInKm * pricePerKm;
-
-  // Ekstra servislerin toplam ücretini hesapla
-  const allExtraServices = await getExtraServices();
-  const servicesPrice = params.extraServices.reduce((total, serviceKey) => {
-    return total + (allExtraServices[serviceKey] || 0);
-  }, 0);
-
-  // Toplam ücreti hesapla
-  const total = basePrice + servicesPrice;
-
-  const result = {
-    distance: distanceInKm,
-    basePrice,
-    servicesPrice,
-    total,
-    totalPrice: total, // Bazı API'ler bu alanı bekleyebilir diye ekliyoruz
-  };
-
-  console.log('Fiyat hesaplama sonucu:', result);
-  console.log('✅ Fiyat hesaplama başarılı:', result);
-  console.log('=== PRICE CALCULATION ENDED ===');
-
-  return result;
+export function calculateCommission(totalAmount: number) {
+  return {
+    companyShare: totalAmount * COMMISSION_RATES.company,
+    driverShare: totalAmount * COMMISSION_RATES.driver
+  };
 }
