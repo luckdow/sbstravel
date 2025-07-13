@@ -57,6 +57,10 @@ export default function BookingPage() {
 
   // Fetch vehicles and extra services when component mounts
   useEffect(() => {
+    // Initialize demo data first, then try to fetch from Firestore
+    const { initializeMockData } = useStore.getState();
+    initializeMockData();
+    
     fetchVehicles();
     fetchExtraServices();
   }, [fetchVehicles, fetchExtraServices]);

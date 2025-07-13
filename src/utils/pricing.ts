@@ -50,7 +50,7 @@ export async function calculatePrice(params: {
   const destinationKey = params.destination.toLowerCase();
   const distance = mockDistances[destinationKey] || mockDistances['default'];
   
-  // Get vehicle pricing from admin panel vehicles store
+  // Get vehicle pricing from admin panel vehicles store - use pricePerKm directly
   let pricePerKm = VEHICLE_PRICING.standard; // Fallback to default
   
   if (store.vehicles && store.vehicles.length > 0) {
@@ -58,20 +58,20 @@ export async function calculatePrice(params: {
       v.type === params.vehicleType || v.id === params.vehicleType
     );
     if (selectedVehicle && selectedVehicle.pricePerKm) {
-      // Use admin panel pricePerKm directly as specified in requirements
+      // Use admin panel pricePerKm directly as specified in requirements - NO CURRENCY CONVERSION
       pricePerKm = selectedVehicle.pricePerKm;
     }
   }
 
   const basePrice = distance * pricePerKm;
   
-  // Calculate extra services price using dynamic data from admin panel
+  // Calculate extra services price using dynamic data from admin panel - use price directly 
   let servicesPrice = 0;
   if (store.extraServices && store.extraServices.length > 0 && params.extraServices.length > 0) {
     servicesPrice = params.extraServices.reduce((total, serviceId) => {
       const service = store.extraServices.find(s => s.id === serviceId);
       if (service) {
-        // Use service price directly as specified in requirements
+        // Use service price directly as specified in requirements - NO CURRENCY CONVERSION
         return total + service.price;
       }
       return total;
