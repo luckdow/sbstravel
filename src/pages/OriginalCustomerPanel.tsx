@@ -447,11 +447,20 @@ export default function OriginalCustomerPanel() {
               {selectedReservation.driverId && (
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h4 className="font-semibold text-gray-900 mb-3">Şoför Bilgileri</h4>
-                  <div className="flex items-center space-x-3">
-                    <User className="w-5 h-5 text-gray-600" />
-                    <div>
-                      <p className="text-sm text-gray-600">Şoför</p>
-                      <p className="font-medium">{selectedReservation.driverName || 'Atanmış Şoför'}</p>
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-3">
+                      <User className="w-5 h-5 text-gray-600" />
+                      <div>
+                        <p className="text-sm text-gray-600">Şoför</p>
+                        <p className="font-medium">{selectedReservation.driverName || 'Atanmış Şoför'}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <Car className="w-5 h-5 text-gray-600" />
+                      <div>
+                        <p className="text-sm text-gray-600">Araç Plakası</p>
+                        <p className="font-medium">{selectedReservation.vehiclePlate || selectedReservation.licensePlate || 'Belirtilmemiş'}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
