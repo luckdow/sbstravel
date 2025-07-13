@@ -8,7 +8,7 @@ import { useStore } from '../../store/useStore';
 import toast from 'react-hot-toast';
 
 interface PaymentSectionProps {
-  priceCalculation: PriceCalculation;
+  priceCalculation: PriceCalculation | null;
   bookingData: BookingFormData;
   onPaymentSuccess?: (transactionId: string) => void;
   reservationId?: string;
@@ -33,6 +33,21 @@ export default function PaymentSection({
     fetchSettings();
   }, [fetchSettings]);
 
+  // Show loading state if price calculation is not available
+  if (!priceCalculation) {
+    return (
+      <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">Ödeme Bilgileri</h2>
+        <div className="text-center py-8">
+          <div className="text-gray-600">Fiyat bilgisi yükleniyor...</div>
+          <div className="mt-4 text-sm text-gray-500">
+            Lütfen bekleyin veya bir önceki adıma dönüp bilgileri kontrol edin.
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const handlePayment = async () => {
     if (!termsAccepted) {
       toast.error('Lütfen kullanım şartlarını kabul edin');
@@ -41,6 +56,11 @@ export default function PaymentSection({
 
     if (!bookingData.customerInfo) {
       toast.error('Müşteri bilgileri eksik');
+      return;
+    }
+
+    if (!priceCalculation) {
+      toast.error('Fiyat bilgisi eksik - lütfen sayfayı yenileyin');
       return;
     }
 
@@ -64,7 +84,7 @@ export default function PaymentSection({
       // Create transaction
       const transaction = await transactionService.createTransaction({
         reservationId: currentReservationId || 'temp_' + Date.now(),
-        amount: priceCalculation.totalPrice,
+        amount: priceCalculation?.totalPrice || 0,
         currency: 'USD',
         customerInfo: bookingData.customerInfo,
         reservationData: {
@@ -80,7 +100,7 @@ export default function PaymentSection({
       // Process payment
       const result = await transactionService.processPayment(transaction.id, {
         reservationId: currentReservationId || 'temp_' + Date.now(),
-        amount: priceCalculation.totalPrice,
+        amount: priceCalculation?.totalPrice || 0,
         currency: 'USD',
         customerInfo: bookingData.customerInfo,
         reservationData: {
@@ -339,7 +359,7 @@ export default function PaymentSection({
               
               <div className="flex justify-between">
                 <span className="text-gray-600">Mesafe:</span>
-                <span className="font-semibold text-gray-800">{priceCalculation.distance.toFixed(1)} km</span>
+                <span className="font-semibold text-gray-800">{priceCalculation?.distance?.toFixed(1) || '0'} km</span>
               </div>
 
               {bookingData.flightNumber && (
@@ -353,19 +373,19 @@ export default function PaymentSection({
             <div className="border-t border-gray-200 mt-4 pt-4">
               <div className="flex justify-between">
                 <span className="text-gray-600">Transfer Ücreti:</span>
-                <span className="font-semibold text-gray-800">${priceCalculation.basePrice.toFixed(2)}</span>
+                <span className="font-semibold text-gray-800">${priceCalculation?.basePrice?.toFixed(2) || '0.00'}</span>
               </div>
               
-              {priceCalculation.additionalServicesCost > 0 && (
+              {(priceCalculation?.additionalServicesCost || 0) > 0 && (
                 <div className="flex justify-between">
                   <span className="text-gray-600">Ek Hizmetler:</span>
-                  <span className="font-semibold text-gray-800">+${priceCalculation.additionalServicesCost.toFixed(2)}</span>
+                  <span className="font-semibold text-gray-800">+${priceCalculation?.additionalServicesCost?.toFixed(2) || '0.00'}</span>
                 </div>
               )}
               
               <div className="flex justify-between text-lg font-bold text-gray-800 mt-2 pt-2 border-t border-gray-200">
                 <span>Toplam:</span>
-                <span className="text-blue-600">${priceCalculation.totalPrice.toFixed(2)}</span>
+                <span className="text-blue-600">${priceCalculation?.totalPrice?.toFixed(2) || '0.00'}</span>
               </div>
             </div>
           </div>
@@ -389,8 +409,8 @@ export default function PaymentSection({
                 <Lock className="h-5 w-5" />
                 <span>
                   {paymentMethod === 'credit-card' 
-                    ? `Ödeme Yap & Rezervasyonu Tamamla - $${priceCalculation.totalPrice.toFixed(2)}`
-                    : `Havale Bilgilerini Al & Rezervasyonu Tamamla - $${priceCalculation.totalPrice.toFixed(2)}`
+                    ? `Ödeme Yap & Rezervasyonu Tamamla - $${priceCalculation?.totalPrice?.toFixed(2) || '0.00'}`
+                    : `Havale Bilgilerini Al & Rezervasyonu Tamamla - $${priceCalculation?.totalPrice?.toFixed(2) || '0.00'}`
                   }
                 </span>
               </>
