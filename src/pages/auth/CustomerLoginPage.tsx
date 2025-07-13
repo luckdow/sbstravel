@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { User, Lock, Mail, Eye, EyeOff, Loader2 } from 'lucide-react';
-import { setCustomerSession } from '../../utils/customerSession';
+import { authService } from '../../lib/services/auth-service';
+import toast from 'react-hot-toast';
 import GoogleSignInButton from '../../components/GoogleSignInButton';
 
 export default function CustomerLoginPage() {
@@ -10,28 +11,21 @@ export default function CustomerLoginPage() {
   const [loading, setLoading] = useState(false);
   const [isRegister, setIsRegister] = useState(false);
   const navigate = useNavigate();
-  
-  const handleGoogleSuccess = async (user: { email: string; name: string }) => {
+
+  const handleGoogleSuccess = async (user: { email: string; name: string }, role?: string) => {
     try {
-      // Google ile giriş için oturum oluşturma
-      const nameParts = user.name?.split(' ') || ['Kullanıcı', ''];
-      const firstName = nameParts[0];
-      const lastName = nameParts.slice(1).join(' ') || '';
+      // For customer login, accept any role but authenticate in local system
+      const result = await authService.authenticateGoogleUser(user, 'customer');
       
-      // Kullanıcı oturumu oluştur
-      setCustomerSession({
-        customerId: user.id || 'google-' + Date.now(),
-        firstName,
-        lastName,
-        email: user.email,
-        phone: '',
-        createdAt: new Date()
-      });
-      
-      toast.success('Google ile giriş başarılı!');
-      navigate('/profile');
+      if (result.success) {
+        toast.success('Google ile giriş başarılı!');
+        navigate('/profile');
+      } else {
+        toast.error(result.error || 'Google ile giriş başarısız');
+      }
     } catch (error) {
-      console.error(error);
+      console.error('Google sign-in error:', error);
+      toast.error('Google ile giriş sırasında bir hata oluştu');
     }
   };
 
@@ -40,26 +34,30 @@ export default function CustomerLoginPage() {
     setLoading(true);
 
     try {
-      // Simplified login - just create a customer session
-      // In a real app, you would validate credentials against a database
+      const result = await authService.login(credentials);
       
-      // For demo purposes, accept any email/password
-      if (credentials.email && credentials.password) {
-        setCustomerSession({
-          customerId: 'email-' + Date.now(),
-          firstName: credentials.email.split('@')[0] || 'Müşteri',
-          lastName: 'Kullanıcı',
-          email: credentials.email,
-          phone: '',
-          createdAt: new Date()
-        });
-        toast.success('Giriş başarılı');
+      if (result.success) {
+        // Set customer session
+        if (result.user) {
+          setCustomerSession({
+            customerId: result.user.id,
+            firstName: result.user.firstName,
+            lastName: result.user.lastName,
+            email: result.user.email,
+            phone: result.user.phone || '',
+            createdAt: new Date()
+          });
+        }
+        
+        toast.success('Giriş başarılı!');
+        navigate('/profile');
+      } else {
+        toast.error(result.error || 'Giriş başarısız');
       }
-      navigate('/profile');
     } catch (error) {
       console.error('Login error:', error);
       toast.error('İşlem sırasında bir hata oluştu');
-    } finally { 
+    } finally {
       setLoading(false);
     }
   };
@@ -115,7 +113,7 @@ export default function CustomerLoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="text-purple-600 hover:text-purple-700 text-sm font-medium" 
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
@@ -145,7 +143,7 @@ export default function CustomerLoginPage() {
                 type="button"
                 onClick={() => {
                   if (credentials.email) {
-                    // Gerçek bir uygulamada burada şifre sıfırlama API'sine istek atılır
+                    authService.requestPasswordReset({ email: credentials.email });
                     toast.success('Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.');
                   } else {
                     toast.error('Lütfen e-posta adresinizi girin.');
@@ -168,7 +166,7 @@ export default function CustomerLoginPage() {
           {/* Google Sign In */}
           <GoogleSignInButton 
             onSuccess={handleGoogleSuccess}
-            className="w-full"
+            requiredRole="customer"
           />
 
           {/* Register Link */}

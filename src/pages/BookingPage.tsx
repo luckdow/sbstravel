@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'react-hot-toast';
 import { ArrowRight, Plane, Users, Calendar, Clock, MapPin, Car, CreditCard, Building2 } from 'lucide-react';
-import Header from '../components/Layout/Header';
+import Header from '../components/Header';
 import Footer from '../components/Footer';
 import LocationSearch from '../components/Booking/LocationSearch';
 import VehicleSelection from '../components/Booking/VehicleSelection';

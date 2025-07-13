@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, Lock, User, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { authService } from '../../lib/services/auth-service';
-import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
-import { auth } from '../../config/firebase';
 import toast from 'react-hot-toast';
 import GoogleSignInButton from '../../components/GoogleSignInButton';
 
@@ -13,17 +11,20 @@ export default function AdminLoginPage() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleGoogleSuccess = async (user: any) => {
+  const handleGoogleSuccess = async (user: { email: string; name: string }, role: string) => {
     try {
-      // Admin rolünü kontrol et
-      if (user.email === 'sbstravelinfo@gmail.com') {
-        // Admin yetkisi var
-        localStorage.setItem('adminToken', 'firebase-admin-token');
-        toast.success('Admin girişi başarılı!');
-        navigate('/admin');
+      if (role === 'admin') {
+        // Authenticate user in local auth service
+        const result = await authService.authenticateGoogleUser(user, 'admin');
+        
+        if (result.success) {
+          toast.success('Admin Google girişi başarılı!');
+          navigate('/admin');
+        } else {
+          toast.error(result.error || 'Google ile giriş başarısız');
+        }
       } else {
-        // Admin yetkisi yok
-        toast.error('Bu e-posta adresi admin yetkisine sahip değil');
+        toast.error('Bu hesap admin yetkisine sahip değil');
       }
     } catch (error) {
       console.error('Google sign-in error:', error);
@@ -159,7 +160,7 @@ export default function AdminLoginPage() {
           {/* Google Sign In */}
           <GoogleSignInButton 
             onSuccess={handleGoogleSuccess}
-            className="w-full"
+            requiredRole="admin"
           />
         </div>
       </div>
