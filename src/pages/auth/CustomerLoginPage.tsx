@@ -11,19 +11,6 @@ export default function CustomerLoginPage() {
   const [isRegister, setIsRegister] = useState(false);
   const navigate = useNavigate();
   
-  // Simplified Google success handler
-  const handleGoogleSuccess = (user: any) => {
-    // Create customer session with Google user data
-    setCustomerSession({
-      customerId: 'google-' + Date.now(),
-      firstName: user.name?.split(' ')[0] || 'Google',
-      lastName: user.name?.split(' ').slice(1).join(' ') || 'User',
-      email: user.email || '',
-      phone: '',
-      createdAt: new Date()
-    });
-  };
-
   const handleGoogleSuccess = async (user: { email: string; name: string }) => {
     try {
       // Google ile giriş için basitleştirilmiş oturum oluşturma
