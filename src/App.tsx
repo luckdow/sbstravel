@@ -17,6 +17,8 @@ import TransferInfoPage from './pages/TransferInfoPage';
 import FAQPage from './pages/FAQPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 import CustomerPanel from './pages/customer-panel';
+import OriginalCustomerPanel from './pages/OriginalCustomerPanel';
+import ReservationDetailPage from './pages/ReservationDetailPage';
 import CustomerReservationView from './pages/CustomerReservationView';
 
 // Admin Pages
@@ -84,9 +86,13 @@ function App() {
         <Route path="/transfer-info" element={<TransferInfoPage />} />
         <Route path="/faq" element={<FAQPage />} />
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
-        <Route path="/profile" element={<CustomerPanel />} />
         
-        {/* Customer Reservation View (QR Code redirect) */}
+        {/* Customer Panel Routes */}
+        <Route path="/profile" element={<OriginalCustomerPanel />} />
+        <Route path="/customer-panel" element={<CustomerPanel />} />
+        
+        {/* Reservation Routes */}
+        <Route path="/reservation/detail" element={<ReservationDetailPage />} />
         <Route path="/reservation/:reservationId" element={<CustomerReservationView />} />
         
         {/* Admin Routes */}
