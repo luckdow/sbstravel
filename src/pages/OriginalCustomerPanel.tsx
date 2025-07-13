@@ -42,8 +42,13 @@ export default function OriginalCustomerPanel() {
   // Check customer session and load data
   useEffect(() => {
     // Check for customer session
-    const sessionValid = isCustomerSessionValid();
-    console.log('Customer session valid:', sessionValid);
+    const session = getCustomerSession();
+    const sessionValid = session !== null;
+    console.log('[CustomerPanel] Customer session check:', { 
+      sessionValid, 
+      session: session ? 'exists' : 'missing',
+      email: session?.email
+    });
     
     if (!sessionValid) {
       // Check if user is coming from payment success with registration error
@@ -57,7 +62,6 @@ export default function OriginalCustomerPanel() {
       }
     }
 
-    const session = getCustomerSession();
     if (session) {
       console.log('Setting customer data from session:', session);
       setCustomerData(session);
@@ -342,7 +346,7 @@ export default function OriginalCustomerPanel() {
                           <div className="flex items-center space-x-2 text-gray-700">
                             <QrCode className="h-4 w-4 text-purple-600" />
                             <span className="text-sm cursor-pointer hover:text-blue-600" onClick={() => reservation.qrCode && generateQRCode(reservation)}>
-                              {reservation.qrCode ? 'QR Kodu Göster' : 'QR Kodu Yok'}
+                              QR Kodu Göster
                             </span>
                           </div>
                         </div>

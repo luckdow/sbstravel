@@ -11,7 +11,11 @@ export function getVehicleTypeDisplayName(vehicleType: string): string {
     case 'luxury':
       return 'Lüks VIP Transfer';
     default:
-      return vehicleType; // Fallback to original value
+      // Fallback to original value with capitalization
+      if (typeof vehicleType === 'string') {
+        return vehicleType.charAt(0).toUpperCase() + vehicleType.slice(1) + ' Transfer';
+      }
+      return 'Standart Transfer'; // Default fallback
   }
 }
 
@@ -20,7 +24,7 @@ export function getVehicleTypeFromId(id: string): string {
   // This handles cases where vehicle type is stored as an ID instead of the type itself
   if (id.length > 10) {
     // This is likely a technical ID, return a default or try to parse
-    return 'Belirtilmemiş';
+    return 'Standart Transfer';
   }
   return getVehicleTypeDisplayName(id);
 }

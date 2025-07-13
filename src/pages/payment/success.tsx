@@ -16,6 +16,7 @@ export default function PaymentSuccessPage() {
   const [userCreated, setUserCreated] = useState(false);
   const { addCustomer } = useStore();
   const [registrationError, setRegistrationError] = useState<string | null>(null);
+  const [redirecting, setRedirecting] = useState(false);
   
   // Get transaction data from navigation state
   const transactionData = location.state;
@@ -57,7 +58,7 @@ export default function PaymentSuccessPage() {
       if (isCreatingUser || userCreated) {
         return;
       }
-      
+
       setIsCreatingUser(true);
       
       try {
@@ -75,89 +76,47 @@ export default function PaymentSuccessPage() {
           if (customerId) {
             console.log('User created successfully:', customerId);
             
+            // Doğrudan müşteri oturumu oluştur
+            setCustomerSession({
+              customerId,
+              firstName: customerInfo.firstName,
+              lastName: customerInfo.lastName,
+              email: customerInfo.email,
+              phone: customerInfo.phone,
+              createdAt: new Date()
+            });
+
+            // Oturum bilgilerini localStorage'a doğrudan kaydet
+            localStorage.setItem('sbs_customer_session', JSON.stringify({
+              customerId,
+              firstName: customerInfo.firstName,
+              lastName: customerInfo.lastName,
+              email: customerInfo.email,
+              phone: customerInfo.phone,
+              createdAt: new Date().toISOString()
+            }));
+
             // Mark as created for this reservation to prevent duplicates
             localStorage.setItem(customerCreatedKey, customerId);
-            
-            // Create user account in auth system
-            try {
-              // Generate a random password for the user
-              const tempPassword = Math.random().toString(36).slice(-8);
-              
-              // Register the user in auth system
-              const registerResult = await authService.register({
-                firstName: customerInfo.firstName,
-                lastName: customerInfo.lastName,
-                email: customerInfo.email,
-                phone: customerInfo.phone,
-                password: tempPassword,
-                role: 'customer',
-                termsAccepted: true
-              });
-              
-              if (registerResult.success) {
-                console.log('User registered in auth system');
-                
-                // Auto login the user
-                const loginResult = await authService.login({
-                  email: customerInfo.email,
-                  password: tempPassword,
-                  rememberMe: true
-                });
-                
-                // Force save to localStorage to ensure it's available
-                localStorage.setItem('sbs_customer_session', JSON.stringify({
-                  customerId,
-                  firstName: customerInfo.firstName,
-                  lastName: customerInfo.lastName,
-                  email: customerInfo.email,
-                  phone: customerInfo.phone,
-                  createdAt: new Date().toISOString()
-                }));
-                
-                if (loginResult.success) {
-                  console.log('User auto-logged in');
-                  
-                  // Set customer session
-                  setCustomerSession({
-                    customerId,
-                    firstName: customerInfo.firstName,
-                    lastName: customerInfo.lastName,
-                    email: customerInfo.email,
-                    phone: customerInfo.phone,
-                    createdAt: new Date()
-                  });
-                  
-                  toast.success('Hesabınız oluşturuldu ve otomatik giriş yapıldı!');
-                } else {
-                  console.error('Auto-login failed:', loginResult.error);
-                  setRegistrationError('Otomatik giriş başarısız oldu. Lütfen manuel olarak giriş yapın.');
-                }
-              } else {
-                console.error('User registration failed:', registerResult.error);
-                setRegistrationError('Hesap oluşturma başarısız oldu. Lütfen manuel olarak kayıt olun.');
-              }
-            } catch (authError) {
-              console.error('Auth error:', authError);
-              setRegistrationError('Kimlik doğrulama hatası. Lütfen manuel olarak kayıt olun.');
-            }
             
             toast.success('Hesabınız oluşturuldu!');
           }
         }
         
         setUserCreated(true);
-        
-        // Redirect to customer panel after successful payment
+
+        // Yönlendirme işlemini başlat
+        setRedirecting(true);
         setTimeout(() => {
           navigate('/profile', { 
             state: {
               newReservation: true,
-              reservationId: currentReservationId,
+              reservationId: reservationData.id,
               registrationError: registrationError
             },
             replace: true 
           });
-        }, 2000);
+        }, 3000);
         
       } catch (error) {
         console.error('Error creating user:', error);
@@ -211,6 +170,18 @@ export default function PaymentSuccessPage() {
                 </div>
               </div>
             )}
+
+            {redirecting && (
+              <div className="mb-6">
+                <div className="flex items-center justify-center space-x-3 mb-4">
+                  <Loader2 className="h-6 w-6 animate-spin text-green-600" />
+                  <span className="text-lg text-green-700">Profil sayfanıza yönlendiriliyorsunuz...</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="bg-green-600 h-2 rounded-full animate-pulse" style={{ width: '80%' }}></div>
+                </div>
+              </div>
+            )}
             
             {userCreated && (
               <div className="mb-6">
@@ -229,7 +200,7 @@ export default function PaymentSuccessPage() {
                 Rezervasyon detaylarınız hazırlanıyor...
               </h3>
               <p className="text-gray-600 mb-4">
-                Kısa süre içinde rezervasyon detay sayfasına yönlendirileceksiniz.
+                Kısa süre içinde profil sayfanıza yönlendirileceksiniz.
               </p>
               {registrationError && (
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-left">
@@ -248,7 +219,7 @@ export default function PaymentSuccessPage() {
           <div className="bg-blue-50 rounded-xl p-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
               <div>
-                <div className="text-lg font-bold text-blue-800">Rezervasyon No</div>
+                <div className="text-lg font-bold text-blue-800">Rezervasyon</div>
                 <div className="text-blue-600">{reservationData.id}</div>
               </div>
               <div>
