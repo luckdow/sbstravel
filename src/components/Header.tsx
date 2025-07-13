@@ -20,7 +20,7 @@ export default function Header() {
     <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${
       isScrolled 
         ? 'bg-white/95 backdrop-blur-md shadow-xl border-b border-gray-100' 
-        : 'bg-black/10 backdrop-blur-sm'
+        : 'bg-black/20 backdrop-blur-md shadow-lg border-b border-white/10'
     }`}>
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
@@ -32,10 +32,10 @@ export default function Header() {
               </div>
             </div>
             <div>
-              <h1 className={`text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent`}>
+              <h1 className={`text-2xl font-bold ${isScrolled ? 'bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent' : 'text-white drop-shadow-lg'}`}>
                 SBS TRAVEL
               </h1>
-              <p className={`text-xs ${isScrolled ? 'text-gray-500' : 'text-white/80'}`}>Transfer Hizmeti</p>
+              <p className={`text-xs ${isScrolled ? 'text-gray-500' : 'text-white/90 drop-shadow-sm'}`}>Transfer Hizmeti</p>
             </div>
           </Link>
           
@@ -52,7 +52,7 @@ export default function Header() {
                 key={item}
                 to={item.href}
                 className={`relative font-medium transition-all duration-300 hover:scale-105 ${
-                  isScrolled ? 'text-gray-700 hover:text-blue-600' : 'text-white hover:text-blue-200 drop-shadow-lg'
+                  isScrolled ? 'text-gray-700 hover:text-blue-600' : 'text-white hover:text-blue-200 drop-shadow-lg font-semibold'
                 } group`}
               >
                 {item.name}
