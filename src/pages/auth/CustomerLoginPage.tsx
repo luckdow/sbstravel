@@ -3,7 +3,6 @@ import { useNavigate, Link } from 'react-router-dom';
 import { User, Lock, Mail, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { setCustomerSession } from '../../utils/customerSession';
 import GoogleSignInButton from '../../components/GoogleSignInButton';
-import { setCustomerSession } from '../../utils/customerSession';
 
 export default function CustomerLoginPage() {
   const [credentials, setCredentials] = useState({ email: '', password: '' });

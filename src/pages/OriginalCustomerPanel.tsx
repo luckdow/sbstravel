@@ -297,7 +297,8 @@ export default function OriginalCustomerPanel() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <>
+      <div className="min-h-screen bg-gray-50">
       <Header />
       
       <div className="pt-20 pb-12">
@@ -513,7 +514,6 @@ export default function OriginalCustomerPanel() {
         </Link>
       </div>
     </div>
-  </div>
   
   {/* Reservation Detail Modal */}
  {showDetailModal && selectedReservation && (
@@ -975,6 +975,6 @@ export default function OriginalCustomerPanel() {
   )}
   
   <Footer />
-</div>
+    </>
 );
 }
