@@ -5,12 +5,15 @@ import QRCodeDisplay from 'react-qr-code';
 import { getVehicleTypeDisplayName } from '../utils/vehicle';
 import { generateCustomerViewURL } from '../utils/qrCode';
 import { getCustomerSession, isCustomerSessionValid } from '../utils/customerSession';
+import { generateInvoicePDF } from '../utils/pdfGenerator';
 import { useStore } from '../store/useStore';
 import toast from 'react-hot-toast';
 
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
   confirmed: 'bg-blue-100 text-blue-800',
+  assigned: 'bg-purple-100 text-purple-800',
+  started: 'bg-indigo-100 text-indigo-800',
   completed: 'bg-green-100 text-green-800',
   cancelled: 'bg-red-100 text-red-800'
 };
@@ -18,12 +21,13 @@ const statusColors = {
 const statusLabels = {
   pending: 'Beklemede',
   confirmed: 'Onaylandı',
+  assigned: 'Şoför Atandı',
+  started: 'Transfer Başladı',
   completed: 'Tamamlandı',
   cancelled: 'İptal Edildi'
 };
 
 export default function CustomerPanel() {
-  const [activeTab, setActiveTab] = useState('reservations');
   const [selectedReservation, setSelectedReservation] = useState<any>(null);
   const [showQRModal, setShowQRModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -31,7 +35,7 @@ export default function CustomerPanel() {
   const [customerReservations, setCustomerReservations] = useState<any[]>([]);
   const navigate = useNavigate();
   const location = useLocation();
-  const { reservations, fetchReservations } = useStore();
+  const { reservations, fetchReservations, fetchSettings, drivers, fetchDrivers } = useStore();
 
   useEffect(() => {
     // Check for customer session
@@ -45,8 +49,12 @@ export default function CustomerPanel() {
     if (session) {
       setCustomerData(session);
       
-      // Fetch latest reservations
-      fetchReservations().then(() => {
+      // Fetch latest reservations, settings, and drivers
+      Promise.all([
+        fetchReservations(),
+        fetchSettings(),
+        fetchDrivers()
+      ]).then(() => {
         // Filter reservations for this customer
         const customerReservations = reservations.filter(r => 
           r.customerId === session.customerId || 
@@ -55,7 +63,7 @@ export default function CustomerPanel() {
         setCustomerReservations(customerReservations);
       });
     }
-  }, [navigate, fetchReservations]);
+  }, [navigate, fetchReservations, fetchSettings, fetchDrivers]);
 
   // Separate effect for one-time success notification
   useEffect(() => {
@@ -73,6 +81,20 @@ export default function CustomerPanel() {
     }
   }, []); // Empty dependency array - runs only once
 
+  // Helper function to get driver name
+  const getDriverName = (driverId: string) => {
+    const driver = drivers.find(d => d.id === driverId);
+    return driver ? `${driver.firstName} ${driver.lastName}` : 'Şoför';
+  };
+
+  // Helper function to get status display
+  const getStatusDisplay = (reservation: any) => {
+    if (reservation.status === 'assigned' && reservation.driverId) {
+      return `${statusLabels.assigned} - ${getDriverName(reservation.driverId)}`;
+    }
+    return statusLabels[reservation.status as keyof typeof statusLabels] || statusLabels.pending;
+  };
+
   const handleViewDetails = (reservation: any) => {
     setSelectedReservation(reservation);
     setShowDetailsModal(true);
@@ -83,9 +105,47 @@ export default function CustomerPanel() {
     setShowQRModal(true);
   };
 
-  const handleDownloadInvoice = (reservation: any) => {
-    // TODO: Implement invoice download functionality
-    alert(`Fatura indirilecek: ${reservation.id}`);
+  const handleDownloadInvoice = async (reservation: any) => {
+    try {
+      // Get system settings for company info
+      const { settings } = useStore.getState();
+      
+      if (!settings) {
+        toast.error('Sistem ayarları yüklenemedi. Lütfen tekrar deneyin.');
+        return;
+      }
+      
+      const invoiceData = {
+        reservation: {
+          id: reservation.id,
+          pickupLocation: reservation.pickupLocation,
+          dropoffLocation: reservation.dropoffLocation,
+          pickupDate: reservation.pickupDate,
+          pickupTime: reservation.pickupTime,
+          totalPrice: reservation.totalPrice || 0,
+          vehicleType: reservation.vehicleType || reservation.vehicle || 'standard',
+          customerName: customerData ? `${customerData.firstName} ${customerData.lastName}` : 'Müşteri',
+          customerEmail: customerData?.email || '',
+          customerPhone: customerData?.phone || '',
+          qrCode: generateCustomerViewURL(reservation.id, reservation.qrCode || `QR_${reservation.id}`)
+        },
+        company: {
+          name: settings.company.name,
+          address: settings.company.address,
+          phone: settings.company.phone,
+          email: settings.company.email,
+          taxNumber: settings.company.taxNumber,
+          bankName: settings.company.bankName,
+          iban: settings.company.iban
+        }
+      };
+      
+      await generateInvoicePDF(invoiceData);
+      toast.success('Fatura başarıyla indirildi!');
+    } catch (error) {
+      console.error('Fatura oluşturulurken hata:', error);
+      toast.error('Fatura oluşturulurken bir hata oluştu.');
+    }
   };
 
   return (
@@ -111,268 +171,90 @@ export default function CustomerPanel() {
       </div>
 
       <div className="container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto">
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-              <div className="flex items-center space-x-3">
-                <div className="p-3 bg-blue-100 rounded-xl">
-                  <Calendar className="h-6 w-6 text-blue-600" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-gray-800">{customerReservations.length}</div>
-                  <div className="text-sm text-gray-600">Toplam Rezervasyon</div>
-                </div>
-              </div>
-            </div>
+        <div className="max-w-4xl mx-auto">
 
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-              <div className="flex items-center space-x-3">
-                <div className="p-3 bg-green-100 rounded-xl">
-                  <DollarSign className="h-6 w-6 text-green-600" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-gray-800">
-                    ${customerReservations.reduce((sum, r) => sum + (r.totalPrice || 0), 0).toFixed(2)}
-                  </div>
-                  <div className="text-sm text-gray-600">Toplam Harcama</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-              <div className="flex items-center space-x-3">
-                <div className="p-3 bg-purple-100 rounded-xl">
-                  <Star className="h-6 w-6 text-purple-600" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-gray-800">4.9</div>
-                  <div className="text-sm text-gray-600">Ortalama Puan</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-              <div className="flex items-center space-x-3">
-                <div className="p-3 bg-orange-100 rounded-xl">
-                  <QrCode className="h-6 w-6 text-orange-600" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-gray-800">
-                    {customerReservations.filter(r => ['confirmed', 'assigned', 'started'].includes(r.status)).length}
-                  </div>
-                  <div className="text-sm text-gray-600">Aktif Transfer</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Tabs */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mb-8">
-            <div className="border-b border-gray-200">
-              <nav className="flex space-x-8 px-6">
-                {[
-                  { id: 'reservations', label: 'Rezervasyonlarım', icon: Calendar },
-                  { id: 'profile', label: 'Profil Bilgileri', icon: User },
-                  { id: 'support', label: 'Destek', icon: Phone }
-                ].map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors flex items-center space-x-2 ${
-                      activeTab === tab.id
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
-                  >
-                    <tab.icon className="h-4 w-4" />
-                    <span>{tab.label}</span>
-                  </button>
-                ))}
-              </nav>
-            </div>
-
+          {/* Main Content */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
             <div className="p-6">
-              {/* Reservations Tab */}
-              {activeTab === 'reservations' && (
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-bold text-gray-800">Rezervasyonlarım</h2>
-                    <Link
-                      to="/booking"
-                      className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 flex items-center space-x-2"
-                    >
-                      <Plus className="h-4 w-4" />
-                      <span>Yeni Rezervasyon</span>
-                    </Link>
-                  </div>
+              {/* Reservations Section */}
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-bold text-gray-800">Geçmiş Rezervasyonlarım</h2>
+                  <Link
+                    to="/booking"
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 flex items-center space-x-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span>Yeni Rezervasyon</span>
+                  </Link>
+                </div>
 
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {customerReservations.length === 0 ? (
-                      <div className="col-span-2 text-center py-12">
-                        <div className="bg-gray-100 rounded-full p-4 w-16 h-16 mx-auto mb-4">
-                          <Calendar className="h-8 w-8 text-gray-400 mx-auto" />
-                        </div>
-                        <h3 className="text-lg font-semibold text-gray-600 mb-2">Henüz rezervasyonunuz yok</h3>
-                        <p className="text-gray-500 mb-4">İlk rezervasyonunuzu oluşturmak için aşağıdaki butona tıklayın.</p>
-                        <Link
-                          to="/booking"
-                          className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300"
-                        >
-                          <Plus className="h-4 w-4" />
-                          <span>İlk Rezervasyonu Oluştur</span>
-                        </Link>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {customerReservations.length === 0 ? (
+                    <div className="col-span-2 text-center py-12">
+                      <div className="bg-gray-100 rounded-full p-4 w-16 h-16 mx-auto mb-4">
+                        <Calendar className="h-8 w-8 text-gray-400 mx-auto" />
                       </div>
-                    ) : (
-                      customerReservations.map((reservation) => (
-                        <div key={reservation.id} className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
-                          <div className="flex items-center justify-between mb-4">
-                            <div className="font-bold text-gray-800">{reservation.id}</div>
-                            <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${statusColors[reservation.status as keyof typeof statusColors]}`}>
-                              {statusLabels[reservation.status as keyof typeof statusLabels]}
-                            </span>
-                          </div>
+                      <h3 className="text-lg font-semibold text-gray-600 mb-2">Henüz rezervasyonunuz yok</h3>
+                      <p className="text-gray-500 mb-4">İlk rezervasyonunuzu oluşturmak için aşağıdaki butona tıklayın.</p>
+                      <Link
+                        to="/booking"
+                        className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300"
+                      >
+                        <Plus className="h-4 w-4" />
+                        <span>İlk Rezervasyonu Oluştur</span>
+                      </Link>
+                    </div>
+                  ) : (
+                    customerReservations.map((reservation) => (
+                      <div key={reservation.id} className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="font-bold text-gray-800">{reservation.id}</div>
+                          <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${statusColors[reservation.status as keyof typeof statusColors] || statusColors.pending}`}>
+                            {getStatusDisplay(reservation)}
+                          </span>
+                        </div>
 
-                          <div className="space-y-3 mb-4">
-                            <div className="flex items-center space-x-3">
-                              <MapPin className="h-4 w-4 text-gray-500" />
-                              <span className="text-gray-700">{reservation.pickupLocation} → {reservation.dropoffLocation}</span>
-                            </div>
-                            <div className="flex items-center space-x-3">
-                              <Clock className="h-4 w-4 text-gray-500" />
-                              <span className="text-gray-700">{reservation.pickupDate} - {reservation.pickupTime}</span>
-                            </div>
-                            <div className="flex items-center space-x-3">
-                              <DollarSign className="h-4 w-4 text-gray-500" />
-                              <span className="text-gray-700">${reservation.totalPrice}</span>
-                            </div>
+                        <div className="space-y-3 mb-4">
+                          <div className="flex items-center space-x-3">
+                            <MapPin className="h-4 w-4 text-gray-500" />
+                            <span className="text-gray-700">{reservation.pickupLocation} → {reservation.dropoffLocation}</span>
                           </div>
-
-                          <div className="flex space-x-3">
-                            <button 
-                              onClick={() => handleViewDetails(reservation)}
-                              className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-xl font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
-                            >
-                              <Eye className="h-4 w-4" />
-                              <span>Detaylar</span>
-                            </button>
-                            <button 
-                              onClick={() => handleShowQRCode(reservation)}
-                              className="flex-1 bg-green-600 text-white py-2 px-4 rounded-xl font-semibold hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
-                            >
-                              <QrCode className="h-4 w-4" />
-                              <span>QR Kod</span>
-                            </button>
+                          <div className="flex items-center space-x-3">
+                            <Clock className="h-4 w-4 text-gray-500" />
+                            <span className="text-gray-700">{reservation.pickupDate} - {reservation.pickupTime}</span>
+                          </div>
+                          <div className="flex items-center space-x-3">
+                            <DollarSign className="h-4 w-4 text-gray-500" />
+                            <span className="text-gray-700">${reservation.totalPrice}</span>
+                          </div>
+                          <div className="flex items-center space-x-3">
+                            <Star className="h-4 w-4 text-purple-500" />
+                            <span className="text-gray-700">{getVehicleTypeDisplayName(reservation.vehicleType || reservation.vehicle || 'standard')}</span>
                           </div>
                         </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              )}
 
-              {/* Profile Tab */}
-              {activeTab === 'profile' && (
-                <div className="space-y-6">
-                  <h2 className="text-xl font-bold text-gray-800">Profil Bilgileri</h2>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Ad</label>
-                        <input
-                          type="text"
-                          value={customerData?.firstName || ''}
-                          readOnly
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-700 cursor-not-allowed"
-                        />
+                        <div className="flex space-x-3">
+                          <button 
+                            onClick={() => handleViewDetails(reservation)}
+                            className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-xl font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
+                          >
+                            <Eye className="h-4 w-4" />
+                            <span>Detaylar</span>
+                          </button>
+                          <button 
+                            onClick={() => handleShowQRCode(reservation)}
+                            className="flex-1 bg-green-600 text-white py-2 px-4 rounded-xl font-semibold hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
+                          >
+                            <QrCode className="h-4 w-4" />
+                            <span>QR GÖR</span>
+                          </button>
+                        </div>
                       </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Soyad</label>
-                        <input
-                          type="text"
-                          value={customerData?.lastName || ''}
-                          readOnly
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-700 cursor-not-allowed"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">E-posta</label>
-                        <input
-                          type="email"
-                          value={customerData?.email || ''}
-                          readOnly
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-700 cursor-not-allowed"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Telefon</label>
-                        <input
-                          type="tel"
-                          value={customerData?.phone || ''}
-                          readOnly
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-700 cursor-not-allowed"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                    <div className="flex items-start space-x-3">
-                      <div className="bg-blue-100 rounded-full p-2">
-                        <User className="h-4 w-4 text-blue-600" />
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-blue-800 mb-1">Profil Bilgileri</h4>
-                        <p className="text-sm text-blue-700">
-                          Profil bilgileriniz rezervasyon sırasında kaydedilen bilgilerden oluşmaktadır. 
-                          Güncellemek için yeni bir rezervasyon oluştururken farklı bilgiler kullanabilirsiniz.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                    ))
+                  )}
                 </div>
-              )}
-
-              {/* Support Tab */}
-              {activeTab === 'support' && (
-                <div className="space-y-6">
-                  <h2 className="text-xl font-bold text-gray-800">Destek</h2>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-blue-50 rounded-2xl p-6">
-                      <div className="flex items-center space-x-3 mb-4">
-                        <Phone className="h-6 w-6 text-blue-600" />
-                        <h3 className="font-bold text-blue-800">Telefon Desteği</h3>
-                      </div>
-                      <p className="text-blue-700 mb-4">7/24 canlı destek hattımızdan bize ulaşabilirsiniz.</p>
-                      <a
-                        href="tel:+902421234567"
-                        className="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors inline-block"
-                      >
-                        +90 242 123 45 67
-                      </a>
-                    </div>
-                    
-                    <div className="bg-green-50 rounded-2xl p-6">
-                      <div className="flex items-center space-x-3 mb-4">
-                        <Mail className="h-6 w-6 text-green-600" />
-                        <h3 className="font-bold text-green-800">E-posta Desteği</h3>
-                      </div>
-                      <p className="text-green-700 mb-4">Sorularınızı e-posta ile gönderebilirsiniz.</p>
-                      <a
-                        href="mailto:sbstravelinfo@gmail.com"
-                        className="bg-green-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-green-700 transition-colors inline-block"
-                      >
-                        E-posta Gönder
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              )}
+              </div>
             </div>
           </div>
         </div>
@@ -381,62 +263,136 @@ export default function CustomerPanel() {
       {/* Reservation Details Modal */}
       {showDetailsModal && selectedReservation && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-800">Rezervasyon Detayları</h2>
-              <button 
-                onClick={() => setShowDetailsModal(false)}
-                className="p-1 hover:bg-gray-100 rounded"
-              >
-                <X className="h-5 w-5" />
-              </button>
+          <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 rounded-t-2xl">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Rezervasyon Detayları</h2>
+                  <p className="text-blue-100 mt-1">#{selectedReservation.id}</p>
+                </div>
+                <button 
+                  onClick={() => setShowDetailsModal(false)}
+                  className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                >
+                  <X className="h-6 w-6 text-white" />
+                </button>
+              </div>
             </div>
             
-            <div className="p-6 space-y-6">
-              {/* Basic Info */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <span className="text-sm text-gray-600">Rezervasyon No</span>
-                  <p className="font-semibold">{selectedReservation.id}</p>
-                </div>
-                <div>
-                  <span className="text-sm text-gray-600">Durum</span>
-                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ml-2 ${statusColors[selectedReservation.status as keyof typeof statusColors]}`}>
-                    {statusLabels[selectedReservation.status as keyof typeof statusLabels]}
-                  </span>
-                </div>
+            <div className="p-8 space-y-8">
+              {/* Status Badge */}
+              <div className="flex items-center justify-center">
+                <span className={`inline-flex px-6 py-3 rounded-full text-lg font-semibold ${statusColors[selectedReservation.status as keyof typeof statusColors] || statusColors.pending}`}>
+                  {getStatusDisplay(selectedReservation)}
+                </span>
               </div>
 
-              {/* Route Info */}
-              <div>
-                <h3 className="font-semibold text-gray-800 mb-3">Güzergah Bilgileri</h3>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <MapPin className="h-4 w-4 text-blue-600" />
-                    <span>{selectedReservation.route}</span>
+              {/* Route Information */}
+              <div className="bg-gray-50 rounded-2xl p-6">
+                <h3 className="flex items-center font-bold text-gray-800 mb-4">
+                  <MapPin className="h-5 w-5 mr-2 text-blue-600" />
+                  Güzergah Bilgileri
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between py-3 border-b border-gray-200">
+                    <span className="text-gray-600">Kalkış Noktası</span>
+                    <span className="font-semibold text-gray-800">{selectedReservation.pickupLocation}</span>
                   </div>
-                  <div className="flex items-center space-x-3">
-                    <Calendar className="h-4 w-4 text-purple-600" />
-                    <span>{selectedReservation.date} - {selectedReservation.time}</span>
+                  <div className="flex items-center justify-between py-3 border-b border-gray-200">
+                    <span className="text-gray-600">Varış Noktası</span>
+                    <span className="font-semibold text-gray-800">{selectedReservation.dropoffLocation}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-3">
+                    <span className="text-gray-600">Transfer Tarihi</span>
+                    <span className="font-semibold text-gray-800">{selectedReservation.pickupDate} - {selectedReservation.pickupTime}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Vehicle Info */}
-              <div>
-                <h3 className="font-semibold text-gray-800 mb-3">Araç Bilgileri</h3>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p><strong>Araç Tipi:</strong> {getVehicleTypeDisplayName(selectedReservation.vehicle)}</p>
+              {/* Driver Information (if assigned) */}
+              {selectedReservation.status === 'assigned' && selectedReservation.driverId && (
+                <div className="bg-indigo-50 rounded-2xl p-6">
+                  <h3 className="flex items-center font-bold text-indigo-800 mb-4">
+                    <User className="h-5 w-5 mr-2" />
+                    Şoför Bilgileri
+                  </h3>
+                  <div className="space-y-2">
+                    <p className="text-indigo-700">
+                      <strong>Şoför:</strong> {getDriverName(selectedReservation.driverId)}
+                    </p>
+                    <p className="text-sm text-indigo-600">
+                      Şoförünüz atanmıştır. Transfer günü sizinle iletişime geçecektir.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Vehicle & Price Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-blue-50 rounded-2xl p-6">
+                  <h3 className="flex items-center font-bold text-blue-800 mb-4">
+                    <Star className="h-5 w-5 mr-2" />
+                    Araç Bilgileri
+                  </h3>
+                  <div className="space-y-2">
+                    <p className="text-blue-700">
+                      <strong>Araç Tipi:</strong> {getVehicleTypeDisplayName(selectedReservation.vehicleType || selectedReservation.vehicle || 'standard')}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-green-50 rounded-2xl p-6">
+                  <h3 className="flex items-center font-bold text-green-800 mb-4">
+                    <DollarSign className="h-5 w-5 mr-2" />
+                    Ödeme Bilgileri
+                  </h3>
+                  <div className="space-y-2">
+                    <p className="text-green-700">
+                      <strong>Toplam Tutar:</strong> ${selectedReservation.totalPrice || 0}
+                    </p>
+                    <p className="text-sm text-green-600">KDV Dahil</p>
+                  </div>
                 </div>
               </div>
 
-              {/* Actions */}
-              <div className="flex space-x-3">
+              {/* Customer Information */}
+              <div className="bg-purple-50 rounded-2xl p-6">
+                <h3 className="flex items-center font-bold text-purple-800 mb-4">
+                  <User className="h-5 w-5 mr-2" />
+                  Müşteri Bilgileri
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <span className="text-purple-600 text-sm">Ad Soyad</span>
+                    <p className="font-semibold text-purple-800">
+                      {customerData ? `${customerData.firstName} ${customerData.lastName}` : 'Belirtilmemiş'}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-purple-600 text-sm">E-posta</span>
+                    <p className="font-semibold text-purple-800">{customerData?.email || 'Belirtilmemiş'}</p>
+                  </div>
+                  <div>
+                    <span className="text-purple-600 text-sm">Telefon</span>
+                    <p className="font-semibold text-purple-800">{customerData?.phone || 'Belirtilmemiş'}</p>
+                  </div>
+                  <div>
+                    <span className="text-purple-600 text-sm">Rezervasyon Tarihi</span>
+                    <p className="font-semibold text-purple-800">
+                      {selectedReservation.createdAt ? new Date(selectedReservation.createdAt.toDate?.() || selectedReservation.createdAt).toLocaleDateString('tr-TR') : 'Belirtilmemiş'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4">
                 <button 
                   onClick={() => handleDownloadInvoice(selectedReservation)}
-                  className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-xl font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-6 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 flex items-center justify-center space-x-3"
                 >
-                  <Download className="h-4 w-4" />
+                  <Download className="h-5 w-5" />
                   <span>Fatura İndir</span>
                 </button>
                 <button 
@@ -444,10 +400,10 @@ export default function CustomerPanel() {
                     setShowDetailsModal(false);
                     handleShowQRCode(selectedReservation);
                   }}
-                  className="flex-1 bg-green-600 text-white py-3 px-4 rounded-xl font-semibold hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
+                  className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white py-4 px-6 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 flex items-center justify-center space-x-3"
                 >
-                  <QrCode className="h-4 w-4" />
-                  <span>QR Kod</span>
+                  <QrCode className="h-5 w-5" />
+                  <span>QR Kodu Göster</span>
                 </button>
               </div>
             </div>
@@ -458,59 +414,90 @@ export default function CustomerPanel() {
       {/* QR Code Modal */}
       {showQRModal && selectedReservation && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl max-w-md w-full">
-            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-800">QR Kod</h2>
-              <button 
-                onClick={() => setShowQRModal(false)}
-                className="p-1 hover:bg-gray-100 rounded"
-              >
-                <X className="h-5 w-5" />
-              </button>
+          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-6 rounded-t-2xl">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-white">Transfer QR Kodu</h2>
+                  <p className="text-green-100 text-sm mt-1">#{selectedReservation.id}</p>
+                </div>
+                <button 
+                  onClick={() => setShowQRModal(false)}
+                  className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                >
+                  <X className="h-5 w-5 text-white" />
+                </button>
+              </div>
             </div>
             
-            <div className="p-6 text-center">
-              <div className="bg-white p-4 rounded-lg border-2 border-gray-200 inline-block mb-4">
+            <div className="p-8 text-center">
+              {/* QR Code */}
+              <div className="bg-white p-6 rounded-2xl border-4 border-gray-100 shadow-lg inline-block mb-6">
                 <QRCodeDisplay
-                  value={generateCustomerViewURL(selectedReservation.id, selectedReservation.qrCode)}
+                  value={generateCustomerViewURL(selectedReservation.id, selectedReservation.qrCode || `QR_${selectedReservation.id}`)}
                   size={200}
                   style={{ height: "auto", maxWidth: "100%", width: "100%" }}
                 />
               </div>
               
-              <h3 className="font-semibold text-gray-800 mb-2">Rezervasyon QR Kodu</h3>
-              <p className="text-sm text-gray-600 mb-4">
-                Bu QR kodu şoförünüze göstererek transferinizi başlatabilirsiniz.
-              </p>
-              
-              <div className="space-y-3">
-                <button 
-                  onClick={() => {
-                    const url = generateCustomerViewURL(selectedReservation.id, selectedReservation.qrCode);
-                    window.open(url, '_blank');
-                  }}
-                  className="w-full bg-blue-600 text-white py-3 px-4 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
-                >
-                  QR Sayfasını Aç
-                </button>
-                <button 
-                  onClick={() => {
-                    // TODO: Implement QR code sharing functionality
-                    if (navigator.share) {
-                      navigator.share({
-                        title: 'Transfer QR Kodu',
-                        url: generateCustomerViewURL(selectedReservation.id, selectedReservation.qrCode)
-                      });
-                    } else {
-                      // Fallback to copy to clipboard
-                      navigator.clipboard.writeText(generateCustomerViewURL(selectedReservation.id, selectedReservation.qrCode));
-                      alert('QR kod linki panoya kopyalandı!');
-                    }
-                  }}
-                  className="w-full bg-green-600 text-white py-3 px-4 rounded-xl font-semibold hover:bg-green-700 transition-colors"
-                >
-                  QR Kodu Paylaş
-                </button>
+              <div className="space-y-4">
+                <div>
+                  <h3 className="font-bold text-gray-800 text-lg mb-2">Transfer QR Kodu</h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">
+                    Bu QR kodu şoförünüze göstererek transferinizi başlatabilirsiniz. 
+                    QR kod transfer günü geçerli olacaktır.
+                  </p>
+                </div>
+                
+                {/* Transfer Info */}
+                <div className="bg-gray-50 rounded-xl p-4 text-left">
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Güzergah:</span>
+                      <span className="font-semibold text-gray-800">{selectedReservation.pickupLocation} → {selectedReservation.dropoffLocation}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Tarih:</span>
+                      <span className="font-semibold text-gray-800">{selectedReservation.pickupDate}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Saat:</span>
+                      <span className="font-semibold text-gray-800">{selectedReservation.pickupTime}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Action Buttons */}
+                <div className="space-y-3 pt-4">
+                  <button 
+                    onClick={() => {
+                      const url = generateCustomerViewURL(selectedReservation.id, selectedReservation.qrCode || `QR_${selectedReservation.id}`);
+                      window.open(url, '_blank');
+                    }}
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-300"
+                  >
+                    QR Sayfasını Aç
+                  </button>
+                  <button 
+                    onClick={() => {
+                      const url = generateCustomerViewURL(selectedReservation.id, selectedReservation.qrCode || `QR_${selectedReservation.id}`);
+                      if (navigator.share) {
+                        navigator.share({
+                          title: 'SBS Transfer QR Kodu',
+                          text: `Transfer QR Kodu - ${selectedReservation.pickupLocation} → ${selectedReservation.dropoffLocation}`,
+                          url: url
+                        });
+                      } else {
+                        navigator.clipboard.writeText(url);
+                        toast.success('QR kod linki panoya kopyalandı!');
+                      }
+                    }}
+                    className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 px-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-300"
+                  >
+                    QR Kodu Paylaş
+                  </button>
+                </div>
               </div>
             </div>
           </div>

@@ -20,7 +20,7 @@ export default function Header() {
     <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${
       isScrolled 
         ? 'bg-white/95 backdrop-blur-md shadow-xl border-b border-gray-100' 
-        : 'bg-transparent'
+        : 'bg-black/10 backdrop-blur-sm'
     }`}>
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
@@ -52,7 +52,7 @@ export default function Header() {
                 key={item}
                 to={item.href}
                 className={`relative font-medium transition-all duration-300 hover:scale-105 ${
-                  isScrolled ? 'text-gray-700 hover:text-blue-600' : 'text-white hover:text-blue-200'
+                  isScrolled ? 'text-gray-700 hover:text-blue-600' : 'text-white hover:text-blue-200 drop-shadow-lg'
                 } group`}
               >
                 {item.name}
@@ -62,8 +62,8 @@ export default function Header() {
           </nav>
 
           <div className="hidden lg:flex items-center space-x-6">
-            <SSLIndicator className={isScrolled ? 'text-gray-600' : 'text-white'} />
-            <div className={`flex items-center space-x-2 text-sm ${isScrolled ? 'text-gray-600' : 'text-white/90'}`}>
+            <SSLIndicator className={isScrolled ? 'text-gray-600' : 'text-white drop-shadow-lg'} />
+            <div className={`flex items-center space-x-2 text-sm ${isScrolled ? 'text-gray-600' : 'text-white/90 drop-shadow-lg'}`}>
               <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg">
                 <Phone className="h-4 w-4 text-white" />
               </div>
