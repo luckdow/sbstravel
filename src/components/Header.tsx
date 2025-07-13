@@ -9,7 +9,6 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  // Check if user is logged in
   const [customerName, setCustomerName] = useState('');
 
   useEffect(() => {
@@ -20,11 +19,6 @@ export default function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
   
-  // Check if user is logged in
-  const isLoggedIn = () => {
-    const customerSession = localStorage.getItem('sbs_customer_session');
-    return !!customerSession;
-  };
 
   useEffect(() => {
     // Müşteri oturumunu kontrol et
@@ -38,6 +32,12 @@ export default function Header() {
       }
     }
   }, []);
+  
+  // Oturum durumunu kontrol eden yardımcı fonksiyon
+  const checkIsLoggedIn = () => {
+    const customerSession = localStorage.getItem('sbs_customer_session');
+    return !!customerSession;
+  };
 
   return (
     <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${
@@ -57,10 +57,14 @@ export default function Header() {
             <div>
               <h1 className={`text-2xl font-bold ${isScrolled ? 'bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent' : 'text-white drop-shadow-lg'}`}>
                 SBS TRAVEL
+              </h1>
+            </div>
+          </Link>
+
           <div className="flex items-center space-x-4">
             {isLoggedIn ? (
               <Link 
-                to="/profile" 
+                to="/profile"
                 className={`flex items-center space-x-2 ${
                   isScrolled ? 'text-gray-700 hover:text-blue-600' : 'text-white hover:text-blue-200'
                 } transition-colors`}
@@ -96,7 +100,7 @@ export default function Header() {
               { name: 'İletişim', href: '/contact' }
             ].map((item, index) => (
               <Link 
-                key={item}
+                key={index}
                 to={item.href}
                 className={`relative font-medium transition-all duration-300 hover:scale-105 ${
                   isScrolled ? 'text-gray-700 hover:text-blue-600' : 'text-white hover:text-blue-200 drop-shadow-lg font-semibold'
@@ -127,13 +131,13 @@ export default function Header() {
           
           {/* Customer Login/Profile Button */}
           <Link
-            to={isLoggedIn() ? "/profile" : "/customer/login"}
+            to={isLoggedIn ? "/profile" : "/customer/login"}
             className={`p-2 rounded-full ${
               isScrolled 
                 ? 'bg-gray-100 text-gray-700 hover:bg-gray-200' 
                 : 'bg-white/10 text-white hover:bg-white/20'
             } transition-colors mr-4`}
-            title={isLoggedIn() ? "Profilim" : "Giriş Yap"}
+            title={isLoggedIn ? "Profilim" : "Giriş Yap"}
           >
             <User className="h-5 w-5" />
           </Link>
@@ -160,7 +164,7 @@ export default function Header() {
                 { name: 'İletişim', href: '/contact' }
               ].map((item, index) => (
                 <Link 
-                  key={item}
+                  key={index}
                   to={item.href}
                   className="block text-gray-700 hover:text-blue-600 font-medium transition-colors py-2"
                   onClick={() => setIsMenuOpen(false)}
@@ -169,10 +173,10 @@ export default function Header() {
                 </Link>
               ))}
               <Link to="/booking" className="block w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-semibold mt-4 text-center">
-                </button>
+                Rezervasyon
               </Link>
               
-              <Link to={isLoggedIn() ? "/profile" : "/customer/login"}>
+              <Link to={isLoggedIn ? "/profile" : "/customer/login"}>
                 <button className="w-full bg-gray-600 text-white py-3 rounded-xl font-semibold mt-4">
                   {isLoggedIn() ? "Profilim" : "Giriş Yap"}
                 </button>
@@ -181,7 +185,7 @@ export default function Header() {
                 <Link to="/customer/login">
                   <button className="w-full bg-gray-600 text-white py-3 rounded-xl font-semibold mt-2">
                     Giriş Yap
-                Rezervasyon
+                  </button>
                 </Link>
               )}
             </nav>

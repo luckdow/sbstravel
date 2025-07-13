@@ -23,6 +23,7 @@ export default function CustomerLoginPage() {
       phone: '',
       createdAt: new Date()
     });
+  };
 
   const handleGoogleSuccess = async (user: { email: string; name: string }) => {
     try {
@@ -31,8 +32,11 @@ export default function CustomerLoginPage() {
       const firstName = nameParts[0];
       const lastName = nameParts.slice(1).join(' ') || '';
       
-    toast.success('Google ile giriş başarılı!');
-    navigate('/profile');
+      toast.success('Google ile giriş başarılı!');
+      navigate('/profile');
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -54,6 +58,8 @@ export default function CustomerLoginPage() {
           createdAt: new Date()
         });
         toast.success('Giriş başarılı');
+      }
+    } catch (error) {
       console.error('Login error:', error);
       toast.error('İşlem sırasında bir hata oluştu');
     } finally { 
@@ -111,7 +117,7 @@ export default function CustomerLoginPage() {
                 />
                 <button
                   type="button"
-                  onClick={() => { 
+                  onClick={() => setShowPassword(!showPassword)}
                   className="text-purple-600 hover:text-purple-700 text-sm font-medium" 
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -181,3 +187,4 @@ export default function CustomerLoginPage() {
       </div>
     </div>
   );
+}
