@@ -55,12 +55,23 @@ export default function CustomerPanel() {
         setCustomerReservations(customerReservations);
       });
     }
+  }, [navigate, fetchReservations]);
 
-    // Show success message if coming from payment
-    if (location.state?.newReservation) {
+  // Separate effect for one-time success notification
+  useEffect(() => {
+    // Check if we should show success notification (only once per session)
+    const sessionKey = 'sbs_reservation_success_shown';
+    const alreadyShown = sessionStorage.getItem(sessionKey);
+    
+    if (location.state?.newReservation && !alreadyShown) {
       toast.success('🎉 Rezervasyonunuz başarıyla tamamlandı!');
+      // Mark as shown for this session to prevent re-triggering
+      sessionStorage.setItem(sessionKey, 'true');
+      
+      // Clear the location state to prevent re-triggering on navigation
+      window.history.replaceState({}, '', location.pathname);
     }
-  }, [navigate, location.state, reservations, fetchReservations]);
+  }, []); // Empty dependency array - runs only once
 
   const handleViewDetails = (reservation: any) => {
     setSelectedReservation(reservation);
