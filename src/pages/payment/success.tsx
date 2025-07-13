@@ -44,15 +44,24 @@ export default function PaymentSuccessPage() {
     isTestMode: transactionData?.isTestMode || false
   };
 
-  // Auto-create user account and redirect to profile
+  // One-time user account creation (only if not already created for this reservation)
   useEffect(() => {
-    const createUserAndRedirect = async () => {
-      if (isCreatingUser || userCreated) return;
+    const createUserOnce = async () => {
+      // Check if customer was already created for this reservation
+      const customerCreatedKey = `sbs_customer_created_${reservationData.id}`;
+      const alreadyCreated = localStorage.getItem(customerCreatedKey);
+      
+      if (isCreatingUser || userCreated || alreadyCreated) {
+        if (alreadyCreated) {
+          setUserCreated(true);
+        }
+        return;
+      }
       
       setIsCreatingUser(true);
       
       try {
-        // Use real customer info from transaction data instead of mock data
+        // Use real customer info from transaction data
         const realCustomerInfo = {
           firstName: customerInfo.firstName,
           lastName: customerInfo.lastName,
@@ -60,39 +69,17 @@ export default function PaymentSuccessPage() {
           phone: customerInfo.phone
         };
 
-        // Check if customer already exists by email to prevent duplicates
-        const existingCustomers = await new Promise<any[]>((resolve) => {
-          // Since we don't have a direct method to search by email, we'll create the account anyway
-          // In a real implementation, you would check existing customers first
-          resolve([]);
-        });
-
-        let customerId = null;
-        
-        // Only create customer if not already exists
-        if (existingCustomers.length === 0) {
-          customerId = await addCustomer(realCustomerInfo);
-        } else {
-          customerId = existingCustomers[0].id;
-        }
+        const customerId = await addCustomer(realCustomerInfo);
         
         if (customerId) {
           console.log('User created successfully:', customerId);
           setUserCreated(true);
           
-          // Show success message
-          toast.success('Hesabınız oluşturuldu! Profil sayfasına yönlendiriliyorsunuz...');
+          // Mark as created for this reservation to prevent duplicates
+          localStorage.setItem(customerCreatedKey, customerId);
           
-          // Redirect to profile/dashboard after 3 seconds
-          setTimeout(() => {
-            navigate('/profile', { 
-              state: { 
-                newUser: true, 
-                reservationId: reservationData.id,
-                customerId: customerId
-              } 
-            });
-          }, 3000);
+          // Show success message without auto-redirect
+          toast.success('Hesabınız oluşturuldu! Artık müşteri panelini kullanabilirsiniz.');
         }
       } catch (error) {
         console.error('Error creating user:', error);
@@ -102,8 +89,8 @@ export default function PaymentSuccessPage() {
       }
     };
 
-    createUserAndRedirect();
-  }, [addCustomer, navigate, reservationData.id, isCreatingUser, userCreated]);
+    createUserOnce();
+  }, []); // Empty dependency array - runs only once per component mount
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-20">
@@ -136,7 +123,7 @@ export default function PaymentSuccessPage() {
               <div className="mt-6 p-4 bg-green-50 rounded-xl">
                 <div className="flex items-center justify-center space-x-3">
                   <CheckCircle className="h-5 w-5 text-green-600" />
-                  <span className="text-green-700">Hesabınız oluşturuldu! Profil sayfasına yönlendiriliyorsunuz...</span>
+                  <span className="text-green-700">Hesabınız başarıyla oluşturuldu!</span>
                 </div>
               </div>
             )}
@@ -272,35 +259,52 @@ export default function PaymentSuccessPage() {
           </div>
                 </div>
           {/* Navigation */}
-          <div className="text-center mt-8 space-y-4">
-            <div className="flex justify-center space-x-6">
+          <div className="text-center mt-8 space-y-6">
+            {/* Manual Navigation Buttons */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-md mx-auto">
+              <button
+                onClick={() => {
+                  // Set new reservation flag for customer panel
+                  navigate('/profile', { 
+                    state: { 
+                      newReservation: true,
+                      reservationId: reservationData.id
+                    } 
+                  });
+                }}
+                className="inline-flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 w-full"
+              >
+                <User className="h-5 w-5" />
+                <span>Müşteri Paneline Git</span>
+              </button>
+              
               <Link
                 to="/"
-                className="inline-flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors text-sm"
+                className="inline-flex items-center justify-center space-x-2 bg-gray-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-gray-700 transition-colors"
               >
                 <Home className="h-4 w-4" />
                 <span>Ana Sayfaya Dön</span>
               </Link>
-              
-              {userCreated && (
-                <Link
-                  to="/profile"
-                  className="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-800 transition-colors text-sm font-semibold"
-                >
-                  <User className="h-4 w-4" />
-                  <span>Profilime Git</span>
-                </Link>
-              )}
             </div>
             
-            {/* Auto redirect message */}
+            {/* Additional Navigation Links */}
+            <div className="flex justify-center space-x-6 text-sm">
+              <Link
+                to="/booking"
+                className="text-blue-600 hover:text-blue-800 transition-colors font-medium"
+              >
+                Yeni Rezervasyon Yap
+              </Link>
+            </div>
+            
+            {/* Info Message */}
             <div className="mt-6 p-4 bg-blue-50 rounded-xl">
               <p className="text-sm text-blue-700">
                 📧 {reservationData.isTestMode ? 'Test modunda email gönderimi simüle edildi' : 'Fatura e-posta adresinize gönderildi'}. QR kodunuzu kaydetmeyi unutmayın!
               </p>
               {userCreated && (
                 <p className="text-sm text-green-700 mt-2">
-                  🎉 Hesabınız oluşturuldu! 3 saniye içinde profil sayfasına yönlendirileceksiniz.
+                  🎉 Hesabınız oluşturuldu! Artık müşteri panelinden rezervasyonlarınızı takip edebilirsiniz.
                 </p>
               )}
             </div>
