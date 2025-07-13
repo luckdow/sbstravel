@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'react-hot-toast';
@@ -14,6 +15,7 @@ import RouteMap from '../components/Booking/RouteMap';
 import { useStore } from '../store/useStore';
 import { calculatePrice } from '../utils/pricing';
 import { generateQRCode } from '../utils/qrCode';
+import { setCustomerSession } from '../utils/customerSession';
 
 const bookingSchema = z.object({
   transferType: z.enum(['airport-hotel', 'hotel-airport']),
@@ -51,6 +53,7 @@ export default function BookingPage() {
   const [priceCalculation, setPriceCalculation] = useState<any>(null);
   const [reservationId, setReservationId] = useState<string | null>(null);
   const [qrCode, setQrCode] = useState<string | null>(null);
+  const navigate = useNavigate();
   
   const { vehicles, extraServices, settings, createNewReservation, addCustomer, fetchVehicles, fetchExtraServices } = useStore();
 
@@ -251,6 +254,16 @@ export default function BookingPage() {
       // Store QR code for later use
       setQrCode(qrCode);
       setReservationId(reservationId);
+
+      // Save customer session for profile access
+      setCustomerSession({
+        customerId,
+        firstName: data.customerInfo.firstName,
+        lastName: data.customerInfo.lastName,
+        email: data.customerInfo.email,
+        phone: data.customerInfo.phone,
+        createdAt: new Date()
+      });
 
       // Show success message
       toast.success('🎉 Rezervasyon başarıyla oluşturuldu!');

@@ -1,32 +1,12 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { User, Calendar, MapPin, Clock, DollarSign, QrCode, Phone, Mail, Star, Download, Eye, Plus, X } from 'lucide-react';
 import QRCodeDisplay from 'react-qr-code';
 import { getVehicleTypeDisplayName } from '../utils/vehicle';
 import { generateCustomerViewURL } from '../utils/qrCode';
-
-const mockReservations = [
-  {
-    id: 'RES-001',
-    route: 'Antalya Havalimanı → Kemer',
-    date: '2024-01-15',
-    time: '14:30',
-    status: 'confirmed',
-    amount: 85.00,
-    qrCode: 'QR_ABC123',
-    vehicle: 'premium'
-  },
-  {
-    id: 'RES-002',
-    route: 'Kemer → Antalya Havalimanı',
-    date: '2024-01-20',
-    time: '10:00',
-    status: 'pending',
-    amount: 85.00,
-    qrCode: 'QR_DEF456',
-    vehicle: 'premium'
-  }
-];
+import { getCustomerSession, isCustomerSessionValid } from '../utils/customerSession';
+import { useStore } from '../store/useStore';
+import toast from 'react-hot-toast';
 
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -47,7 +27,40 @@ export default function CustomerPanel() {
   const [selectedReservation, setSelectedReservation] = useState<any>(null);
   const [showQRModal, setShowQRModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [customerData, setCustomerData] = useState<any>(null);
+  const [customerReservations, setCustomerReservations] = useState<any[]>([]);
   const navigate = useNavigate();
+  const location = useLocation();
+  const { reservations, fetchReservations } = useStore();
+
+  useEffect(() => {
+    // Check for customer session
+    if (!isCustomerSessionValid()) {
+      toast.error('Oturum süreniz dolmuş. Lütfen yeniden giriş yapın.');
+      navigate('/booking');
+      return;
+    }
+
+    const session = getCustomerSession();
+    if (session) {
+      setCustomerData(session);
+      
+      // Fetch latest reservations
+      fetchReservations().then(() => {
+        // Filter reservations for this customer
+        const customerReservations = reservations.filter(r => 
+          r.customerId === session.customerId || 
+          (r.customerEmail === session.email && r.customerName?.includes(session.firstName))
+        );
+        setCustomerReservations(customerReservations);
+      });
+    }
+
+    // Show success message if coming from payment
+    if (location.state?.newReservation) {
+      toast.success('🎉 Rezervasyonunuz başarıyla tamamlandı!');
+    }
+  }, [navigate, location.state, reservations, fetchReservations]);
 
   const handleViewDetails = (reservation: any) => {
     setSelectedReservation(reservation);
@@ -72,7 +85,9 @@ export default function CustomerPanel() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-800">Müşteri Paneli</h1>
-              <p className="text-gray-600">Hoş geldiniz, Ahmet Yılmaz</p>
+              <p className="text-gray-600">
+                Hoş geldiniz, {customerData ? `${customerData.firstName} ${customerData.lastName}` : 'Değerli Müşterimiz'}
+              </p>
             </div>
             <Link
               to="/"
@@ -94,7 +109,7 @@ export default function CustomerPanel() {
                   <Calendar className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-gray-800">2</div>
+                  <div className="text-2xl font-bold text-gray-800">{customerReservations.length}</div>
                   <div className="text-sm text-gray-600">Toplam Rezervasyon</div>
                 </div>
               </div>
@@ -106,7 +121,9 @@ export default function CustomerPanel() {
                   <DollarSign className="h-6 w-6 text-green-600" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-gray-800">$170</div>
+                  <div className="text-2xl font-bold text-gray-800">
+                    ${customerReservations.reduce((sum, r) => sum + (r.totalPrice || 0), 0).toFixed(2)}
+                  </div>
                   <div className="text-sm text-gray-600">Toplam Harcama</div>
                 </div>
               </div>
@@ -130,7 +147,9 @@ export default function CustomerPanel() {
                   <QrCode className="h-6 w-6 text-orange-600" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-gray-800">1</div>
+                  <div className="text-2xl font-bold text-gray-800">
+                    {customerReservations.filter(r => ['confirmed', 'assigned', 'started'].includes(r.status)).length}
+                  </div>
                   <div className="text-sm text-gray-600">Aktif Transfer</div>
                 </div>
               </div>
@@ -178,48 +197,65 @@ export default function CustomerPanel() {
                   </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {mockReservations.map((reservation) => (
-                      <div key={reservation.id} className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="font-bold text-gray-800">{reservation.id}</div>
-                          <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${statusColors[reservation.status as keyof typeof statusColors]}`}>
-                            {statusLabels[reservation.status as keyof typeof statusLabels]}
-                          </span>
+                    {customerReservations.length === 0 ? (
+                      <div className="col-span-2 text-center py-12">
+                        <div className="bg-gray-100 rounded-full p-4 w-16 h-16 mx-auto mb-4">
+                          <Calendar className="h-8 w-8 text-gray-400 mx-auto" />
                         </div>
-
-                        <div className="space-y-3 mb-4">
-                          <div className="flex items-center space-x-3">
-                            <MapPin className="h-4 w-4 text-gray-500" />
-                            <span className="text-gray-700">{reservation.route}</span>
-                          </div>
-                          <div className="flex items-center space-x-3">
-                            <Clock className="h-4 w-4 text-gray-500" />
-                            <span className="text-gray-700">{reservation.date} - {reservation.time}</span>
-                          </div>
-                          <div className="flex items-center space-x-3">
-                            <DollarSign className="h-4 w-4 text-gray-500" />
-                            <span className="text-gray-700">${reservation.amount}</span>
-                          </div>
-                        </div>
-
-                        <div className="flex space-x-3">
-                          <button 
-                            onClick={() => handleViewDetails(reservation)}
-                            className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-xl font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
-                          >
-                            <Eye className="h-4 w-4" />
-                            <span>Detaylar</span>
-                          </button>
-                          <button 
-                            onClick={() => handleShowQRCode(reservation)}
-                            className="flex-1 bg-green-600 text-white py-2 px-4 rounded-xl font-semibold hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
-                          >
-                            <QrCode className="h-4 w-4" />
-                            <span>QR Kod</span>
-                          </button>
-                        </div>
+                        <h3 className="text-lg font-semibold text-gray-600 mb-2">Henüz rezervasyonunuz yok</h3>
+                        <p className="text-gray-500 mb-4">İlk rezervasyonunuzu oluşturmak için aşağıdaki butona tıklayın.</p>
+                        <Link
+                          to="/booking"
+                          className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300"
+                        >
+                          <Plus className="h-4 w-4" />
+                          <span>İlk Rezervasyonu Oluştur</span>
+                        </Link>
                       </div>
-                    ))}
+                    ) : (
+                      customerReservations.map((reservation) => (
+                        <div key={reservation.id} className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="font-bold text-gray-800">{reservation.id}</div>
+                            <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${statusColors[reservation.status as keyof typeof statusColors]}`}>
+                              {statusLabels[reservation.status as keyof typeof statusLabels]}
+                            </span>
+                          </div>
+
+                          <div className="space-y-3 mb-4">
+                            <div className="flex items-center space-x-3">
+                              <MapPin className="h-4 w-4 text-gray-500" />
+                              <span className="text-gray-700">{reservation.pickupLocation} → {reservation.dropoffLocation}</span>
+                            </div>
+                            <div className="flex items-center space-x-3">
+                              <Clock className="h-4 w-4 text-gray-500" />
+                              <span className="text-gray-700">{reservation.pickupDate} - {reservation.pickupTime}</span>
+                            </div>
+                            <div className="flex items-center space-x-3">
+                              <DollarSign className="h-4 w-4 text-gray-500" />
+                              <span className="text-gray-700">${reservation.totalPrice}</span>
+                            </div>
+                          </div>
+
+                          <div className="flex space-x-3">
+                            <button 
+                              onClick={() => handleViewDetails(reservation)}
+                              className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-xl font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
+                            >
+                              <Eye className="h-4 w-4" />
+                              <span>Detaylar</span>
+                            </button>
+                            <button 
+                              onClick={() => handleShowQRCode(reservation)}
+                              className="flex-1 bg-green-600 text-white py-2 px-4 rounded-xl font-semibold hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
+                            >
+                              <QrCode className="h-4 w-4" />
+                              <span>QR Kod</span>
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
               )}
@@ -235,16 +271,18 @@ export default function CustomerPanel() {
                         <label className="block text-sm font-semibold text-gray-700 mb-2">Ad</label>
                         <input
                           type="text"
-                          value="Ahmet"
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          value={customerData?.firstName || ''}
+                          readOnly
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-700 cursor-not-allowed"
                         />
                       </div>
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">Soyad</label>
                         <input
                           type="text"
-                          value="Yılmaz"
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          value={customerData?.lastName || ''}
+                          readOnly
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-700 cursor-not-allowed"
                         />
                       </div>
                     </div>
@@ -254,24 +292,37 @@ export default function CustomerPanel() {
                         <label className="block text-sm font-semibold text-gray-700 mb-2">E-posta</label>
                         <input
                           type="email"
-                          value="ahmet@email.com"
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          value={customerData?.email || ''}
+                          readOnly
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-700 cursor-not-allowed"
                         />
                       </div>
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">Telefon</label>
                         <input
                           type="tel"
-                          value="+90 532 123 4567"
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          value={customerData?.phone || ''}
+                          readOnly
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-700 cursor-not-allowed"
                         />
                       </div>
                     </div>
                   </div>
                   
-                  <button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300">
-                    Bilgileri Güncelle
-                  </button>
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                    <div className="flex items-start space-x-3">
+                      <div className="bg-blue-100 rounded-full p-2">
+                        <User className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-blue-800 mb-1">Profil Bilgileri</h4>
+                        <p className="text-sm text-blue-700">
+                          Profil bilgileriniz rezervasyon sırasında kaydedilen bilgilerden oluşmaktadır. 
+                          Güncellemek için yeni bir rezervasyon oluştururken farklı bilgiler kullanabilirsiniz.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
 
