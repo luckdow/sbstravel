@@ -7,6 +7,9 @@ import { notificationService } from '../../lib/services/notification-service';
 import { useStore } from '../../store/useStore';
 import toast from 'react-hot-toast';
 
+// Test mode flag - set to true to bypass PayTR and simulate successful payments
+const TEST_MODE = true;
+
 interface PaymentSectionProps {
   priceCalculation: PriceCalculation | null;
   bookingData: BookingFormData;
@@ -104,7 +107,44 @@ export default function PaymentSection({
         console.log('Reservation created successfully:', currentReservationId);
       }
 
-      // Create transaction
+      if (TEST_MODE) {
+        // In test mode, simulate successful payment without PayTR
+        console.log('TEST MODE: Simulating payment success');
+        
+        // Simulate a short delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Create a mock transaction
+        const mockTransaction = {
+          id: 'test_' + Date.now(),
+          reservationId: currentReservationId || 'temp_' + Date.now(),
+          amount: priceCalculation.totalPrice,
+          status: 'completed',
+          paymentMethod: paymentMethod as 'credit-card' | 'bank-transfer'
+        };
+
+        // Show success message
+        toast.success('🎉 Test modu: Rezervasyon başarıyla oluşturuldu!');
+        
+        // Navigate to success page with transaction info
+        navigate('/payment/success', { 
+          state: { 
+            transaction: mockTransaction,
+            method: paymentMethod,
+            reservationId: currentReservationId,
+            isTestMode: true
+          } 
+        });
+
+        // Call success callback
+        if (onPaymentSuccess) {
+          onPaymentSuccess(mockTransaction.id);
+        }
+        
+        return;
+      }
+
+      // Production mode - use actual PayTR integration
       const transaction = await transactionService.createTransaction({
         reservationId: currentReservationId || 'temp_' + Date.now(),
         amount: priceCalculation?.totalPrice || 0,
@@ -138,17 +178,9 @@ export default function PaymentSection({
 
       if (result.success) {
         if (paymentMethod === 'credit-card' && result.paymentUrl) {
-          // For testing, we'll just simulate success
-          toast.success('Test modu: Ödeme başarılı kabul edildi');
-          
-          // Navigate to success page with transaction info
-          navigate('/payment/success', { 
-            state: { 
-              transaction: result.transaction,
-              method: 'credit-card',
-              reservationId: currentReservationId
-            } 
-          });
+          // Redirect to PayTR for real payment
+          toast.success('Ödeme sayfasına yönlendiriliyorsunuz...');
+          window.location.href = result.paymentUrl;
         } else if (paymentMethod === 'bank-transfer') {
           // Show bank transfer success
           toast.success('Havale bilgileri e-posta adresinize gönderildi');
@@ -432,8 +464,8 @@ export default function PaymentSection({
                 <Lock className="h-5 w-5" />
                 <span>
                   {paymentMethod === 'credit-card' 
-                    ? `Ödeme Yap & Rezervasyonu Tamamla - $${priceCalculation?.totalPrice?.toFixed(2) || '0.00'}`
-                    : `Havale Bilgilerini Al & Rezervasyonu Tamamla - $${priceCalculation?.totalPrice?.toFixed(2) || '0.00'}`
+                    ? `${TEST_MODE ? 'Test: ' : ''}Rezervasyonu Tamamla - $${priceCalculation?.totalPrice?.toFixed(2) || '0.00'}`
+                    : `${TEST_MODE ? 'Test: ' : ''}Havale Bilgilerini Al & Rezervasyonu Tamamla - $${priceCalculation?.totalPrice?.toFixed(2) || '0.00'}`
                   }
                 </span>
               </>
@@ -457,7 +489,10 @@ export default function PaymentSection({
               </div>
             </div>
             <p className="text-xs text-gray-400">
-              {settings?.payment?.paytr?.enabled ? 'PayTR güvenli ödeme altyapısı ile korunmaktadır' : 'Test modu: Gerçek ödeme alınmayacaktır'}
+              {TEST_MODE 
+                ? 'Test modu: Gerçek ödeme alınmayacaktır' 
+                : (settings?.payment?.paytr?.enabled ? 'PayTR güvenli ödeme altyapısı ile korunmaktadır' : 'Test modu: Gerçek ödeme alınmayacaktır')
+              }
             </p>
           </div>
         </div>
