@@ -16,7 +16,6 @@ import ContactPage from './pages/ContactPage';
 import TransferInfoPage from './pages/TransferInfoPage';
 import FAQPage from './pages/FAQPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
-import CustomerPanel from './pages/customer-panel';
 import OriginalCustomerPanel from './pages/OriginalCustomerPanel';
 import ReservationDetailPage from './pages/ReservationDetailPage';
 import CustomerReservationView from './pages/CustomerReservationView';
@@ -88,8 +87,11 @@ function App() {
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
         
         {/* Customer Panel Routes */}
-        <Route path="/profile" element={<OriginalCustomerPanel />} />
-        <Route path="/customer-panel" element={<CustomerPanel />} />
+        <Route path="/profile" element={
+          <ProtectedRoute requiredRole="customer">
+            <OriginalCustomerPanel />
+          </ProtectedRoute>
+        } />
         
         {/* Reservation Routes */}
         <Route path="/reservation/detail" element={<ReservationDetailPage />} />

@@ -38,7 +38,7 @@ export default function CustomerLoginPage() {
       if (credentials.email && credentials.password) {
         localStorage.setItem('customerToken', 'demo-customer-token');
         toast.success('Giriş başarılı!');
-        navigate('/');
+        navigate('/profile');
       } else {
         toast.error('Lütfen tüm alanları doldurun');
       }
@@ -123,6 +123,17 @@ export default function CustomerLoginPage() {
               )}
             </button>
           </form>
+
+          {/* Forgot Password */}
+          <div className="mt-4 text-center">
+            <button
+              type="button"
+              onClick={() => toast.info('Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.')}
+              className="text-purple-600 hover:text-purple-700 text-sm font-medium"
+            >
+              Şifremi unuttum
+            </button>
+          </div>
 
           {/* Divider */}
           <div className="my-6 flex items-center">

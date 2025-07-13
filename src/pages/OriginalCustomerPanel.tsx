@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
-import { User, Calendar, Clock, DollarSign, QrCode, Phone, Mail, Star, Download, Eye, Plus, CheckCircle, Home, FileText, Car, CreditCard, MapPin } from 'lucide-react';
+import { User, Calendar, Clock, DollarSign, QrCode, Phone, Mail, Star, Download, Eye, Plus, CheckCircle, Home, FileText, Car, CreditCard, MapPin, X } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { getVehicleTypeDisplayName } from '../utils/vehicle';
@@ -30,6 +30,8 @@ export default function OriginalCustomerPanel() {
   const [customerReservations, setCustomerReservations] = useState<Record<string, unknown>[]>([]);
   const [selectedReservation, setSelectedReservation] = useState<any>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const [showNewReservationMessage, setShowNewReservationMessage] = useState(false);
   const { reservations, fetchReservations } = useStore();
 
@@ -133,6 +135,29 @@ export default function OriginalCustomerPanel() {
       toast.error('Fatura oluşturulurken bir hata oluştu');
     }
   };
+
+  const generateQRCode = useCallback(async (reservation: any) => {
+    try {
+      // Use QRCode library to generate QR code
+      const QRCode = await import('qrcode');
+      const qrData = JSON.stringify({
+        id: reservation.id,
+        customerName: `${customerInfo.firstName} ${customerInfo.lastName}`,
+        route: reservation.route || `${reservation.pickupLocation} → ${reservation.dropoffLocation}`,
+        date: reservation.date || reservation.pickupDate,
+        time: reservation.time || reservation.pickupTime,
+        qrCode: reservation.qrCode
+      });
+      
+      const qrCodeDataUrl = await QRCode.default.toDataURL(qrData);
+      setQrCodeUrl(qrCodeDataUrl);
+      setSelectedReservation(reservation);
+      setShowQRModal(true);
+    } catch (error) {
+      console.error('Error generating QR code:', error);
+      toast.error('QR kodu oluşturulurken bir hata oluştu');
+    }
+  }, [customerInfo]);
 
   return (
     <div className="min-h-screen bg-gray-50">
