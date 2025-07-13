@@ -89,6 +89,12 @@ export default function BookingPage() {
     const calculatePricing = async () => {
       if (watchedValues.destination?.name && watchedValues.vehicleType && 
           watchedValues.pickupDate && watchedValues.pickupTime) {
+        
+        console.log('=== PRICE CALCULATION STARTED ===');
+        console.log('Destination:', watchedValues.destination);
+        console.log('Vehicle type:', watchedValues.vehicleType);
+        console.log('Transfer type:', watchedValues.transferType);
+        
         setIsCalculatingPrice(true);
         
         try {
@@ -101,14 +107,37 @@ export default function BookingPage() {
             transferType: watchedValues.transferType
           });
           
+          console.log('✅ Price calculation successful:', calculation);
           setPriceCalculation(calculation);
           setTotalPrice(calculation.total);
+          
         } catch (error) {
-          console.error('Fiyat hesaplama hatası:', error);
-          toast.error('Fiyat hesaplanırken hata oluştu');
+          console.error('❌ Price calculation error:', error);
+          
+          // Show user-friendly error message
+          const errorMessage = error instanceof Error ? error.message : 'Fiyat hesaplanırken hata oluştu';
+          toast.error(`Fiyat hesaplama hatası: ${errorMessage}`);
+          
+          // Reset price calculation to prevent invalid submissions
+          setPriceCalculation(null);
+          setTotalPrice(0);
+          
         } finally {
           setIsCalculatingPrice(false);
+          console.log('=== PRICE CALCULATION ENDED ===');
         }
+      } else {
+        console.log('Price calculation skipped - missing required fields');
+        console.log('Missing fields check:', {
+          destination: !!watchedValues.destination?.name,
+          vehicleType: !!watchedValues.vehicleType,
+          pickupDate: !!watchedValues.pickupDate,
+          pickupTime: !!watchedValues.pickupTime
+        });
+        
+        // Clear price calculation when required fields are missing
+        setPriceCalculation(null);
+        setTotalPrice(0);
       }
     };
 
@@ -132,12 +161,32 @@ export default function BookingPage() {
   };
 
   const onSubmit = async (data: BookingFormData) => {
-    console.log('onSubmit called with data:', data);
+    console.log('=== BOOKING SUBMISSION STARTED ===');
+    console.log('Form data:', data);
+    console.log('Price calculation:', priceCalculation);
+    console.log('Total price:', totalPrice);
+    
     setIsSubmitting(true);
     
     try {
+      // Validate that we have price calculation
+      if (!priceCalculation || !priceCalculation.distance || priceCalculation.total <= 0) {
+        console.error('Price calculation invalid:', priceCalculation);
+        throw new Error('Fiyat hesaplaması tamamlanmamış. Lütfen hedef seçiminizi kontrol edin ve tekrar deneyin.');
+      }
+
+      // Validate required fields
+      if (!data.destination?.name) {
+        throw new Error('Hedef seçimi gerekli');
+      }
+      
+      if (!data.pickupDate || !data.pickupTime) {
+        throw new Error('Tarih ve saat seçimi gerekli');
+      }
+
       // Generate QR code for the reservation
       const qrCode = generateQRCode();
+      console.log('Generated QR code:', qrCode);
       
       // Create customer record first
       console.log('Creating customer record...');
@@ -149,12 +198,12 @@ export default function BookingPage() {
       });
 
       if (!customerId) {
-        throw new Error('Müşteri kaydı oluşturulamadı');
+        throw new Error('Müşteri kaydı oluşturulamadı - lütfen bilgilerinizi kontrol edin');
       }
 
       console.log('Customer created successfully:', customerId);
 
-      // Prepare reservation data
+      // Prepare reservation data with validated price calculation
       const reservationData = {
         ...data,
         customerId,
@@ -163,8 +212,8 @@ export default function BookingPage() {
         customerPhone: data.customerInfo.phone,
         pickupLocation: data.transferType === 'airport-hotel' ? 'Antalya Havalimanı' : data.destination.name,
         dropoffLocation: data.transferType === 'airport-hotel' ? data.destination.name : 'Antalya Havalimanı',
-        distance: priceCalculation?.distance || 0,
-        basePrice: priceCalculation?.basePrice || 0,
+        distance: priceCalculation.distance,
+        basePrice: priceCalculation.basePrice,
         additionalServices: data.extraServices?.map(serviceId => {
           const service = extraServices.find(s => s.id === serviceId);
           return {
@@ -173,41 +222,57 @@ export default function BookingPage() {
             price: service?.price || 0
           };
         }) || [],
-        totalPrice: priceCalculation?.totalPrice || totalPrice,
+        totalPrice: priceCalculation.totalPrice,
         qrCode,
         paymentStatus: 'pending' as const,
         status: 'pending' as const
       };
 
-      console.log('Creating reservation with data:', reservationData);
+      console.log('Creating reservation with validated data:', reservationData);
 
       // Create reservation
       const reservationId = await createNewReservation(reservationData);
 
       if (!reservationId) {
-        throw new Error('Rezervasyon oluşturulamadı');
+        throw new Error('Rezervasyon oluşturulamadı - sistem hatası');
       }
 
-      console.log('Reservation created successfully:', reservationId);
+      console.log('✅ Reservation created successfully:', reservationId);
 
       // Store reservation ID and QR code for payment step
       setReservationId(reservationId);
       setQrCode(qrCode);
 
       // Show success message
-      toast.success('Rezervasyon başarıyla oluşturuldu! Ödeme sayfasına yönlendiriliyorsunuz...');
+      toast.success('🎉 Rezervasyon başarıyla oluşturuldu! E-posta onayı gönderildi.');
       
       // Move to payment step
       console.log('Moving to payment step...');
       setCurrentStep(3);
       
     } catch (error) {
-      console.error('Rezervasyon oluşturma hatası:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Rezervasyon oluşturulurken hata oluştu';
-      toast.error(errorMessage);
+      console.error('=== BOOKING SUBMISSION ERROR ===');
+      console.error('Error details:', error);
+      console.error('Current state - Price calculation:', priceCalculation);
+      console.error('Current state - Total price:', totalPrice);
+      console.error('Current state - Form data:', data);
+      
+      const errorMessage = error instanceof Error ? error.message : 'Rezervasyon oluşturulurken beklenmeyen bir hata oluştu';
+      toast.error(`❌ ${errorMessage}`);
+      
+      // Log specific error types for debugging
+      if (errorMessage.includes('Fiyat hesaplaması')) {
+        console.error('PRICE CALCULATION ERROR - Need to check Google Maps integration');
+      } else if (errorMessage.includes('Müşteri kaydı')) {
+        console.error('CUSTOMER CREATION ERROR - Check Firebase connection');
+      } else if (errorMessage.includes('Rezervasyon oluşturulamadı')) {
+        console.error('RESERVATION CREATION ERROR - Check Firebase collections');
+      }
+      
       // Don't change step on error, stay on current step
     } finally {
       setIsSubmitting(false);
+      console.log('=== BOOKING SUBMISSION ENDED ===');
     }
   };
 
