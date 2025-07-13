@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Plane, Phone, MapPin, Globe } from 'lucide-react';
 import { Menu, X, Plane, Phone, MapPin, Globe, User } from 'lucide-react';
 import { isCustomerSessionValid, getCustomerSession } from '../../utils/customerSession';
 export default function Header() {
