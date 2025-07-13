@@ -8,42 +8,50 @@ import { useEffect } from 'react';
 interface CustomerInfoFormProps {
   register: UseFormRegister<BookingFormData>;
   errors: FieldErrors<BookingFormData>;
+  watchedValues: any;
   setValue: UseFormSetValue<BookingFormData>;
-  additionalServices: string[];
+  extraServices: any[];
 }
 
 
 export default function CustomerInfoForm({
   register,
   errors,
+  watchedValues,
   setValue,
-  additionalServices
+  extraServices
 }: CustomerInfoFormProps) {
-  const { extraServices, fetchExtraServices } = useStore();
+  const { fetchExtraServices } = useStore();
   
   useEffect(() => {
     fetchExtraServices();
   }, [fetchExtraServices]);
   
-  // Register flight number field if not already registered
-  useEffect(() => {
-    register('flightNumber');
-  }, [register]);
-  
   const toggleService = (serviceId: string) => {
-    const currentServices = additionalServices || [];
+    const currentServices = watchedValues.extraServices || [];
     const newServices = currentServices.includes(serviceId)
-      ? [...currentServices.filter(id => id !== serviceId)]
+      ? currentServices.filter((id: string) => id !== serviceId)
       : [...currentServices, serviceId];
     
-    setValue('additionalServices', newServices);
+    setValue('extraServices', newServices);
   };
 
   const getTotalServicesCost = () => {
-    return (additionalServices || []).reduce((total, serviceId) => {
+    return (watchedValues.extraServices || []).reduce((total: number, serviceId: string) => {
       const service = extraServices.find(s => s.id === serviceId);
       return total + (service?.price || 0);
     }, 0);
+  };
+
+  // Filter extra services by selected vehicle type
+  const getAvailableServices = () => {
+    if (!watchedValues.vehicleType || !extraServices) return [];
+    
+    return extraServices.filter(service => 
+      !service.applicableVehicleTypes || 
+      service.applicableVehicleTypes.length === 0 ||
+      service.applicableVehicleTypes.includes(watchedValues.vehicleType)
+    );
   };
 
   return (
@@ -148,8 +156,8 @@ export default function CustomerInfoForm({
           <p className="text-gray-600 mb-6">Transfer deneyiminizi daha konforlu hale getirmek için ek hizmetler seçebilirsiniz.</p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {extraServices && extraServices.length > 0 ? extraServices.map((service) => {
-              const isSelected = (additionalServices || []).includes(service.id || '');
+            {getAvailableServices().length > 0 ? getAvailableServices().map((service) => {
+              const isSelected = (watchedValues.extraServices || []).includes(service.id || '');
               
               return (
                 <div 
@@ -164,7 +172,8 @@ export default function CustomerInfoForm({
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <h4 className="font-semibold text-gray-800">{service.name}</h4>
-                      <p className="text-sm text-blue-600 font-semibold">+${service.price}</p>
+                      <p className="text-sm text-gray-600">{service.description}</p>
+                      <p className="text-sm text-blue-600 font-semibold">{service.price} TL</p>
                     </div>
                     <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
                       isSelected
@@ -178,19 +187,19 @@ export default function CustomerInfoForm({
               );
             }) : (
               <div className="col-span-3 text-center py-4 text-gray-500">
-                Ek hizmetler yükleniyor...
+                Bu araç tipi için ek hizmet bulunmuyor.
               </div>
             )}
           </div>
 
-          {(additionalServices || []).length > 0 && (
+          {(watchedValues.extraServices || []).length > 0 && (
             <div className="mt-6 bg-blue-50 rounded-xl p-4">
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-gray-800">Seçilen Ek Hizmetler:</span>
-                <span className="font-bold text-blue-600">${getTotalServicesCost()}</span>
+                <span className="font-bold text-blue-600">{getTotalServicesCost()} TL</span>
               </div>
               <div className="mt-2 flex flex-wrap gap-2">
-                {(additionalServices || []).map((serviceId) => {
+                {(watchedValues.extraServices || []).map((serviceId) => {
                   const service = extraServices.find(s => s.id === serviceId);
                   return service ? (
                     <span
