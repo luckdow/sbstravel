@@ -39,7 +39,8 @@ export default function CustomerInfoForm({
   const getTotalServicesCost = () => {
     return (watchedValues.extraServices || []).reduce((total: number, serviceId: string) => {
       const service = extraServices.find(s => s.id === serviceId);
-      return total + (service?.price || 0);
+      // Convert from TL to USD
+      return total + ((service?.price || 0) / 30);
     }, 0);
   };
 
@@ -173,7 +174,7 @@ export default function CustomerInfoForm({
                     <div className="flex-1">
                       <h4 className="font-semibold text-gray-800">{service.name}</h4>
                       <p className="text-sm text-gray-600">{service.description}</p>
-                      <p className="text-sm text-blue-600 font-semibold">{service.price} TL</p>
+                      <p className="text-sm text-blue-600 font-semibold">${(service.price / 30).toFixed(2)}</p>
                     </div>
                     <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
                       isSelected
@@ -196,7 +197,7 @@ export default function CustomerInfoForm({
             <div className="mt-6 bg-blue-50 rounded-xl p-4">
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-gray-800">Seçilen Ek Hizmetler:</span>
-                <span className="font-bold text-blue-600">{getTotalServicesCost()} TL</span>
+                <span className="font-bold text-blue-600">${getTotalServicesCost().toFixed(2)}</span>
               </div>
               <div className="mt-2 flex flex-wrap gap-2">
                 {(watchedValues.extraServices || []).map((serviceId) => {

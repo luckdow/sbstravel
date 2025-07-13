@@ -70,15 +70,18 @@ export default function VehicleSelection({
     return vehicle.passengerCapacity >= (passengerCount || 1) && vehicle.baggageCapacity >= (baggageCount || 1);
   };
 
+  // Only show first 3 vehicles for minimal design
+  const displayVehicles = vehiclesToDisplay.slice(0, 3);
+
   return (
     <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
       <h2 className="text-2xl font-bold text-gray-800 mb-6">Araç Seçimi</h2>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {vehiclesToDisplay.map((vehicle: any) => {
+      {/* 3-column grid layout for horizontal minimal cards */}
+      <div className="grid grid-cols-3 gap-4">
+        {displayVehicles.map((vehicle: any) => {
           const isSuitable = isVehicleSuitable(vehicle);
           const isSelected = selectedVehicle === vehicle.type || selectedVehicle === vehicle.id;
-          const vehiclePrice = vehicle.pricePerKm || 0;
 
           return (
             <div
@@ -92,94 +95,70 @@ export default function VehicleSelection({
               }`}
               onClick={() => isSuitable && onVehicleSelect(vehicle.type || vehicle.id)}
             >
-              {/* Badges */}
-              <div className="absolute top-4 left-4 z-10 flex flex-col space-y-2">
-                {vehicle.popular && (
-                  <div className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
-                    ⭐ En Popüler
-                  </div>
-                )}
-                {!isSuitable && (
-                  <div className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
-                    Uygun Değil
-                  </div>
-                )}
-              </div>
-
               {/* Selection Indicator */}
               {isSelected && (
-                <div className="absolute top-4 right-4 z-10">
-                  <div className="bg-blue-600 text-white p-2 rounded-full shadow-lg">
-                    <CheckCircle className="h-5 w-5" />
+                <div className="absolute top-3 right-3 z-10">
+                  <div className="bg-blue-600 text-white p-1.5 rounded-full shadow-lg">
+                    <CheckCircle className="h-4 w-4" />
                   </div>
                 </div>
               )}
 
-              {/* Vehicle Image */}
-              <div className="relative overflow-hidden rounded-t-2xl">
-                <img 
-                  src={vehicle.image} 
-                  alt={vehicle.name}
-                  className="w-full h-48 object-cover"
-                />
-                <div className="absolute bottom-4 right-4">
-                  <div className="bg-black/50 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-semibold capitalize">
-                    {vehicle.type}
-                  </div>
-                </div>
-              </div>
-
-              {/* Vehicle Info */}
-              <div className="p-6 space-y-4">
-                <div>
-                  <h3 className="text-xl font-bold text-gray-800 mb-1">{vehicle.name}</h3>
-                  <p className="text-gray-600 text-sm">{vehicle.model}</p>
-                  <p className="text-gray-500 text-sm mt-2">{vehicle.description}</p>
+              {/* Minimal card content */}
+              <div className="p-4 space-y-3">
+                {/* Vehicle Image - small */}
+                <div className="relative overflow-hidden rounded-lg">
+                  <img 
+                    src={vehicle.image} 
+                    alt={vehicle.name}
+                    className="w-full h-24 object-cover"
+                  />
                 </div>
 
-                {/* Capacity */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className={`flex flex-col items-center p-3 rounded-xl transition-colors ${
+                {/* Package Name */}
+                <div className="text-center">
+                  <h3 className="text-lg font-bold text-gray-800">
+                    {vehicle.name || (vehicle.type === 'standard' ? 'Standard' : vehicle.type === 'premium' ? 'Premium' : 'Luxury')}
+                  </h3>
+                </div>
+
+                {/* Key Features as small badges */}
+                <div className="flex flex-wrap gap-1 justify-center">
+                  <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-md">
+                    AC
+                  </span>
+                  <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-md">
+                    Music
+                  </span>
+                  <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-md">
+                    Food
+                  </span>
+                </div>
+
+                {/* Passenger/baggage capacity with small icons */}
+                <div className="grid grid-cols-2 gap-2 text-center">
+                  <div className={`flex flex-col items-center p-2 rounded-lg transition-colors ${
                     vehicle.passengerCapacity >= passengerCount
                       ? 'bg-green-50 text-green-700'
                       : 'bg-red-50 text-red-700'
                   }`}>
-                    <Users className="h-5 w-5 mb-1" />
-                    <span className="text-sm font-medium">{vehicle.passengerCapacity} Kişi</span>
-                    {vehicle.passengerCapacity < passengerCount && (
-                      <span className="text-xs">Yetersiz</span>
-                    )}
+                    <Users className="h-4 w-4 mb-1" />
+                    <span className="text-xs font-medium">{vehicle.passengerCapacity}</span>
                   </div>
-                  <div className={`flex flex-col items-center p-3 rounded-xl transition-colors ${
+                  <div className={`flex flex-col items-center p-2 rounded-lg transition-colors ${
                     vehicle.baggageCapacity >= baggageCount
                       ? 'bg-green-50 text-green-700'
                       : 'bg-red-50 text-red-700'
                   }`}>
-                    <Luggage className="h-5 w-5 mb-1" />
-                    <span className="text-sm font-medium">{vehicle.baggageCapacity} Bagaj</span>
-                    {vehicle.baggageCapacity < baggageCount && (
-                      <span className="text-xs">Yetersiz</span>
-                    )}
+                    <Luggage className="h-4 w-4 mb-1" />
+                    <span className="text-xs font-medium">{vehicle.baggageCapacity}</span>
                   </div>
                 </div>
 
-                {/* Features */}
-                <div className="space-y-2">
-                  <h4 className="text-sm font-semibold text-gray-700">Özellikler:</h4>
-                  <div className="flex flex-wrap gap-1">
-                    {vehicle.features.map((feature, index) => (
-                      <span key={index} className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-lg">
-                        {feature}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Price */}
-                {/* Selection Indicator */}
+                {/* Selection Status */}
                 {isSelected && (
-                  <div className="pt-4 border-t border-gray-100 text-center">
-                    <div className="text-sm font-semibold text-blue-600">
+                  <div className="text-center">
+                    <div className="text-xs font-semibold text-blue-600">
                       ✓ Seçildi
                     </div>
                   </div>
@@ -190,25 +169,21 @@ export default function VehicleSelection({
         })}
       </div>
 
-      {/* Additional Info */}
-      <div className="mt-8 bg-blue-50 rounded-xl p-6">
-        <h4 className="font-bold text-gray-800 mb-3">Tüm Araçlarda Dahil:</h4>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* Additional Info - minimal */}
+      <div className="mt-6 bg-blue-50 rounded-xl p-4">
+        <h4 className="font-bold text-gray-800 mb-2 text-center">Tüm Araçlarda Dahil:</h4>
+        <div className="flex justify-center space-x-6">
           <div className="flex items-center space-x-2">
-            <Shield className="h-5 w-5 text-blue-600" />
-            <span className="text-sm text-gray-700">Tam Sigorta</span>
+            <Shield className="h-4 w-4 text-blue-600" />
+            <span className="text-sm text-gray-700">Sigorta</span>
           </div>
           <div className="flex items-center space-x-2">
-            <Car className="h-5 w-5 text-green-600" />
-            <span className="text-sm text-gray-700">Yakıt Dahil</span>
+            <Car className="h-4 w-4 text-green-600" />
+            <span className="text-sm text-gray-700">Yakıt</span>
           </div>
           <div className="flex items-center space-x-2">
-            <Star className="h-5 w-5 text-yellow-600" />
-            <span className="text-sm text-gray-700">Profesyonel Şoför</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <CheckCircle className="h-5 w-5 text-purple-600" />
-            <span className="text-sm text-gray-700">7/24 Destek</span>
+            <Star className="h-4 w-4 text-yellow-600" />
+            <span className="text-sm text-gray-700">Şoför</span>
           </div>
         </div>
       </div>

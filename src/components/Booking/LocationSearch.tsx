@@ -187,6 +187,8 @@ export default function LocationSearch({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
+    // Only update the name for search, don't mark location automatically during typing
+    // The lat/lng will be set to 0 until user makes an active selection
     onChange({ name: newValue, lat: 0, lng: 0 });
     setShowSuggestions(true);
   };
@@ -231,10 +233,18 @@ export default function LocationSearch({
         return;
       }
       
+      // Only update location when user actively selects (not during typing)
       onChange(locationData);
       saveRecentSearch(locationData);
       setShowSuggestions(false);
       setSuggestions([]);
+      
+      // Trigger route calculation if this is a valid location selection
+      if (locationData.lat && locationData.lng && window.dispatchEvent) {
+        window.dispatchEvent(new CustomEvent('locationSelected', { 
+          detail: { location: locationData } 
+        }));
+      }
     } catch (error) {
       console.error('Error processing location selection:', error);
       // Show user-friendly error

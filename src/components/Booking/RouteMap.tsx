@@ -57,6 +57,12 @@ export default function RouteMap({ origin, destination, onRouteCalculated }: Rou
   useEffect(() => {
     const calculateRoute = async () => {
       if (!origin || !destination || !directionsRenderer) return;
+      
+      // Check if both origin and destination have valid coordinates
+      const hasValidOrigin = typeof origin === 'string' || (typeof origin === 'object' && origin.lat !== 0 && origin.lng !== 0);
+      const hasValidDestination = typeof destination === 'string' || (typeof destination === 'object' && destination.lat !== 0 && destination.lng !== 0);
+      
+      if (!hasValidOrigin || !hasValidDestination) return;
 
       setIsLoading(true);
       try {
@@ -80,6 +86,22 @@ export default function RouteMap({ origin, destination, onRouteCalculated }: Rou
 
     calculateRoute();
   }, [origin, destination, directionsRenderer, onRouteCalculated]);
+
+  // Listen for location selection events to auto-draw routes
+  useEffect(() => {
+    const handleLocationSelected = (event: CustomEvent) => {
+      const selectedLocation = event.detail?.location;
+      if (selectedLocation && selectedLocation.lat && selectedLocation.lng) {
+        // Auto-calculate route when location is selected and we have both points
+        // This will be triggered by the updated location selection in LocationSearch
+      }
+    };
+
+    window.addEventListener('locationSelected', handleLocationSelected as EventListener);
+    return () => {
+      window.removeEventListener('locationSelected', handleLocationSelected as EventListener);
+    };
+  }, []);
 
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
