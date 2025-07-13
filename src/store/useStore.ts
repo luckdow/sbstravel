@@ -193,6 +193,10 @@ export const useStore = create<StoreState>((set, get) => ({
     try {
       const docRef = doc(reservationsRef, id);
       await deleteDoc(docRef);
+      // Update local state to remove the reservation
+      set((state) => ({
+        reservations: state.reservations.filter(reservation => reservation.id !== id)
+      }));
       toast.success('Rezervasyon silindi');
     } catch (error) {
       console.error('Error deleting reservation:', error);
