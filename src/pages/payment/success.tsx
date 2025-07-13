@@ -2,11 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { CheckCircle, Download, Share2, Mail, Phone, Calendar, MapPin, User, Home, Loader2, Plane } from 'lucide-react';
 import QRCode from 'react-qr-code';
-import { useStore } from '../../store/useStore'; 
+import { useStore } from '../../store/useStore';
 import { getVehicleTypeDisplayName } from '../../utils/vehicle';
 import { generateCustomerViewURL } from '../../utils/qrCode';
-import { setCustomerSession } from '../../utils/customerSession';
-import { authService } from '../../lib/services/auth-service';
 import toast from 'react-hot-toast';
 
 export default function PaymentSuccessPage() {
@@ -15,8 +13,6 @@ export default function PaymentSuccessPage() {
   const [isCreatingUser, setIsCreatingUser] = useState(false);
   const [userCreated, setUserCreated] = useState(false);
   const { addCustomer } = useStore();
-  const [registrationError, setRegistrationError] = useState<string | null>(null);
-  const [redirecting, setRedirecting] = useState(false);
   
   // Get transaction data from navigation state
   const transactionData = location.state;
@@ -58,44 +54,24 @@ export default function PaymentSuccessPage() {
       if (isCreatingUser || userCreated) {
         return;
       }
-
+      
       setIsCreatingUser(true);
       
       try {
         if (!alreadyCreated) {
           // Use real customer info from transaction data
-          const customerInfo = {
+          const realCustomerInfo = {
             firstName: customerInfo.firstName,
             lastName: customerInfo.lastName,
             email: customerInfo.email,
             phone: customerInfo.phone
           };
 
-          const customerId = await addCustomer(customerInfo);
+          const customerId = await addCustomer(realCustomerInfo);
           
           if (customerId) {
             console.log('User created successfully:', customerId);
             
-            // Doğrudan müşteri oturumu oluştur
-            setCustomerSession({
-              customerId,
-              firstName: customerInfo.firstName,
-              lastName: customerInfo.lastName,
-              email: customerInfo.email,
-              phone: customerInfo.phone,
-              createdAt: new Date()
-            });
-
-            // Oturum bilgilerini localStorage'a doğrudan kaydet
-            localStorage.setItem('sbs_customer_session', JSON.stringify({
-              customerId,
-              firstName: customerInfo.firstName,
-              lastName: customerInfo.lastName,
-              email: customerInfo.email,
-              phone: customerInfo.phone,
-              createdAt: new Date().toISOString()
-            }));
-
             // Mark as created for this reservation to prevent duplicates
             localStorage.setItem(customerCreatedKey, customerId);
             
@@ -104,19 +80,18 @@ export default function PaymentSuccessPage() {
         }
         
         setUserCreated(true);
-
-        // Yönlendirme işlemini başlat
-        setRedirecting(true);
+        
+        // Redirect to the new reservation detail page after a brief delay
         setTimeout(() => {
-          navigate('/profile', { 
+          navigate('/reservation/detail', { 
             state: {
-              newReservation: true,
               reservationId: reservationData.id,
-              registrationError: registrationError
+              customerInfo: customerInfo,
+              ...transactionData
             },
             replace: true 
           });
-        }, 3000);
+        }, 2000);
         
       } catch (error) {
         console.error('Error creating user:', error);
@@ -170,18 +145,6 @@ export default function PaymentSuccessPage() {
                 </div>
               </div>
             )}
-
-            {redirecting && (
-              <div className="mb-6">
-                <div className="flex items-center justify-center space-x-3 mb-4">
-                  <Loader2 className="h-6 w-6 animate-spin text-green-600" />
-                  <span className="text-lg text-green-700">Profil sayfanıza yönlendiriliyorsunuz...</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-green-600 h-2 rounded-full animate-pulse" style={{ width: '80%' }}></div>
-                </div>
-              </div>
-            )}
             
             {userCreated && (
               <div className="mb-6">
@@ -199,19 +162,9 @@ export default function PaymentSuccessPage() {
               <h3 className="text-xl font-semibold text-gray-800 mb-2">
                 Rezervasyon detaylarınız hazırlanıyor...
               </h3>
-              <p className="text-gray-600 mb-4">
-                Kısa süre içinde profil sayfanıza yönlendirileceksiniz.
+              <p className="text-gray-600">
+                Kısa süre içinde rezervasyon detay sayfasına yönlendirileceksiniz.
               </p>
-              {registrationError && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-left">
-                  <p className="text-yellow-800 font-medium">Bilgi:</p>
-                  <p className="text-yellow-700 text-sm">{registrationError}</p>
-                  <p className="text-yellow-700 text-sm mt-2">
-                    Rezervasyonunuz oluşturuldu, ancak hesap oluşturma sırasında bir sorun oluştu.
-                    Profil sayfasına erişmek için lütfen manuel olarak giriş yapın.
-                  </p>
-                </div>
-              )}
             </div>
           </div>
 
@@ -219,7 +172,7 @@ export default function PaymentSuccessPage() {
           <div className="bg-blue-50 rounded-xl p-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
               <div>
-                <div className="text-lg font-bold text-blue-800">Rezervasyon</div>
+                <div className="text-lg font-bold text-blue-800">Rezervasyon No</div>
                 <div className="text-blue-600">{reservationData.id}</div>
               </div>
               <div>

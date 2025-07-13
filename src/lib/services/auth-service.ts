@@ -289,10 +289,9 @@ export class AuthService {
       this.setLoading(true);
 
       // Check if user already exists
-      const userEmail = googleUser.email?.toLowerCase() || '';
-      let existingUser = Array.from(this.users.values()).find(u => {
-        return u.email && u.email.toLowerCase() === userEmail;
-      });
+      let existingUser = Array.from(this.users.values()).find(
+        u => u.email.toLowerCase() === googleUser.email.toLowerCase()
+      );
 
       let user: User;
 
@@ -317,13 +316,11 @@ export class AuthService {
       } else {
         // Create new user from Google account
         const userId = this.generateUserId();
-        const nameParts = googleUser.name?.split(' ') || ['User', ''];
-        const firstName = nameParts[0] || 'User';
-        const lastNameParts = nameParts.slice(1) || [''];
+        const [firstName, ...lastNameParts] = googleUser.name.split(' ');
         
         user = {
           id: userId,
-          email: userEmail,
+          email: googleUser.email.toLowerCase(),
           firstName: firstName || '',
           lastName: lastNameParts.join(' ') || '',
           phone: '', // Will need to be filled later

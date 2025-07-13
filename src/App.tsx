@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import ErrorBoundary from './components/Error/ErrorBoundary';
-import { useStore } from './store/useStore'; 
+import { useStore } from './store/useStore';
 
 // Test Component
 import SimpleTest from './components/SimpleTest';
@@ -49,6 +49,9 @@ import PaymentSuccessPage from "./pages/payment/success";
 import PrivacyPolicyPage from './pages/legal/PrivacyPolicyPage';
 import TermsOfServicePage from './pages/legal/TermsOfServicePage';
 import KVKKPolicyPage from './pages/legal/KVKKPolicyPage';
+
+// Quick Access Navigation
+import QuickAccess from './components/Navigation/QuickAccess';
 
 // Protected Route Component
 import ProtectedRoute from './components/Auth/ProtectedRoute';
@@ -176,6 +179,9 @@ function App() {
         <Route path="/terms-of-service" element={<TermsOfServicePage />} />
         <Route path="/kvkk-policy" element={<KVKKPolicyPage />} />
       </Routes>
+      
+      {/* Quick Access Navigation */}
+      <QuickAccess />
       
       {/* Toast Notifications */}
       <Toaster 

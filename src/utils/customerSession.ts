@@ -11,7 +11,6 @@ const CUSTOMER_SESSION_KEY = 'sbs_customer_session';
 
 export const setCustomerSession = (customerData: CustomerSession): void => {
   try {
-    console.log('Setting customer session:', customerData);
     localStorage.setItem(CUSTOMER_SESSION_KEY, JSON.stringify({
       ...customerData,
       createdAt: customerData.createdAt.toISOString()
@@ -27,7 +26,6 @@ export const getCustomerSession = (): CustomerSession | null => {
     if (!sessionData) return null;
     
     const parsed = JSON.parse(sessionData);
-    console.log('Retrieved customer session:', parsed);
     return {
       ...parsed,
       createdAt: new Date(parsed.createdAt)
@@ -40,7 +38,6 @@ export const getCustomerSession = (): CustomerSession | null => {
 
 export const clearCustomerSession = (): void => {
   try {
-    console.log('Clearing customer session');
     localStorage.removeItem(CUSTOMER_SESSION_KEY);
   } catch (error) {
     console.error('Error clearing customer session:', error);
@@ -49,20 +46,12 @@ export const clearCustomerSession = (): void => {
 
 export const isCustomerSessionValid = (): boolean => {
   const session = getCustomerSession();
-  if (!session) {
-    console.log('[CustomerSession] No customer session found');
-    return false;
-  }
-
-  // Check if user is authenticated with authService
-  // Removed authService check as we're using direct customer session
+  if (!session) return false;
   
   // Session is valid for 24 hours
   const now = new Date();
   const sessionAge = now.getTime() - session.createdAt.getTime();
   const maxAge = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
   
-  const isValid = sessionAge < maxAge;
-  console.log('[CustomerSession] Session age:', sessionAge / (60 * 60 * 1000), 'hours, valid:', isValid);
-  return isValid;
+  return sessionAge < maxAge;
 };

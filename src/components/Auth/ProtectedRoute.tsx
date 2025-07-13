@@ -1,8 +1,7 @@
 import React, { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { UserRole } from '../../lib/services/auth-service';
+import { authService, UserRole } from '../../lib/services/auth-service';
 import { Loader2 } from 'lucide-react';
-import { isCustomerSessionValid, getCustomerSession } from '../../utils/customerSession';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -10,15 +9,6 @@ interface ProtectedRouteProps {
   requiredPermission?: string;
   fallbackPath?: string;
 }
-
-// Basitleştirilmiş auth durumu kontrolü
-const getAuthState = () => {
-  return {
-    isLoading: false,
-    isAuthenticated: false,
-    user: null
-  };
-};
 
 export default function ProtectedRoute({
   children,
@@ -30,10 +20,10 @@ export default function ProtectedRoute({
   const defaultFallbackPath = fallbackPath || (
     requiredRole === 'admin' ? '/admin/login' :
     requiredRole === 'driver' ? '/driver/login' :
-    '/booking'
+    '/customer/login'
   );
   const location = useLocation();
-  const authState = getAuthState();
+  const authState = authService.getAuthState();
 
   // Show loading spinner while checking authentication
   if (authState.isLoading) {
@@ -47,49 +37,26 @@ export default function ProtectedRoute({
     );
   }
 
-  // Special handling for customer role - check customer session as fallback
-  if (requiredRole === 'customer' && !authState.isAuthenticated) {
-    // Check if we have a valid customer session even if not authenticated
-    const sessionValid = isCustomerSessionValid();
-    const session = getCustomerSession();
-    
-    console.log('[ProtectedRoute] Customer session check:', { 
-      sessionValid, 
-      session: session ? 'exists' : 'missing',
-      email: session?.email
-    });
-    
-    if (sessionValid) {
-      console.log('[ProtectedRoute] Customer session is valid, allowing access');
-      return <>{children}</>; 
-    }
-    
-    console.log('[ProtectedRoute] No valid customer session, redirecting to login');
-    return <Navigate to={defaultFallbackPath} state={{ from: location }} replace />;
-  }
-  
-  // For other roles, redirect to login if not authenticated
-  if (!authState.isAuthenticated && requiredRole !== 'customer') {
-    console.log('[ProtectedRoute] Not authenticated for role:', requiredRole);
+  // Redirect to login if not authenticated
+  if (!authState.isAuthenticated) {
     return <Navigate to={defaultFallbackPath} state={{ from: location }} replace />;
   }
 
   // Check if session is still valid
-  // Basitleştirilmiş versiyon - müşteri oturumu kontrolü yeterli
-  console.log('[ProtectedRoute] Müşteri oturumu kontrol ediliyor');
+  if (!authService.isSessionValid()) {
+    authService.logout();
+    return <Navigate to={defaultFallbackPath} state={{ from: location }} replace />;
+  }
 
   // Check role requirement
-  if (requiredRole && requiredRole !== 'customer') {
-    console.log('[ProtectedRoute] User does not have required role:', requiredRole);
+  if (requiredRole && !authService.hasRole(requiredRole)) {
     return <Navigate to="/unauthorized" replace />;
   }
 
   // Check permission requirement
-  if (requiredPermission) {
-    console.log('[ProtectedRoute] User does not have required permission:', requiredPermission);
+  if (requiredPermission && !authService.hasPermission(requiredPermission)) {
     return <Navigate to="/unauthorized" replace />;
   }
 
-  console.log('[ProtectedRoute] Access granted for role:', requiredRole);
   return <>{children}</>;
 }
