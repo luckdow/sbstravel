@@ -218,6 +218,7 @@ export default function BookingPage() {
         customerName: `${data.customerInfo.firstName} ${data.customerInfo.lastName}`,
         customerEmail: data.customerInfo.email,
         customerPhone: data.customerInfo.phone,
+        flightNumber: data.customerInfo.flightNumber,
         pickupLocation: data.transferType === 'airport-hotel' ? 'Antalya Havalimanı' : data.destination.name,
         dropoffLocation: data.transferType === 'airport-hotel' ? data.destination.name : 'Antalya Havalimanı',
         distance: priceCalculation.distance,

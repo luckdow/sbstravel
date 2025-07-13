@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { User, Calendar, MapPin, Clock, DollarSign, QrCode, Phone, Mail, Star, Download, Eye, Plus } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { User, Calendar, MapPin, Clock, DollarSign, QrCode, Phone, Mail, Star, Download, Eye, Plus, X } from 'lucide-react';
+import QRCodeDisplay from 'react-qr-code';
+import { getVehicleTypeDisplayName } from '../utils/vehicle';
+import { generateCustomerViewURL } from '../utils/qrCode';
 
 const mockReservations = [
   {
@@ -11,7 +14,7 @@ const mockReservations = [
     status: 'confirmed',
     amount: 85.00,
     qrCode: 'QR_ABC123',
-    vehicle: 'Premium'
+    vehicle: 'premium'
   },
   {
     id: 'RES-002',
@@ -21,7 +24,7 @@ const mockReservations = [
     status: 'pending',
     amount: 85.00,
     qrCode: 'QR_DEF456',
-    vehicle: 'Premium'
+    vehicle: 'premium'
   }
 ];
 
@@ -41,6 +44,25 @@ const statusLabels = {
 
 export default function CustomerPanel() {
   const [activeTab, setActiveTab] = useState('reservations');
+  const [selectedReservation, setSelectedReservation] = useState<any>(null);
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const navigate = useNavigate();
+
+  const handleViewDetails = (reservation: any) => {
+    setSelectedReservation(reservation);
+    setShowDetailsModal(true);
+  };
+
+  const handleShowQRCode = (reservation: any) => {
+    setSelectedReservation(reservation);
+    setShowQRModal(true);
+  };
+
+  const handleDownloadInvoice = (reservation: any) => {
+    // TODO: Implement invoice download functionality
+    alert(`Fatura indirilecek: ${reservation.id}`);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -181,11 +203,17 @@ export default function CustomerPanel() {
                         </div>
 
                         <div className="flex space-x-3">
-                          <button className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-xl font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2">
+                          <button 
+                            onClick={() => handleViewDetails(reservation)}
+                            className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-xl font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
+                          >
                             <Eye className="h-4 w-4" />
                             <span>Detaylar</span>
                           </button>
-                          <button className="flex-1 bg-green-600 text-white py-2 px-4 rounded-xl font-semibold hover:bg-green-700 transition-colors flex items-center justify-center space-x-2">
+                          <button 
+                            onClick={() => handleShowQRCode(reservation)}
+                            className="flex-1 bg-green-600 text-white py-2 px-4 rounded-xl font-semibold hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
+                          >
                             <QrCode className="h-4 w-4" />
                             <span>QR Kod</span>
                           </button>
@@ -287,6 +315,145 @@ export default function CustomerPanel() {
           </div>
         </div>
       </div>
+
+      {/* Reservation Details Modal */}
+      {showDetailsModal && selectedReservation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-800">Rezervasyon Detayları</h2>
+              <button 
+                onClick={() => setShowDetailsModal(false)}
+                className="p-1 hover:bg-gray-100 rounded"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              {/* Basic Info */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="text-sm text-gray-600">Rezervasyon No</span>
+                  <p className="font-semibold">{selectedReservation.id}</p>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-600">Durum</span>
+                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ml-2 ${statusColors[selectedReservation.status as keyof typeof statusColors]}`}>
+                    {statusLabels[selectedReservation.status as keyof typeof statusLabels]}
+                  </span>
+                </div>
+              </div>
+
+              {/* Route Info */}
+              <div>
+                <h3 className="font-semibold text-gray-800 mb-3">Güzergah Bilgileri</h3>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-center space-x-3 mb-2">
+                    <MapPin className="h-4 w-4 text-blue-600" />
+                    <span>{selectedReservation.route}</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Calendar className="h-4 w-4 text-purple-600" />
+                    <span>{selectedReservation.date} - {selectedReservation.time}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Vehicle Info */}
+              <div>
+                <h3 className="font-semibold text-gray-800 mb-3">Araç Bilgileri</h3>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <p><strong>Araç Tipi:</strong> {getVehicleTypeDisplayName(selectedReservation.vehicle)}</p>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex space-x-3">
+                <button 
+                  onClick={() => handleDownloadInvoice(selectedReservation)}
+                  className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-xl font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
+                >
+                  <Download className="h-4 w-4" />
+                  <span>Fatura İndir</span>
+                </button>
+                <button 
+                  onClick={() => {
+                    setShowDetailsModal(false);
+                    handleShowQRCode(selectedReservation);
+                  }}
+                  className="flex-1 bg-green-600 text-white py-3 px-4 rounded-xl font-semibold hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
+                >
+                  <QrCode className="h-4 w-4" />
+                  <span>QR Kod</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* QR Code Modal */}
+      {showQRModal && selectedReservation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl max-w-md w-full">
+            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-800">QR Kod</h2>
+              <button 
+                onClick={() => setShowQRModal(false)}
+                className="p-1 hover:bg-gray-100 rounded"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <div className="p-6 text-center">
+              <div className="bg-white p-4 rounded-lg border-2 border-gray-200 inline-block mb-4">
+                <QRCodeDisplay
+                  value={generateCustomerViewURL(selectedReservation.id, selectedReservation.qrCode)}
+                  size={200}
+                  style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                />
+              </div>
+              
+              <h3 className="font-semibold text-gray-800 mb-2">Rezervasyon QR Kodu</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Bu QR kodu şoförünüze göstererek transferinizi başlatabilirsiniz.
+              </p>
+              
+              <div className="space-y-3">
+                <button 
+                  onClick={() => {
+                    const url = generateCustomerViewURL(selectedReservation.id, selectedReservation.qrCode);
+                    window.open(url, '_blank');
+                  }}
+                  className="w-full bg-blue-600 text-white py-3 px-4 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+                >
+                  QR Sayfasını Aç
+                </button>
+                <button 
+                  onClick={() => {
+                    // TODO: Implement QR code sharing functionality
+                    if (navigator.share) {
+                      navigator.share({
+                        title: 'Transfer QR Kodu',
+                        url: generateCustomerViewURL(selectedReservation.id, selectedReservation.qrCode)
+                      });
+                    } else {
+                      // Fallback to copy to clipboard
+                      navigator.clipboard.writeText(generateCustomerViewURL(selectedReservation.id, selectedReservation.qrCode));
+                      alert('QR kod linki panoya kopyalandı!');
+                    }
+                  }}
+                  className="w-full bg-green-600 text-white py-3 px-4 rounded-xl font-semibold hover:bg-green-700 transition-colors"
+                >
+                  QR Kodu Paylaş
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

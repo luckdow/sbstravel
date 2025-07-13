@@ -6,7 +6,8 @@ import {
   Vehicle,
   BookingFormData,
   ExtraService,
-  Location
+  Location,
+  BankAccount
 } from '../types';
 import { 
   collection, 
@@ -37,6 +38,7 @@ const vehiclesRef = collection(db, 'vehicles');
 const extraServicesRef = collection(db, 'extraServices');
 const locationsRef = collection(db, 'locations');
 const commissionsRef = collection(db, 'commissions');
+const bankAccountsRef = collection(db, 'bankAccounts');
 
 interface StoreState {
   // Data
@@ -46,6 +48,7 @@ interface StoreState {
   vehicles: Vehicle[];
   extraServices: ExtraService[];
   locations: Location[];
+  bankAccounts: BankAccount[];
   currentDriver: Driver | null;
   loading: boolean;
   
@@ -86,6 +89,13 @@ interface StoreState {
   addLocation: (location: Partial<Location>) => Promise<string | null>;
   editLocation: (id: string, updates: Partial<Location>) => Promise<void>;
   deleteLocation: (id: string) => Promise<void>;
+
+  // Bank Accounts
+  fetchBankAccounts: () => Promise<void>;
+  addBankAccount: (account: Partial<BankAccount>) => Promise<string | null>;
+  editBankAccount: (id: string, updates: Partial<BankAccount>) => Promise<void>;
+  deleteBankAccount: (id: string) => Promise<void>;
+  setPrimaryBankAccount: (id: string) => Promise<void>;
 
   // Commissions
   fetchCommissions: () => Promise<void>;
@@ -144,6 +154,7 @@ export const useStore = create<StoreState>((set, get) => ({
   vehicles: [],
   extraServices: [],
   locations: [],
+  bankAccounts: [],
   currentDriver: null,
   loading: false,
   settings: null,
@@ -535,6 +546,91 @@ export const useStore = create<StoreState>((set, get) => ({
     } catch (error) {
       console.error('Error deleting location:', error);
       toast.error('Lokasyon silinirken hata oluştu');
+    }
+  },
+
+  // Bank Accounts
+  fetchBankAccounts: async () => {
+    set({ loading: true });
+    try {
+      const bankAccountsSnapshot = await getDocs(bankAccountsRef);
+      const bankAccounts = bankAccountsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as BankAccount[];
+      set({ bankAccounts, loading: false });
+    } catch (error) {
+      console.error('Error fetching bank accounts:', error);
+      set({ loading: false });
+    }
+  },
+
+  addBankAccount: async (account) => {
+    try {
+      const docRef = await addDoc(bankAccountsRef, {
+        ...account,
+        createdAt: Timestamp.now()
+      });
+      toast.success('Banka hesabı başarıyla eklendi');
+      return docRef.id;
+    } catch (error) {
+      console.error('Error adding bank account:', error);
+      toast.error('Banka hesabı eklenirken hata oluştu');
+      return null;
+    }
+  },
+
+  editBankAccount: async (id, updates) => {
+    try {
+      const docRef = doc(bankAccountsRef, id);
+      await updateDoc(docRef, {
+        ...updates,
+        updatedAt: Timestamp.now()
+      });
+      toast.success('Banka hesabı güncellendi');
+    } catch (error) {
+      console.error('Error updating bank account:', error);
+      toast.error('Banka hesabı güncellenirken hata oluştu');
+    }
+  },
+
+  deleteBankAccount: async (id) => {
+    try {
+      const docRef = doc(bankAccountsRef, id);
+      await deleteDoc(docRef);
+      toast.success('Banka hesabı silindi');
+    } catch (error) {
+      console.error('Error deleting bank account:', error);
+      toast.error('Banka hesabı silinirken hata oluştu');
+    }
+  },
+
+  setPrimaryBankAccount: async (id) => {
+    try {
+      const { bankAccounts } = get();
+      
+      // Set all accounts to non-primary
+      const updatePromises = bankAccounts.map(account => {
+        if (account.id) {
+          const docRef = doc(bankAccountsRef, account.id);
+          return updateDoc(docRef, { isPrimary: false });
+        }
+        return Promise.resolve();
+      });
+      
+      await Promise.all(updatePromises);
+      
+      // Set the selected account as primary
+      const docRef = doc(bankAccountsRef, id);
+      await updateDoc(docRef, { 
+        isPrimary: true,
+        updatedAt: Timestamp.now()
+      });
+      
+      toast.success('Birincil banka hesabı güncellendi');
+    } catch (error) {
+      console.error('Error setting primary bank account:', error);
+      toast.error('Birincil hesap ayarlanırken hata oluştu');
     }
   },
 

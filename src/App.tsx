@@ -17,6 +17,7 @@ import TransferInfoPage from './pages/TransferInfoPage';
 import FAQPage from './pages/FAQPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 import ProfilePage from './pages/ProfilePage';
+import CustomerReservationView from './pages/CustomerReservationView';
 
 // Admin Pages
 import AdminLoginPage from './pages/auth/AdminLoginPage';
@@ -84,6 +85,9 @@ function App() {
         <Route path="/faq" element={<FAQPage />} />
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        
+        {/* Customer Reservation View (QR Code redirect) */}
+        <Route path="/reservation/:reservationId" element={<CustomerReservationView />} />
         
         {/* Admin Routes */}
         <Route path="/admin/login" element={<AdminLoginPage />} />

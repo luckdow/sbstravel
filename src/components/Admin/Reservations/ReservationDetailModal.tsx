@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { X, MapPin, Calendar, Clock, User, Car, Phone, Edit, Trash2, Ban } from 'lucide-react';
+import { X, MapPin, Calendar, Clock, User, Car, Phone, Edit, Trash2, Ban, Plane } from 'lucide-react';
 import { getLocationString } from '../../../lib/utils/location';
 import { generateReadableReservationNumber, getDriverDisplayName } from '../../../utils/reservation';
+import { getVehicleTypeFromId } from '../../../utils/vehicle';
 import { useStore } from '../../../store/useStore';
 import toast from 'react-hot-toast';
 
@@ -141,7 +142,7 @@ export default function ReservationDetailModal({ isOpen, onClose, reservation }:
                 Araç
               </h3>
               <div className="text-sm">
-                <div><strong>Tip:</strong> {reservation.vehicleType}</div>
+                <div><strong>Tip:</strong> {getVehicleTypeFromId(reservation.vehicleType)}</div>
                 <div><strong>Yolcu:</strong> {reservation.passengerCount} kişi</div>
                 <div><strong>Bagaj:</strong> {reservation.baggageCount} adet</div>
               </div>

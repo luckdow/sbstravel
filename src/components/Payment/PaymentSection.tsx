@@ -30,11 +30,12 @@ export default function PaymentSection({
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [marketingAccepted, setMarketingAccepted] = useState(false);
   const navigate = useNavigate();
-  const { settings, fetchSettings } = useStore();
+  const { settings, fetchSettings, bankAccounts, fetchBankAccounts } = useStore();
 
   useEffect(() => {
     fetchSettings();
-  }, [fetchSettings]);
+    fetchBankAccounts();
+  }, [fetchSettings, fetchBankAccounts]);
 
   // Show loading state if price calculation is not available
   if (!priceCalculation) {
@@ -317,12 +318,41 @@ export default function PaymentSection({
           {paymentMethod === 'bank-transfer' && (
             <div className="bg-blue-50 rounded-2xl p-6">
               <h4 className="font-bold text-blue-800 mb-4">Banka Hesap Bilgileri</h4>
-              <div className="space-y-2 text-sm">
-                <div><span className="font-medium">Banka:</span> {settings?.company?.bankName || 'Türkiye İş Bankası'}</div>
-                <div><span className="font-medium">Hesap Sahibi:</span> {settings?.company?.name || 'SBS TRAVEL Ltd. Şti.'}</div>
-                <div><span className="font-medium">IBAN:</span> {settings?.company?.iban || 'TR12 0006 4000 0011 2345 6789 01'}</div>
-                <div><span className="font-medium">Açıklama:</span> {bookingData.customerInfo?.firstName} {bookingData.customerInfo?.lastName}</div>
-              </div>
+              
+              {bankAccounts && bankAccounts.length > 0 ? (
+                <div className="space-y-4">
+                  {bankAccounts
+                    .filter(account => account.isActive)
+                    .sort((a, b) => (b.isPrimary ? 1 : 0) - (a.isPrimary ? 1 : 0))
+                    .map((account, index) => (
+                      <div key={account.id} className={`p-4 rounded-xl ${account.isPrimary ? 'bg-white border-2 border-blue-200' : 'bg-blue-100'}`}>
+                        <div className="flex items-center justify-between mb-2">
+                          <h5 className="font-semibold text-blue-800">{account.bankName}</h5>
+                          {account.isPrimary && (
+                            <span className="text-xs bg-blue-600 text-white px-2 py-1 rounded-full">Tercih Edilen</span>
+                          )}
+                        </div>
+                        <div className="space-y-1 text-sm text-blue-700">
+                          <div><span className="font-medium">Hesap Sahibi:</span> {account.accountHolder}</div>
+                          <div><span className="font-medium">IBAN:</span> {account.iban}</div>
+                          {account.branchName && (
+                            <div><span className="font-medium">Şube:</span> {account.branchName}</div>
+                          )}
+                          <div><span className="font-medium">Açıklama:</span> {bookingData.customerInfo?.firstName} {bookingData.customerInfo?.lastName}</div>
+                        </div>
+                      </div>
+                  ))}
+                </div>
+              ) : (
+                // Fallback to old static data if no bank accounts configured
+                <div className="space-y-2 text-sm">
+                  <div><span className="font-medium">Banka:</span> {settings?.company?.bankName || 'Türkiye İş Bankası'}</div>
+                  <div><span className="font-medium">Hesap Sahibi:</span> {settings?.company?.name || 'SBS TRAVEL Ltd. Şti.'}</div>
+                  <div><span className="font-medium">IBAN:</span> {settings?.company?.iban || 'TR12 0006 4000 0011 2345 6789 01'}</div>
+                  <div><span className="font-medium">Açıklama:</span> {bookingData.customerInfo?.firstName} {bookingData.customerInfo?.lastName}</div>
+                </div>
+              )}
+              
               <div className="mt-4 p-3 bg-yellow-100 rounded-xl">
                 <p className="text-sm text-yellow-800">
                   <AlertCircle className="h-4 w-4 inline mr-2" />
