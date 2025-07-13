@@ -99,7 +99,7 @@ export class FirebaseErrorHandler {
     timeoutMs: number = 10000,
     timeoutMessage: string = 'İşlem zaman aşımına uğradı'
   ): Promise<T> => {
-    const timeoutPromise = new Promise<never>((_, reject) => {
+    const timeoutPromise = new Promise<never>((resolve, reject) => {
       setTimeout(() => reject(new Error(timeoutMessage)), timeoutMs);
     });
     

@@ -436,7 +436,7 @@ export default function BookingPage() {
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       >
                         <option value="">Saat seçin</option>
-                        {Array.from({ length: 24 }, (_, i) => {
+                        {Array.from({ length: 24 }, (value, i) => {
                           const hour = i.toString().padStart(2, '0');
                           return (
                             <React.Fragment key={i}>
