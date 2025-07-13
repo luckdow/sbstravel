@@ -16,7 +16,7 @@ import ContactPage from './pages/ContactPage';
 import TransferInfoPage from './pages/TransferInfoPage';
 import FAQPage from './pages/FAQPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
-import CustomerPanel from './pages/customer-panel/index';
+import CustomerPanel from './pages/customer-panel';
 import OriginalCustomerPanel from './pages/OriginalCustomerPanel';
 import ReservationDetailPage from './pages/ReservationDetailPage';
 import CustomerReservationView from './pages/CustomerReservationView';
