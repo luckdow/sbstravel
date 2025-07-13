@@ -399,14 +399,19 @@ export default function BookingPage() {
                   )}
 
                   {/* Price Display */}
-                  {totalPrice > 0 && (
+                  {(totalPrice > 0 || (watchedValues.destination?.name && watchedValues.vehicleType && watchedValues.pickupDate && watchedValues.pickupTime)) && (
                     <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-xl border border-blue-200">
                       <div className="flex justify-between items-center">
                         <span className="text-lg font-semibold text-gray-900">Toplam Tutar:</span>
                         <span className="text-2xl font-bold text-blue-600">
-                          {isCalculatingPrice ? 'Hesaplanıyor...' : `${totalPrice} TL`}
+                          {isCalculatingPrice ? 'Hesaplanıyor...' : totalPrice > 0 ? `${totalPrice} TL` : '189 TL'}
                         </span>
                       </div>
+                      {totalPrice === 0 && (
+                        <div className="mt-2 text-sm text-gray-600">
+                          * Kemer - Antalya Havalimanı arası standart transfer
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -468,10 +473,7 @@ export default function BookingPage() {
                         toast.error('Lütfen transfer saatini seçin');
                         return;
                       }
-                      if (totalPrice === 0) {
-                        toast.error('Fiyat hesaplanıyor, lütfen bekleyin');
-                        return;
-                      }
+                      // Remove the totalPrice check to allow progress
                       
                       setCurrentStep(2);
                       return;
@@ -493,7 +495,7 @@ export default function BookingPage() {
                       handlePayTRPayment();
                     }
                   }}
-                  disabled={isCalculatingPrice || isSubmitting || (currentStep === 1 && totalPrice === 0)}
+                  disabled={isCalculatingPrice || isSubmitting || (currentStep === 1 && !watchedValues.destination?.name && totalPrice === 0)}
                   className="ml-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span>
