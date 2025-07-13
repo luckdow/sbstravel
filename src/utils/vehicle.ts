@@ -5,11 +5,11 @@
 export function getVehicleTypeDisplayName(vehicleType: string): string {
   switch (vehicleType) {
     case 'standard':
-      return 'Standart';
+      return 'Standart Transfer';
     case 'premium':
-      return 'Premium';
+      return 'Premium Transfer';
     case 'luxury':
-      return 'Lüks';
+      return 'Lüks VIP Transfer';
     default:
       return vehicleType; // Fallback to original value
   }

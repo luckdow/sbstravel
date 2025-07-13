@@ -34,13 +34,25 @@ export default function CustomerLoginPage() {
     setLoading(true);
 
     try {
-      // Demo login - gerçek sistemde authentication yapılacak
-      if (credentials.email && credentials.password) {
-        localStorage.setItem('customerToken', 'demo-customer-token');
+      const result = await authService.login(credentials);
+      
+      if (result.success) {
+        // Set customer session
+        if (result.user) {
+          setCustomerSession({
+            customerId: result.user.id,
+            firstName: result.user.firstName,
+            lastName: result.user.lastName,
+            email: result.user.email,
+            phone: result.user.phone || '',
+            createdAt: new Date()
+          });
+        }
+        
         toast.success('Giriş başarılı!');
         navigate('/profile');
       } else {
-        toast.error('Lütfen tüm alanları doldurun');
+        toast.error(result.error || 'Giriş başarısız');
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -126,13 +138,22 @@ export default function CustomerLoginPage() {
 
           {/* Forgot Password */}
           <div className="mt-4 text-center">
-            <button
-              type="button"
-              onClick={() => toast.info('Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.')}
-              className="text-purple-600 hover:text-purple-700 text-sm font-medium"
-            >
-              Şifremi unuttum
-            </button>
+            <div className="flex justify-center">
+              <button
+                type="button"
+                onClick={() => {
+                  if (credentials.email) {
+                    authService.requestPasswordReset({ email: credentials.email });
+                    toast.success('Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.');
+                  } else {
+                    toast.error('Lütfen e-posta adresinizi girin.');
+                  }
+                }}
+                className="text-purple-600 hover:text-purple-700 text-sm font-medium"
+              >
+                Şifremi unuttum
+              </button>
+            </div>
           </div>
 
           {/* Divider */}

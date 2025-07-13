@@ -4,9 +4,10 @@ import { User, Calendar, Clock, DollarSign, QrCode, Phone, Mail, Star, Download,
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { getVehicleTypeDisplayName } from '../utils/vehicle';
-import { getCustomerSession, isCustomerSessionValid } from '../utils/customerSession';
+import { getCustomerSession, isCustomerSessionValid, setCustomerSession } from '../utils/customerSession';
 import { useStore } from '../store/useStore';
 import { generateInvoicePDF } from '../utils/pdfGenerator';
+import { authService } from '../lib/services/auth-service';
 import toast from 'react-hot-toast';
 
 const statusColors = {
@@ -33,15 +34,24 @@ export default function OriginalCustomerPanel() {
   const [showQRModal, setShowQRModal] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const [showNewReservationMessage, setShowNewReservationMessage] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginCredentials, setLoginCredentials] = useState({ email: '', password: '' });
+  const [loginLoading, setLoginLoading] = useState(false);
   const { reservations, fetchReservations } = useStore();
 
   // Check customer session and load data
   useEffect(() => {
     // Check for customer session
     if (!isCustomerSessionValid()) {
-      toast.error('Oturum süreniz dolmuş. Lütfen yeniden giriş yapın.');
-      navigate('/booking');
-      return;
+      // Check if user is coming from payment success with registration error
+      if (location.state?.registrationError) {
+        toast.error('Oturum açılamadı. Lütfen giriş yapın.');
+        setShowLoginModal(true);
+      } else {
+        toast.error('Oturum süreniz dolmuş. Lütfen yeniden giriş yapın.');
+        navigate('/booking');
+        return;
+      }
     }
 
     const session = getCustomerSession();
@@ -158,6 +168,44 @@ export default function OriginalCustomerPanel() {
       toast.error('QR kodu oluşturulurken bir hata oluştu');
     }
   }, [customerInfo]);
+
+  // Handle login
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginLoading(true);
+    
+    try {
+      const result = await authService.login({
+        email: loginCredentials.email,
+        password: loginCredentials.password
+      });
+      
+      if (result.success) {
+        // Set customer session
+        setCustomerSession({
+          customerId: result.user?.id || 'unknown',
+          firstName: result.user?.firstName || 'Müşteri',
+          lastName: result.user?.lastName || '',
+          email: result.user?.email || loginCredentials.email,
+          phone: result.user?.phone || '',
+          createdAt: new Date()
+        });
+        
+        toast.success('Giriş başarılı!');
+        setShowLoginModal(false);
+        
+        // Reload page to refresh data
+        window.location.reload();
+      } else {
+        toast.error(result.error || 'Giriş başarısız');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      toast.error('Giriş sırasında bir hata oluştu');
+    } finally {
+      setLoginLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -515,6 +563,73 @@ export default function OriginalCustomerPanel() {
           </div>
         </div>
       )}
+      
+      {/* Login Modal */}
+      {showLoginModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-md w-full p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Giriş Yapın</h3>
+              <button 
+                onClick={() => navigate('/booking')}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">E-posta</label>
+                <input
+                  type="email"
+                  value={loginCredentials.email}
+                  onChange={(e) => setLoginCredentials({...loginCredentials, email: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Şifre</label>
+                <input
+                  type="password"
+                  value={loginCredentials.password}
+                  onChange={(e) => setLoginCredentials({...loginCredentials, password: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+              <div className="text-right">
+                <button
+                  type="button"
+                  onClick={() => toast.info('Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.')}
+                  className="text-sm text-blue-600 hover:text-blue-800"
+                >
+                  Şifremi unuttum
+                </button>
+              </div>
+              <button
+                type="submit"
+                disabled={loginLoading}
+                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
+              >
+                {loginLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    <span>Giriş yapılıyor...</span>
+                  </>
+                ) : (
+                  <span>Giriş Yap</span>
+                )}
+              </button>
+              <div className="text-center text-sm text-gray-600">
+                <p>Hesabınız yok mu? <Link to="/customer/register" className="text-blue-600 hover:text-blue-800">Kayıt olun</Link></p>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      
       <Footer />
     </div>
   );

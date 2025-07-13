@@ -47,6 +47,12 @@ export const clearCustomerSession = (): void => {
 export const isCustomerSessionValid = (): boolean => {
   const session = getCustomerSession();
   if (!session) return false;
+
+  // Check if user is authenticated with authService
+  const authState = authService.getAuthState();
+  if (authState.isAuthenticated && authState.user?.role === 'customer') {
+    return true;
+  }
   
   // Session is valid for 24 hours
   const now = new Date();

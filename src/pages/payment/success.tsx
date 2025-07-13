@@ -2,9 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { CheckCircle, Download, Share2, Mail, Phone, Calendar, MapPin, User, Home, Loader2, Plane } from 'lucide-react';
 import QRCode from 'react-qr-code';
-import { useStore } from '../../store/useStore';
+import { useStore } from '../../store/useStore'; 
 import { getVehicleTypeDisplayName } from '../../utils/vehicle';
 import { generateCustomerViewURL } from '../../utils/qrCode';
+import { setCustomerSession } from '../../utils/customerSession';
+import { authService } from '../../lib/services/auth-service';
 import toast from 'react-hot-toast';
 
 export default function PaymentSuccessPage() {
@@ -13,6 +15,7 @@ export default function PaymentSuccessPage() {
   const [isCreatingUser, setIsCreatingUser] = useState(false);
   const [userCreated, setUserCreated] = useState(false);
   const { addCustomer } = useStore();
+  const [registrationError, setRegistrationError] = useState<string | null>(null);
   
   // Get transaction data from navigation state
   const transactionData = location.state;
@@ -60,14 +63,14 @@ export default function PaymentSuccessPage() {
       try {
         if (!alreadyCreated) {
           // Use real customer info from transaction data
-          const realCustomerInfo = {
+          const customerInfo = {
             firstName: customerInfo.firstName,
             lastName: customerInfo.lastName,
             email: customerInfo.email,
             phone: customerInfo.phone
           };
 
-          const customerId = await addCustomer(realCustomerInfo);
+          const customerId = await addCustomer(customerInfo);
           
           if (customerId) {
             console.log('User created successfully:', customerId);
@@ -75,19 +78,72 @@ export default function PaymentSuccessPage() {
             // Mark as created for this reservation to prevent duplicates
             localStorage.setItem(customerCreatedKey, customerId);
             
+            // Create user account in auth system
+            try {
+              // Generate a random password for the user
+              const tempPassword = Math.random().toString(36).slice(-8);
+              
+              // Register the user in auth system
+              const registerResult = await authService.register({
+                firstName: customerInfo.firstName,
+                lastName: customerInfo.lastName,
+                email: customerInfo.email,
+                phone: customerInfo.phone,
+                password: tempPassword,
+                role: 'customer',
+                termsAccepted: true
+              });
+              
+              if (registerResult.success) {
+                console.log('User registered in auth system');
+                
+                // Auto login the user
+                const loginResult = await authService.login({
+                  email: customerInfo.email,
+                  password: tempPassword,
+                  rememberMe: true
+                });
+                
+                if (loginResult.success) {
+                  console.log('User auto-logged in');
+                  
+                  // Set customer session
+                  setCustomerSession({
+                    customerId,
+                    firstName: customerInfo.firstName,
+                    lastName: customerInfo.lastName,
+                    email: customerInfo.email,
+                    phone: customerInfo.phone,
+                    createdAt: new Date()
+                  });
+                  
+                  toast.success('Hesabınız oluşturuldu ve otomatik giriş yapıldı!');
+                } else {
+                  console.error('Auto-login failed:', loginResult.error);
+                  setRegistrationError('Otomatik giriş başarısız oldu. Lütfen manuel olarak giriş yapın.');
+                }
+              } else {
+                console.error('User registration failed:', registerResult.error);
+                setRegistrationError('Hesap oluşturma başarısız oldu. Lütfen manuel olarak kayıt olun.');
+              }
+            } catch (authError) {
+              console.error('Auth error:', authError);
+              setRegistrationError('Kimlik doğrulama hatası. Lütfen manuel olarak kayıt olun.');
+            }
+            
             toast.success('Hesabınız oluşturuldu!');
           }
         }
         
         setUserCreated(true);
         
-        // Redirect to the new reservation detail page after a brief delay
+        // Redirect to customer panel after successful payment
         setTimeout(() => {
-          navigate('/reservation/detail', { 
+          navigate('/profile', { 
             state: {
-              reservationId: reservationData.id,
-              customerInfo: customerInfo,
-              ...transactionData
+              newReservation: true,
+              reservationId: currentReservationId,
+              registrationError: registrationError
             },
             replace: true 
           });
@@ -162,9 +218,19 @@ export default function PaymentSuccessPage() {
               <h3 className="text-xl font-semibold text-gray-800 mb-2">
                 Rezervasyon detaylarınız hazırlanıyor...
               </h3>
-              <p className="text-gray-600">
+              <p className="text-gray-600 mb-4">
                 Kısa süre içinde rezervasyon detay sayfasına yönlendirileceksiniz.
               </p>
+              {registrationError && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-left">
+                  <p className="text-yellow-800 font-medium">Bilgi:</p>
+                  <p className="text-yellow-700 text-sm">{registrationError}</p>
+                  <p className="text-yellow-700 text-sm mt-2">
+                    Rezervasyonunuz oluşturuldu, ancak hesap oluşturma sırasında bir sorun oluştu.
+                    Profil sayfasına erişmek için lütfen manuel olarak giriş yapın.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 

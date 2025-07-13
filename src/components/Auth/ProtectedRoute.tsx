@@ -1,7 +1,8 @@
 import React, { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { authService, UserRole } from '../../lib/services/auth-service';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Shield } from 'lucide-react';
+import { isCustomerSessionValid } from '../../utils/customerSession';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -20,7 +21,7 @@ export default function ProtectedRoute({
   const defaultFallbackPath = fallbackPath || (
     requiredRole === 'admin' ? '/admin/login' :
     requiredRole === 'driver' ? '/driver/login' :
-    '/customer/login'
+    '/booking'
   );
   const location = useLocation();
   const authState = authService.getAuthState();
@@ -37,8 +38,18 @@ export default function ProtectedRoute({
     );
   }
 
-  // Redirect to login if not authenticated
-  if (!authState.isAuthenticated) {
+  // Special handling for customer role - check customer session as fallback
+  if (requiredRole === 'customer' && !authState.isAuthenticated) {
+    // Check if we have a valid customer session even if not authenticated
+    if (isCustomerSessionValid()) {
+      return <>{children}</>;
+    }
+    
+    return <Navigate to={defaultFallbackPath} state={{ from: location }} replace />;
+  }
+  
+  // For other roles, redirect to login if not authenticated
+  if (!authState.isAuthenticated && requiredRole !== 'customer') {
     return <Navigate to={defaultFallbackPath} state={{ from: location }} replace />;
   }
 
