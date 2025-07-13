@@ -3,7 +3,6 @@ import { useNavigate, Link } from 'react-router-dom';
 import { User, Lock, Mail, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { setCustomerSession } from '../../utils/customerSession';
 import toast from 'react-hot-toast';
-import toast from 'react-hot-toast';
 import GoogleSignInButton from '../../components/GoogleSignInButton';
 
 export default function CustomerLoginPage() {
