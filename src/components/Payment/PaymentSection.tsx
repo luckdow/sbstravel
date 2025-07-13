@@ -12,13 +12,15 @@ interface PaymentSectionProps {
   bookingData: BookingFormData;
   onPaymentSuccess?: (transactionId: string) => void;
   reservationId?: string;
+  onCreateReservation?: (bookingData: BookingFormData) => Promise<string | null>;
 }
 
 export default function PaymentSection({ 
   priceCalculation, 
   bookingData, 
   onPaymentSuccess,
-  reservationId 
+  reservationId,
+  onCreateReservation
 }: PaymentSectionProps) {
   const [paymentMethod, setPaymentMethod] = useState('credit-card');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -45,9 +47,23 @@ export default function PaymentSection({
     setIsProcessing(true);
     
     try {
+      // Create reservation first if not already created
+      let currentReservationId = reservationId;
+      
+      if (!currentReservationId && onCreateReservation) {
+        console.log('Creating reservation during payment...');
+        currentReservationId = await onCreateReservation(bookingData);
+        
+        if (!currentReservationId) {
+          throw new Error('Rezervasyon oluşturulamadı');
+        }
+        
+        console.log('Reservation created successfully:', currentReservationId);
+      }
+
       // Create transaction
       const transaction = await transactionService.createTransaction({
-        reservationId: reservationId || 'temp_' + Date.now(),
+        reservationId: currentReservationId || 'temp_' + Date.now(),
         amount: priceCalculation.totalPrice,
         currency: 'USD',
         customerInfo: bookingData.customerInfo,
@@ -63,7 +79,7 @@ export default function PaymentSection({
 
       // Process payment
       const result = await transactionService.processPayment(transaction.id, {
-        reservationId: reservationId || 'temp_' + Date.now(),
+        reservationId: currentReservationId || 'temp_' + Date.now(),
         amount: priceCalculation.totalPrice,
         currency: 'USD',
         customerInfo: bookingData.customerInfo,
@@ -86,7 +102,8 @@ export default function PaymentSection({
           navigate('/payment/success', { 
             state: { 
               transaction: result.transaction,
-              method: 'credit-card' 
+              method: 'credit-card',
+              reservationId: currentReservationId
             } 
           });
         } else if (paymentMethod === 'bank-transfer') {
@@ -97,7 +114,8 @@ export default function PaymentSection({
           navigate('/payment/success', { 
             state: { 
               transaction: result.transaction,
-              method: 'bank-transfer' 
+              method: 'bank-transfer',
+              reservationId: currentReservationId
             } 
           });
         }
@@ -111,7 +129,8 @@ export default function PaymentSection({
       }
     } catch (error) {
       console.error('Payment error:', error);
-      toast.error('Ödeme işlemi sırasında hata oluştu');
+      const errorMessage = error instanceof Error ? error.message : 'Ödeme işlemi sırasında hata oluştu';
+      toast.error(errorMessage);
     } finally {
       setIsProcessing(false);
     }

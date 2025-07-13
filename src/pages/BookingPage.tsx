@@ -49,7 +49,6 @@ export default function BookingPage() {
   const [isCalculatingPrice, setIsCalculatingPrice] = useState(false);
   const [totalPrice, setTotalPrice] = useState(0);
   const [priceCalculation, setPriceCalculation] = useState<any>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [reservationId, setReservationId] = useState<string | null>(null);
   const [qrCode, setQrCode] = useState<string | null>(null);
   
@@ -151,26 +150,17 @@ export default function BookingPage() {
     watchedValues.transferType
   ]);
 
-  const handlePayTRPayment = async () => {
-    try {
-      toast.success('Test modunda rezervasyon oluşturuldu!');
-      console.log('Rezervasyon verileri:', watchedValues);
-    } catch (error) {
-      toast.error('Ödeme sırasında hata oluştu');
-    }
-  };
 
-  const onSubmit = async (data: BookingFormData) => {
-    console.log('=== BOOKING SUBMISSION STARTED ===');
+
+  const createReservation = async (data: BookingFormData): Promise<string | null> => {
+    console.log('=== RESERVATION CREATION STARTED ===');
     console.log('Form data:', data);
     console.log('Price calculation:', priceCalculation);
     console.log('Total price:', totalPrice);
     
-    setIsSubmitting(true);
-    
     try {
       // Validate that we have price calculation
-      if (!priceCalculation || !priceCalculation.distance || priceCalculation.total <= 0) {
+      if (!priceCalculation || !priceCalculation.distance || priceCalculation.totalPrice <= 0) {
         console.error('Price calculation invalid:', priceCalculation);
         throw new Error('Fiyat hesaplaması tamamlanmamış. Lütfen hedef seçiminizi kontrol edin ve tekrar deneyin.');
       }
@@ -214,7 +204,7 @@ export default function BookingPage() {
         dropoffLocation: data.transferType === 'airport-hotel' ? data.destination.name : 'Antalya Havalimanı',
         distance: priceCalculation.distance,
         basePrice: priceCalculation.basePrice,
-        additionalServices: data.extraServices?.map(serviceId => {
+        additionalServices: data.additionalServices?.map(serviceId => {
           const service = extraServices.find(s => s.id === serviceId);
           return {
             id: serviceId,
@@ -239,19 +229,17 @@ export default function BookingPage() {
 
       console.log('✅ Reservation created successfully:', reservationId);
 
-      // Store reservation ID and QR code for payment step
-      setReservationId(reservationId);
+      // Store QR code for later use
       setQrCode(qrCode);
+      setReservationId(reservationId);
 
       // Show success message
-      toast.success('🎉 Rezervasyon başarıyla oluşturuldu! E-posta onayı gönderildi.');
+      toast.success('🎉 Rezervasyon başarıyla oluşturuldu!');
       
-      // Move to payment step
-      console.log('Moving to payment step...');
-      setCurrentStep(3);
+      return reservationId;
       
     } catch (error) {
-      console.error('=== BOOKING SUBMISSION ERROR ===');
+      console.error('=== RESERVATION CREATION ERROR ===');
       console.error('Error details:', error);
       console.error('Current state - Price calculation:', priceCalculation);
       console.error('Current state - Total price:', totalPrice);
@@ -269,11 +257,16 @@ export default function BookingPage() {
         console.error('RESERVATION CREATION ERROR - Check Firebase collections');
       }
       
-      // Don't change step on error, stay on current step
+      return null;
     } finally {
-      setIsSubmitting(false);
-      console.log('=== BOOKING SUBMISSION ENDED ===');
+      console.log('=== RESERVATION CREATION ENDED ===');
     }
+  };
+
+  const onSubmit = async (data: BookingFormData) => {
+    // This function is now only used for final submission in step 3
+    // Reservation creation is handled separately in the payment step
+    console.log('Final form submission (step 3):', data);
   };
 
   return (
@@ -520,6 +513,7 @@ export default function BookingPage() {
                   priceCalculation={priceCalculation}
                   bookingData={{...watchedValues, qrCode}}
                   reservationId={reservationId}
+                  onCreateReservation={createReservation}
                   onPaymentSuccess={(transactionId) => {
                     console.log('Payment successful, transaction ID:', transactionId);
                     toast.success('Ödeme başarıyla tamamlandı!');
@@ -580,32 +574,23 @@ export default function BookingPage() {
                         return;
                       }
                       
-                      // Instead of calling handleSubmit directly, just move to step 3
-                      // The reservation creation will happen in the payment step
+                      // Only validate customer info and move to step 3
+                      // Reservation creation will happen in the payment step
                       console.log('Step 2 validation passed, moving to step 3');
-                      
-                      try {
-                        // Create reservation before moving to payment step
-                        console.log('Creating reservation...');
-                        await handleSubmit(onSubmit)();
-                        // If successful, onSubmit will handle moving to step 3
-                      } catch (error) {
-                        console.error('Reservation creation error:', error);
-                        toast.error('Rezervasyon oluşturulurken hata oluştu. Lütfen tekrar deneyin.');
-                      }
+                      setCurrentStep(3);
                       return;
                     }
                     
                     if (currentStep === 3) {
-                      handlePayTRPayment();
+                      // Payment handling is now done within PaymentSection
+                      console.log('Step 3 - payment section handles payment');
                     }
                   }}
-                  disabled={isCalculatingPrice || isSubmitting || (currentStep === 1 && !watchedValues.destination?.name && totalPrice === 0)}
+                  disabled={isCalculatingPrice || (currentStep === 1 && !watchedValues.destination?.name && totalPrice === 0)}
                   className="ml-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span>
                     {isCalculatingPrice ? 'İşleniyor...' : 
-                     isSubmitting ? 'Rezervasyon oluşturuluyor...' :
                      currentStep === 3 ? 'Ödeme Yap & Rezervasyonu Tamamla' : 'Devam Et'}
                   </span>
                   <ArrowRight className="h-5 w-5" />
