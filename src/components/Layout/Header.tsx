@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X, Plane, Phone, MapPin, Globe } from 'lucide-react';
-import { Link } from 'react-router-dom';
-
+import { Menu, X, Plane, Phone, MapPin, Globe, User } from 'lucide-react';
+import { isCustomerSessionValid, getCustomerSession } from '../../utils/customerSession';
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -13,6 +13,23 @@ export default function Header() {
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Check if user is logged in
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [customerName, setCustomerName] = useState('');
+
+  useEffect(() => {
+    // Müşteri oturumunu kontrol et
+    const sessionValid = isCustomerSessionValid();
+    setIsLoggedIn(sessionValid);
+    
+    if (sessionValid) {
+      const session = getCustomerSession();
+      if (session) {
+        setCustomerName(`${session.firstName} ${session.lastName}`);
+      }
+    }
   }, []);
 
   const languages = [
@@ -47,6 +64,19 @@ export default function Header() {
           </Link>
           
           {/* Navigation */}
+          <div className="flex items-center space-x-4">
+            {isLoggedIn ? (
+              <Link to="/profile" className={`flex items-center space-x-2 ${isScrolled ? 'text-gray-700 hover:text-blue-600' : 'text-white hover:text-blue-200'} transition-colors`}>
+                <User className="h-5 w-5" />
+                <span className="font-medium">{customerName || 'Profilim'}</span>
+              </Link>
+            ) : (
+              <Link to="/customer/login" className={`flex items-center space-x-2 ${isScrolled ? 'text-gray-700 hover:text-blue-600' : 'text-white hover:text-blue-200'} transition-colors`}>
+                <User className="h-5 w-5" />
+                <span className="font-medium">Giriş Yap</span>
+              </Link>
+            )}
+          </div>
           <nav className="hidden lg:flex items-center space-x-8">
             {[
               { name: 'Ana Sayfa', href: '/' },
@@ -149,6 +179,11 @@ export default function Header() {
               <Link to="/booking">
                 <button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-semibold mt-4">
                   Transfer Rezervasyonu
+                </button>
+              </Link>
+              <Link to={isLoggedIn ? "/profile" : "/customer/login"}>
+                <button className="w-full bg-gray-600 text-white py-3 rounded-xl font-semibold mt-4">
+                  {isLoggedIn ? "Profilim" : "Giriş Yap"}
                 </button>
               </Link>
             </nav>
