@@ -58,9 +58,8 @@ export async function calculatePrice(params: {
       v.type === params.vehicleType || v.id === params.vehicleType
     );
     if (selectedVehicle && selectedVehicle.pricePerKm) {
-      // Convert from TL to USD (assuming pricePerKm is in TL, convert to USD)
-      // Using approximate rate: 1 USD = 30 TL
-      pricePerKm = selectedVehicle.pricePerKm / 30;
+      // Use admin panel pricePerKm directly as specified in requirements
+      pricePerKm = selectedVehicle.pricePerKm;
     }
   }
 
@@ -72,8 +71,8 @@ export async function calculatePrice(params: {
     servicesPrice = params.extraServices.reduce((total, serviceId) => {
       const service = store.extraServices.find(s => s.id === serviceId);
       if (service) {
-        // Convert service price from TL to USD
-        return total + (service.price / 30);
+        // Use service price directly as specified in requirements
+        return total + service.price;
       }
       return total;
     }, 0);

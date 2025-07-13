@@ -461,7 +461,7 @@ export default function BookingPage() {
                 
                 <button
                   type="button"
-                  onClick={() => {
+                  onClick={async () => {
                     if (currentStep === 1) {
                       if (!watchedValues.destination?.name) {
                         toast.error('Lütfen varış noktasını seçin');
@@ -485,9 +485,11 @@ export default function BookingPage() {
                     }
                     
                     if (currentStep === 2) {
-                      if (!watchedValues.customerInfo?.firstName || !watchedValues.customerInfo?.lastName || 
-                          !watchedValues.customerInfo?.email || !watchedValues.customerInfo?.phone) {
-                        toast.error('Lütfen tüm zorunlu alanları doldurun');
+                      // Use form validation instead of manual validation
+                      const isValid = await trigger(['customerInfo.firstName', 'customerInfo.lastName', 'customerInfo.email', 'customerInfo.phone']);
+                      
+                      if (!isValid) {
+                        toast.error('Lütfen tüm zorunlu alanları doğru şekilde doldurun');
                         return;
                       }
                       
