@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import { v4 as uuidv4 } from 'uuid';
+import { Loader2 } from 'lucide-react';
 
 interface GoogleSignInButtonProps {
   onSuccess: (user: any) => void;
@@ -38,7 +39,7 @@ export default function GoogleSignInButton({
         };
         
         // Call the success callback
-        onSuccess(mockUser, requiredRole || 'customer');
+        onSuccess(mockUser);
         toast.success('Google ile giriş başarılı!');
       }, 1000);
     } catch (error) {

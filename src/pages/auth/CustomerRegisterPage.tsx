@@ -222,7 +222,6 @@ export default function CustomerRegisterPage() {
           {/* Google Sign In */}
           <GoogleSignInButton 
             onSuccess={handleGoogleSuccess}
-            requiredRole="customer"
           />
 
           {/* Login Link */}

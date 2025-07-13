@@ -160,7 +160,6 @@ export default function AdminLoginPage() {
           {/* Google Sign In */}
           <GoogleSignInButton 
             onSuccess={handleGoogleSuccess}
-            requiredRole="admin"
           />
         </div>
       </div>

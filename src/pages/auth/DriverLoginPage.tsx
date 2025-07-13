@@ -121,7 +121,6 @@ export default function DriverLoginPage() {
           {/* Google Sign In */}
           <GoogleSignInButton 
             onSuccess={handleGoogleSuccess}
-            requiredRole="driver"
           />
         </div>
       </div>
