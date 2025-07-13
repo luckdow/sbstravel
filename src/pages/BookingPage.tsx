@@ -107,8 +107,18 @@ export default function BookingPage() {
           });
           
           console.log('✅ Price calculation successful:', calculation);
+          
+          // Validate calculation results
+          if (!calculation || typeof calculation.totalPrice !== 'number' || calculation.totalPrice <= 0) {
+            throw new Error('Geçersiz fiyat hesaplaması sonucu');
+          }
+          
+          if (!calculation.distance || calculation.distance <= 0) {
+            throw new Error('Geçersiz mesafe hesaplaması');
+          }
+          
           setPriceCalculation(calculation);
-          setTotalPrice(calculation.total);
+          setTotalPrice(calculation.total || calculation.totalPrice);
           
         } catch (error) {
           console.error('❌ Price calculation error:', error);
@@ -120,6 +130,13 @@ export default function BookingPage() {
           // Reset price calculation to prevent invalid submissions
           setPriceCalculation(null);
           setTotalPrice(0);
+          
+          // If user is on step 3, move back to step 1 to fix the issue
+          if (currentStep === 3) {
+            console.log('Price calculation failed on step 3, moving back to step 1');
+            setCurrentStep(1);
+            toast.error('Fiyat hesaplaması başarısız oldu. Lütfen transfer bilgilerinizi kontrol edin.');
+          }
           
         } finally {
           setIsCalculatingPrice(false);
@@ -147,7 +164,8 @@ export default function BookingPage() {
     watchedValues.passengerCount,
     watchedValues.luggageCount,
     watchedValues.extraServices,
-    watchedValues.transferType
+    watchedValues.transferType,
+    currentStep // Add currentStep to dependencies to handle step-related errors
   ]);
 
 
@@ -574,9 +592,27 @@ export default function BookingPage() {
                         return;
                       }
                       
-                      // Only validate customer info and move to step 3
-                      // Reservation creation will happen in the payment step
+                      // Check if price calculation is still in progress
+                      if (isCalculatingPrice) {
+                        toast.error('Fiyat hesaplaması devam ediyor, lütfen bekleyin');
+                        return;
+                      }
+                      
+                      // Validate that price calculation is available and valid
+                      if (!priceCalculation || !priceCalculation.distance || priceCalculation.totalPrice <= 0) {
+                        console.error('Price calculation validation failed:', {
+                          priceCalculation,
+                          isCalculatingPrice,
+                          hasDistance: !!priceCalculation?.distance,
+                          totalPrice: priceCalculation?.totalPrice
+                        });
+                        
+                        toast.error('Fiyat hesaplaması tamamlanmamış. Lütfen bir önceki adıma dönüp bilgileri kontrol edin.');
+                        return;
+                      }
+                      
                       console.log('Step 2 validation passed, moving to step 3');
+                      console.log('Price calculation valid:', priceCalculation);
                       setCurrentStep(3);
                       return;
                     }
@@ -586,11 +622,12 @@ export default function BookingPage() {
                       console.log('Step 3 - payment section handles payment');
                     }
                   }}
-                  disabled={isCalculatingPrice || (currentStep === 1 && !watchedValues.destination?.name && totalPrice === 0)}
+                  disabled={isCalculatingPrice || (currentStep === 1 && !watchedValues.destination?.name && totalPrice === 0) || (currentStep === 2 && (!priceCalculation || priceCalculation.totalPrice <= 0))}
                   className="ml-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span>
-                    {isCalculatingPrice ? 'İşleniyor...' : 
+                    {isCalculatingPrice ? 'Fiyat hesaplanıyor...' : 
+                     currentStep === 2 && (!priceCalculation || priceCalculation.totalPrice <= 0) ? 'Fiyat hesaplaması bekleniyor...' :
                      currentStep === 3 ? 'Ödeme Yap & Rezervasyonu Tamamla' : 'Devam Et'}
                   </span>
                   <ArrowRight className="h-5 w-5" />

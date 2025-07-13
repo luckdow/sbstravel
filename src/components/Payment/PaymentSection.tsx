@@ -38,11 +38,34 @@ export default function PaymentSection({
     return (
       <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Ödeme Bilgileri</h2>
-        <div className="text-center py-8">
-          <div className="text-gray-600">Fiyat bilgisi yükleniyor...</div>
-          <div className="mt-4 text-sm text-gray-500">
-            Lütfen bekleyin veya bir önceki adıma dönüp bilgileri kontrol edin.
+        <div className="text-center py-12">
+          <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
+          <div className="text-lg font-semibold text-gray-700 mb-2">Fiyat hesaplaması yapılıyor...</div>
+          <div className="text-sm text-gray-500">
+            Rezervasyon detaylarınıza göre fiyat hesaplanıyor. Lütfen bekleyin.
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if price calculation is invalid
+  if (priceCalculation.totalPrice <= 0 || !priceCalculation.distance) {
+    return (
+      <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">Ödeme Bilgileri</h2>
+        <div className="text-center py-12">
+          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <div className="text-lg font-semibold text-gray-700 mb-2">Fiyat hesaplaması tamamlanamadı</div>
+          <div className="text-sm text-gray-500 mb-4">
+            Transfer bilgilerinizde bir sorun var. Lütfen bir önceki adıma dönüp bilgileri kontrol edin.
+          </div>
+          <button
+            onClick={() => window.history.back()}
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Önceki Adıma Dön
+          </button>
         </div>
       </div>
     );
