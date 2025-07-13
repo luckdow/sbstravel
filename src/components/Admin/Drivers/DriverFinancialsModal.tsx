@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, DollarSign, Calendar, Download, CheckCircle, Clock } from 'lucide-react';
+import { X, DollarSign, Calendar, Download, CheckCircle, Clock, CreditCard } from 'lucide-react';
 import { useStore } from '../../../store/useStore';
 import { Driver, DriverFinancials } from '../../../types';
 
