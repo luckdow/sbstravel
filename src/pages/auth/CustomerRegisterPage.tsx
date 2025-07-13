@@ -51,7 +51,7 @@ export default function CustomerRegisterPage() {
 
       if (result.success) {
         toast.success('Hesap başarıyla oluşturuldu!');
-        navigate('/customer/login');
+        navigate('/profile');
       } else {
         toast.error(result.error || 'Kayıt başarısız');
       }

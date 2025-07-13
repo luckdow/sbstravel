@@ -81,10 +81,11 @@ export default function PaymentSuccessPage() {
         
         setUserCreated(true);
         
-        // Redirect to the new reservation detail page after a brief delay
+        // Redirect to the profile page after a brief delay
         setTimeout(() => {
-          navigate('/reservation/detail', { 
+          navigate('/profile', { 
             state: {
+              newReservation: true,
               reservationId: reservationData.id,
               customerInfo: customerInfo,
               ...transactionData
@@ -95,10 +96,11 @@ export default function PaymentSuccessPage() {
         
       } catch (error) {
         console.error('Error creating user:', error);
-        // Still redirect to reservation detail page even if user creation fails
+        // Still redirect to profile page even if user creation fails
         setTimeout(() => {
-          navigate('/reservation/detail', { 
+          navigate('/profile', { 
             state: {
+              newReservation: true,
               reservationId: reservationData.id,
               customerInfo: customerInfo,
               ...transactionData
