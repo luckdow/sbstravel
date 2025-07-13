@@ -132,6 +132,7 @@ export default function BookingPage() {
   };
 
   const onSubmit = async (data: BookingFormData) => {
+    console.log('onSubmit called with data:', data);
     setIsSubmitting(true);
     
     try {
@@ -139,6 +140,7 @@ export default function BookingPage() {
       const qrCode = generateQRCode();
       
       // Create customer record first
+      console.log('Creating customer record...');
       const customerId = await addCustomer({
         firstName: data.customerInfo.firstName,
         lastName: data.customerInfo.lastName,
@@ -149,6 +151,8 @@ export default function BookingPage() {
       if (!customerId) {
         throw new Error('Müşteri kaydı oluşturulamadı');
       }
+
+      console.log('Customer created successfully:', customerId);
 
       // Prepare reservation data
       const reservationData = {
@@ -175,12 +179,16 @@ export default function BookingPage() {
         status: 'pending' as const
       };
 
+      console.log('Creating reservation with data:', reservationData);
+
       // Create reservation
       const reservationId = await createNewReservation(reservationData);
 
       if (!reservationId) {
         throw new Error('Rezervasyon oluşturulamadı');
       }
+
+      console.log('Reservation created successfully:', reservationId);
 
       // Store reservation ID and QR code for payment step
       setReservationId(reservationId);
@@ -190,11 +198,14 @@ export default function BookingPage() {
       toast.success('Rezervasyon başarıyla oluşturuldu! Ödeme sayfasına yönlendiriliyorsunuz...');
       
       // Move to payment step
+      console.log('Moving to payment step...');
       setCurrentStep(3);
       
     } catch (error) {
       console.error('Rezervasyon oluşturma hatası:', error);
-      toast.error(error instanceof Error ? error.message : 'Rezervasyon oluşturulurken hata oluştu');
+      const errorMessage = error instanceof Error ? error.message : 'Rezervasyon oluşturulurken hata oluştu';
+      toast.error(errorMessage);
+      // Don't change step on error, stay on current step
     } finally {
       setIsSubmitting(false);
     }
@@ -466,6 +477,8 @@ export default function BookingPage() {
                 <button
                   type="button"
                   onClick={async () => {
+                    console.log('Step navigation clicked:', { currentStep, watchedValues });
+                    
                     if (currentStep === 1) {
                       if (!watchedValues.destination?.name) {
                         toast.error('Lütfen varış noktasını seçin');
@@ -484,21 +497,37 @@ export default function BookingPage() {
                         return;
                       }
                       
+                      console.log('Step 1 validation passed, moving to step 2');
                       setCurrentStep(2);
                       return;
                     }
                     
                     if (currentStep === 2) {
-                      // Use form validation instead of manual validation
+                      console.log('Step 2 validation starting...');
+                      
+                      // Validate customer info fields
                       const isValid = await trigger(['customerInfo.firstName', 'customerInfo.lastName', 'customerInfo.email', 'customerInfo.phone']);
+                      
+                      console.log('Step 2 validation result:', isValid);
                       
                       if (!isValid) {
                         toast.error('Lütfen tüm zorunlu alanları doğru şekilde doldurun');
                         return;
                       }
                       
-                      // Submit the form to create reservation and proceed to payment
-                      handleSubmit(onSubmit)();
+                      // Instead of calling handleSubmit directly, just move to step 3
+                      // The reservation creation will happen in the payment step
+                      console.log('Step 2 validation passed, moving to step 3');
+                      
+                      try {
+                        // Create reservation before moving to payment step
+                        console.log('Creating reservation...');
+                        await handleSubmit(onSubmit)();
+                        // If successful, onSubmit will handle moving to step 3
+                      } catch (error) {
+                        console.error('Reservation creation error:', error);
+                        toast.error('Rezervasyon oluşturulurken hata oluştu. Lütfen tekrar deneyin.');
+                      }
                       return;
                     }
                     

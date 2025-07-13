@@ -17,21 +17,45 @@ export default function VehicleSelection({
   baggageCount = 1,
   vehicles: providedVehicles
 }: VehicleSelectionProps) {
-  // Use provided vehicles from admin panel only - no fallback to ensure dynamic behavior
-  const vehiclesToDisplay = providedVehicles?.filter(v => v.isActive) || [];
+  // Safe filtering with fallback - handle missing isActive field
+  const vehiclesToDisplay = providedVehicles?.filter(v => {
+    // If isActive field exists, use it. If not, consider vehicle active by default
+    return v.isActive !== false;
+  }) || [];
+
+  // Debug logging to help identify vehicle loading issues
+  console.log('VehicleSelection Debug:', {
+    providedVehicles: providedVehicles?.length,
+    vehiclesToDisplay: vehiclesToDisplay.length,
+    vehicles: providedVehicles
+  });
 
   const isVehicleSuitable = (vehicle: any) => {
     return vehicle.passengerCapacity >= (passengerCount || 1) && vehicle.baggageCapacity >= (baggageCount || 1);
   };
 
-  // If no vehicles are available from admin panel, show loading state
-  if (vehiclesToDisplay.length === 0) {
+  // Show loading only if vehicles are undefined/null, not if array is empty
+  if (!providedVehicles) {
     return (
       <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Araç Seçimi</h2>
         <div className="text-center py-8">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
           <p className="text-gray-600">Araç bilgileri yükleniyor...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If vehicles array exists but is empty, show appropriate message
+  if (vehiclesToDisplay.length === 0) {
+    return (
+      <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">Araç Seçimi</h2>
+        <div className="text-center py-8">
+          <Car className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+          <p className="text-gray-600 mb-2">Şu anda aktif araç bulunmuyor</p>
+          <p className="text-sm text-gray-500">Lütfen daha sonra tekrar deneyin veya bizimle iletişime geçin</p>
         </div>
       </div>
     );
