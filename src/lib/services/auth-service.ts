@@ -386,8 +386,42 @@ export class AuthService {
       );
 
       if (!user) {
-        // Don't reveal if email exists or not for security
-        return { success: true };
+        // Create a new user account if it doesn't exist
+        // This is for users who were created during reservation but don't have a password
+        const userId = this.generateUserId();
+        const newUser = {
+          id: userId,
+          email: request.email.toLowerCase(),
+          firstName: 'Müşteri',
+          lastName: '',
+          phone: '',
+          password: '', // Will be set during reset
+          role: 'customer' as UserRole,
+          isActive: true,
+          permissions: this.rolePermissions.customer,
+          metadata: {
+            lastLogin: new Date(),
+            loginCount: 0,
+            registrationDate: new Date(),
+            emailVerified: false,
+            phoneVerified: false,
+          },
+          profile: {
+            preferences: {
+              language: 'tr',
+              currency: 'USD',
+              notifications: {
+                email: true,
+                sms: true,
+                push: true,
+              },
+            },
+          },
+        };
+        
+        this.users.set(userId, newUser as any);
+        this.saveUsers();
+        console.log('Created new user account during password reset:', userId);
       }
 
       // Generate reset token (in production, store securely and set expiry)
@@ -408,19 +442,39 @@ export class AuthService {
     error?: string;
   }> {
     try {
-      // In production, verify token validity and expiry
-      // For demo, accept any token that starts with 'reset_'
-      if (!request.token.startsWith('reset_')) {
+      // For demo purposes, we'll extract the email from the token
+      // In production, you would validate the token and find the user associated with it
+      const tokenParts = request.token.split('_');
+      let userEmail = '';
+      
+      if (tokenParts.length >= 2) {
+        // Try to extract email from token
+        try {
+          userEmail = atob(tokenParts[1]);
+        } catch (e) {
+          console.error('Failed to decode email from token');
+          userEmail = '';
+        }
+      }
+      
+      if (!userEmail) {
         return { success: false, error: 'Geçersiz sıfırlama kodu' };
       }
-
-      // In production, find user by token
-      // For demo, we'll just update the first user's password
-      const firstUser = Array.from(this.users.values())[0];
-      if (firstUser) {
-        firstUser.password = request.newPassword;
-        this.saveUsers();
+      
+      // Find user by email
+      const user = Array.from(this.users.values()).find(
+        u => u.email.toLowerCase() === userEmail.toLowerCase()
+      );
+      
+      if (!user) {
+        return { success: false, error: 'Kullanıcı bulunamadı' };
       }
+      
+      // Update password
+      user.password = request.newPassword;
+      this.saveUsers();
+      
+      console.log(`Password reset successful for user: ${userEmail}`);
 
       return { success: true };
     } catch (error) {
@@ -647,7 +701,12 @@ export class AuthService {
   }
 
   private generateResetToken(): string {
-    return `reset_${Date.now()}_${Math.random().toString(36).substring(2)}`;
+    // Include encoded email in the token for demo purposes
+    // In production, you would use a secure token generation method
+    // and store the token in a database with an expiry time
+    const email = this.authState.user?.email || '';
+    const encodedEmail = btoa(email); // Simple encoding for demo
+    return `reset_${encodedEmail}_${Date.now()}_${Math.random().toString(36).substring(2)}`;
   }
 
   private setLoading(loading: boolean): void {
@@ -746,6 +805,12 @@ export class AuthService {
   private async sendPasswordResetEmail(user: User, resetToken: string): Promise<void> {
     console.log(`Sending password reset email to ${user.email} with token: ${resetToken}`);
     // Simulate email sending
+    
+    // In a real implementation, you would send an email with a link to reset password
+    // The link would include the token as a query parameter
+    const resetLink = `${window.location.origin}/reset-password?token=${resetToken}`;
+    console.log('Password reset link:', resetLink);
+    
     await new Promise(resolve => setTimeout(resolve, 500));
   }
 }

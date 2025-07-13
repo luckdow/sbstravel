@@ -16,7 +16,7 @@ import ContactPage from './pages/ContactPage';
 import TransferInfoPage from './pages/TransferInfoPage';
 import FAQPage from './pages/FAQPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
-import OriginalCustomerPanel from './pages/OriginalCustomerPanel';
+import ProfilePage from './pages/ProfilePage';
 import ReservationDetailPage from './pages/ReservationDetailPage';
 import CustomerReservationView from './pages/CustomerReservationView';
 
@@ -41,6 +41,8 @@ import DriverEarningsPage from './pages/driver/earnings';
 
 // Customer Auth
 import CustomerLoginPage from './pages/auth/CustomerLoginPage';
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
+import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 
 // Payment Pages
 import PaymentSuccessPage from "./pages/payment/success";
@@ -89,9 +91,14 @@ function App() {
         {/* Customer Panel Routes */}
         <Route path="/profile" element={
           <ProtectedRoute requiredRole="customer">
-            <OriginalCustomerPanel />
+            <ProfilePage />
           </ProtectedRoute>
         } />
+        
+        {/* Auth Routes */}
+        <Route path="/customer/login" element={<CustomerLoginPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         
         {/* Reservation Routes */}
         <Route path="/reservation/detail" element={<ReservationDetailPage />} />
@@ -167,9 +174,6 @@ function App() {
             <DriverEarningsPage />
           </ProtectedRoute>
         } />
-        
-        {/* Customer Auth */}
-        <Route path="/customer/login" element={<CustomerLoginPage />} />
         
         {/* Payment Routes */}
         <Route path="/payment/success" element={<PaymentSuccessPage />} />

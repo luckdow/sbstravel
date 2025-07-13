@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { User, Lock, Mail, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { authService } from '../../lib/services/auth-service';
 import toast from 'react-hot-toast';
@@ -9,8 +9,9 @@ export default function CustomerLoginPage() {
   const [credentials, setCredentials] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [isRegister, setIsRegister] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || '/profile';
 
   const handleGoogleSuccess = async (user: { email: string; name: string }, role: string) => {
     try {
@@ -19,7 +20,7 @@ export default function CustomerLoginPage() {
       
       if (result.success) {
         toast.success('Google ile giriş başarılı!');
-        navigate('/');
+        navigate(from);
       } else {
         toast.error(result.error || 'Google ile giriş başarısız');
       }
@@ -34,13 +35,17 @@ export default function CustomerLoginPage() {
     setLoading(true);
 
     try {
-      // Demo login - gerçek sistemde authentication yapılacak
-      if (credentials.email && credentials.password) {
-        localStorage.setItem('customerToken', 'demo-customer-token');
+      const result = await authService.login({
+        email: credentials.email,
+        password: credentials.password,
+        rememberMe: true
+      });
+      
+      if (result.success) {
         toast.success('Giriş başarılı!');
-        navigate('/profile');
+        navigate(from);
       } else {
-        toast.error('Lütfen tüm alanları doldurun');
+        toast.error(result.error || 'Giriş başarısız');
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -60,7 +65,7 @@ export default function CustomerLoginPage() {
               <User className="h-8 w-8 text-white" />
             </div>
             <h1 className="text-2xl font-bold text-gray-800 mb-2">
-              {isRegister ? 'Hesap Oluştur' : 'Müşteri Girişi'}
+              Müşteri Girişi
             </h1>
             <p className="text-gray-600">AYT Transfer Müşteri Sistemi</p>
           </div>
@@ -116,23 +121,22 @@ export default function CustomerLoginPage() {
               {loading ? (
                 <>
                   <Loader2 className="h-5 w-5 animate-spin" />
-                  <span>{isRegister ? 'Hesap oluşturuluyor...' : 'Giriş yapılıyor...'}</span>
+                  <span>Giriş yapılıyor...</span>
                 </>
               ) : (
-                <span>{isRegister ? 'Hesap Oluştur' : 'Giriş Yap'}</span>
+                <span>Giriş Yap</span>
               )}
             </button>
           </form>
 
           {/* Forgot Password */}
           <div className="mt-4 text-center">
-            <button
-              type="button"
-              onClick={() => toast.info('Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.')}
+            <Link
+              to="/forgot-password"
               className="text-purple-600 hover:text-purple-700 text-sm font-medium"
             >
               Şifremi unuttum
-            </button>
+            </Link>
           </div>
 
           {/* Divider */}
