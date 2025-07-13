@@ -181,11 +181,6 @@ export default function Header() {
                   Transfer Rezervasyonu
                 </button>
               </Link>
-              <Link to={isLoggedIn ? "/profile" : "/customer/login"}>
-                <button className="w-full bg-gray-600 text-white py-3 rounded-xl font-semibold mt-4">
-                  {isLoggedIn ? "Profilim" : "Giriş Yap"}
-                </button>
-              </Link>
             </nav>
           </div>
         )}
