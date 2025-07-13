@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
-import { User, Calendar, Clock, DollarSign, QrCode, Phone, Mail, Star, Download, Eye, Plus, CheckCircle, Home, FileText, Car, CreditCard, MapPin, X } from 'lucide-react';
+import { User, Calendar, Clock, DollarSign, QrCode, Phone, Mail, Star, Download, Eye, Plus, CheckCircle, Home, FileText, Car, CreditCard, MapPin, X, Edit, LogOut, AlertCircle } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { getVehicleTypeDisplayName } from '../utils/vehicle';
-import { getCustomerSession, isCustomerSessionValid, setCustomerSession } from '../utils/customerSession';
+import { getCustomerSession, isCustomerSessionValid, setCustomerSession, clearCustomerSession } from '../utils/customerSession';
 import { useStore } from '../store/useStore';
 import { generateInvoicePDF } from '../utils/pdfGenerator'; 
 import toast from 'react-hot-toast';
@@ -34,9 +34,16 @@ export default function OriginalCustomerPanel() {
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const [showNewReservationMessage, setShowNewReservationMessage] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [loginCredentials, setLoginCredentials] = useState({ email: '', password: '' });
   const [loginLoading, setLoginLoading] = useState(false);
-  const { reservations, fetchReservations } = useStore();
+  const [editFormData, setEditFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: ''
+  });
+  const { reservations, fetchReservations, updateReservationStatus } = useStore();
 
   // Check customer session and load data
   useEffect(() => {
@@ -100,6 +107,86 @@ export default function OriginalCustomerPanel() {
   const handleViewDetails = (reservation: Record<string, unknown>) => {
     setSelectedReservation(reservation);
     setShowDetailModal(true);
+  };
+
+  const handleEditProfile = () => {
+    if (customerData) {
+      setEditFormData({
+        firstName: customerData.firstName as string || '',
+        lastName: customerData.lastName as string || '',
+        email: customerData.email as string || '',
+        phone: customerData.phone as string || ''
+      });
+      setShowEditModal(true);
+    }
+  };
+
+  const handleSaveProfile = () => {
+    if (customerData) {
+      const updatedCustomerData = {
+        ...customerData,
+        firstName: editFormData.firstName,
+        lastName: editFormData.lastName,
+        email: editFormData.email,
+        phone: editFormData.phone
+      };
+      
+      setCustomerSession(updatedCustomerData as any);
+      setCustomerData(updatedCustomerData);
+      setShowEditModal(false);
+      toast.success('Profil bilgileriniz güncellendi!');
+    }
+  };
+
+  const handleLogout = () => {
+    clearCustomerSession();
+    toast.success('Çıkış yapıldı!');
+    navigate('/');
+  };
+
+  const handleEditReservation = (reservation: any) => {
+    // Rezervasyon 12 saatten eski mi kontrol et
+    const reservationDate = new Date(reservation.createdAt || Date.now());
+    const now = new Date();
+    const hoursDiff = (now.getTime() - reservationDate.getTime()) / (1000 * 60 * 60);
+    
+    if (hoursDiff > 12) {
+      toast.error('12 saatten eski rezervasyonlar düzenlenemez!');
+      return;
+    }
+    
+    // Rezervasyon düzenleme sayfasına yönlendir
+    navigate('/booking', { 
+      state: { 
+        editMode: true,
+        reservation: reservation
+      }
+    });
+  };
+
+  const handleCancelReservation = async (reservation: any) => {
+    // Rezervasyon 12 saatten eski mi kontrol et
+    const reservationDate = new Date(reservation.createdAt || Date.now());
+    const now = new Date();
+    const hoursDiff = (now.getTime() - reservationDate.getTime()) / (1000 * 60 * 60);
+    
+    if (hoursDiff > 12) {
+      toast.error('12 saatten eski rezervasyonlar iptal edilemez!');
+      return;
+    }
+    
+    if (window.confirm('Rezervasyonu iptal etmek istediğinize emin misiniz?')) {
+      try {
+        await updateReservationStatus(reservation.id, 'cancelled');
+        toast.success('Rezervasyon iptal edildi!');
+        
+        // Rezervasyon listesini güncelle
+        fetchReservations();
+      } catch (error) {
+        console.error('Error cancelling reservation:', error);
+        toast.error('Rezervasyon iptal edilirken bir hata oluştu!');
+      }
+    }
   };
 
   const customerInfo = customerData ? {
@@ -239,6 +326,23 @@ export default function OriginalCustomerPanel() {
                     {customerInfo.firstName} {customerInfo.lastName}
                   </h2>
                   <p className="text-gray-600">SBS Transfer Müşterisi</p>
+                  
+                  <div className="mt-4 flex justify-center space-x-2">
+                    <button 
+                      onClick={handleEditProfile}
+                      className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center"
+                    >
+                      <Edit className="h-3 w-3 mr-1" />
+                      Profili Düzenle
+                    </button>
+                    <button 
+                      onClick={handleLogout}
+                      className="text-red-600 hover:text-red-800 text-sm font-medium flex items-center"
+                    >
+                      <LogOut className="h-3 w-3 mr-1" />
+                      Çıkış Yap
+                    </button>
+                  </div>
                 </div>
 
                 <div className="space-y-3">
@@ -306,11 +410,11 @@ export default function OriginalCustomerPanel() {
                             <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600">
                               <div className="flex items-center space-x-1">
                                 <Calendar className="h-4 w-4" />
-                                <span>{reservation.date || reservation.pickupDate}</span>
+                                <span>{reservation.date || reservation.pickupDate || 'Tarih belirtilmemiş'}</span>
                               </div>
                               <div className="flex items-center space-x-1">
                                 <Clock className="h-4 w-4" />
-                                <span>{reservation.time || reservation.pickupTime}</span>
+                                <span>{reservation.time || reservation.pickupTime || 'Saat belirtilmemiş'}</span>
                               </div>
                             </div>
                           </div>
@@ -327,7 +431,7 @@ export default function OriginalCustomerPanel() {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                           <div className="flex items-center space-x-2">
                             <DollarSign className="h-4 w-4 text-green-600" />
-                            <span className="text-sm text-gray-700">${(reservation.amount || reservation.totalPrice || 0).toFixed(2)}</span>
+                            <span className="text-sm text-gray-700">${(reservation.amount || reservation.totalPrice || 0).toFixed(2) || '0.00'}</span>
                           </div>
                           <div className="flex items-center space-x-2">
                             <Star className="h-4 w-4 text-yellow-600" />
@@ -342,6 +446,26 @@ export default function OriginalCustomerPanel() {
                         </div>
 
                         <div className="flex space-x-3 mt-4">
+                          {/* Düzenleme ve İptal Butonları */}
+                          {(reservation.status === 'pending' || reservation.status === 'confirmed') && (
+                            <>
+                              <button 
+                                onClick={() => handleEditReservation(reservation)}
+                                className="flex items-center space-x-2 bg-amber-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-amber-700 transition-colors"
+                              >
+                                <Edit className="h-4 w-4" />
+                                <span>DÜZENLE</span>
+                              </button>
+                              <button 
+                                onClick={() => handleCancelReservation(reservation)}
+                                className="flex items-center space-x-2 bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
+                              >
+                                <X className="h-4 w-4" />
+                                <span>İPTAL</span>
+                              </button>
+                            </>
+                          )}
+                          
                           <button 
                             onClick={() => handleViewDetails(reservation)}
                             className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
@@ -419,6 +543,11 @@ export default function OriginalCustomerPanel() {
                       <p className="text-sm text-gray-600">Kalkış</p>
                       <p className="font-medium">
                         {selectedReservation.pickupLocation || selectedReservation.route?.split(' → ')[0] || 'Antalya Havalimanı'}
+                        {selectedReservation.flightNumber && (
+                          <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                            Uçuş: {selectedReservation.flightNumber}
+                          </span>
+                        )}
                       </p>
                     </div>
                   </div>
@@ -486,6 +615,9 @@ export default function OriginalCustomerPanel() {
                   <div>
                     <p className="text-sm text-gray-600">Araç Tipi</p>
                     <p className="font-medium">{getVehicleTypeDisplayName(selectedReservation.vehicleType || selectedReservation.vehicle || 'standard')}</p>
+                    {selectedReservation.vehiclePlate && (
+                      <p className="text-xs text-gray-500">Plaka: {selectedReservation.vehiclePlate}</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -499,7 +631,7 @@ export default function OriginalCustomerPanel() {
                       <User className="w-5 h-5 text-gray-600" />
                       <div>
                         <p className="text-sm text-gray-600">Şoför</p>
-                        <p className="font-medium">{selectedReservation.driverName || 'Atanmış Şoför'}</p>
+                        <p className="font-medium">{selectedReservation.driverName || 'Henüz atanmadı'}</p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
@@ -521,6 +653,7 @@ export default function OriginalCustomerPanel() {
                   <div>
                     <p className="text-sm text-gray-600">Toplam Ücret</p>
                     <p className="font-medium text-lg">${selectedReservation.amount || selectedReservation.totalPrice || 0}</p>
+                    <p className="text-xs text-gray-500">Ödeme Durumu: {selectedReservation.paymentStatus === 'completed' ? 'Tamamlandı' : 'Beklemede'}</p>
                   </div>
                 </div>
               </div>
@@ -558,6 +691,90 @@ export default function OriginalCustomerPanel() {
               >
                 Kapat
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Edit Profile Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-md w-full p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Profil Bilgilerini Düzenle</h3>
+              <button 
+                onClick={() => setShowEditModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Ad</label>
+                <input
+                  type="text"
+                  value={editFormData.firstName}
+                  onChange={(e) => setEditFormData({...editFormData, firstName: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Soyad</label>
+                <input
+                  type="text"
+                  value={editFormData.lastName}
+                  onChange={(e) => setEditFormData({...editFormData, lastName: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">E-posta</label>
+                <input
+                  type="email"
+                  value={editFormData.email}
+                  onChange={(e) => setEditFormData({...editFormData, email: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  readOnly
+                />
+                <p className="text-xs text-gray-500 mt-1">E-posta adresi değiştirilemez</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Telefon</label>
+                <input
+                  type="tel"
+                  value={editFormData.phone}
+                  onChange={(e) => setEditFormData({...editFormData, phone: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <div className="flex items-start">
+                  <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5 mr-2" />
+                  <div>
+                    <p className="text-sm text-blue-700">
+                      Şifre oluşturmak veya sıfırlamak için giriş sayfasındaki "Şifremi unuttum" seçeneğini kullanabilirsiniz.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex space-x-3 pt-2">
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  İptal
+                </button>
+                <button
+                  onClick={handleSaveProfile}
+                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Kaydet
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -601,7 +818,13 @@ export default function OriginalCustomerPanel() {
               <div className="text-right">
                 <button
                   type="button"
-                  onClick={() => toast.info('Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.')}
+                  onClick={() => {
+                    if (loginCredentials.email) {
+                      toast.success('Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.');
+                    } else {
+                      toast.error('Lütfen e-posta adresinizi girin.');
+                    }
+                  }}
                   className="text-sm text-blue-600 hover:text-blue-800"
                 >
                   Şifremi unuttum

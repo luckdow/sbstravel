@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, Car, Phone, MapPin, ChevronDown } from 'lucide-react';
+import { Menu, X, Car, Phone, MapPin, ChevronDown, User } from 'lucide-react';
 import SSLIndicator from './Security/SSLIndicator';
 import SecurityBadge from './Security/SecurityBadge';
+import { isCustomerSessionValid, getCustomerSession } from '../utils/customerSession';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [customerName, setCustomerName] = useState('');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -14,6 +17,19 @@ export default function Header() {
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    // Müşteri oturumunu kontrol et
+    const sessionValid = isCustomerSessionValid();
+    setIsLoggedIn(sessionValid);
+    
+    if (sessionValid) {
+      const session = getCustomerSession();
+      if (session) {
+        setCustomerName(`${session.firstName} ${session.lastName}`);
+      }
+    }
   }, []);
 
   return (
@@ -34,10 +50,34 @@ export default function Header() {
             <div>
               <h1 className={`text-2xl font-bold ${isScrolled ? 'bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent' : 'text-white drop-shadow-lg'}`}>
                 SBS TRAVEL
-              </h1>
-              <p className={`text-xs ${isScrolled ? 'text-gray-500' : 'text-white/90 drop-shadow-sm'}`}>Transfer Hizmeti</p>
-            </div>
-          </Link>
+          <div className="flex items-center space-x-4">
+            {isLoggedIn ? (
+              <Link 
+                to="/profile" 
+                className={`flex items-center space-x-2 ${
+                  isScrolled ? 'text-gray-700 hover:text-blue-600' : 'text-white hover:text-blue-200'
+                } transition-colors`}
+              >
+                <User className="h-5 w-5" />
+                <span className="font-medium">{customerName || 'Profilim'}</span>
+              </Link>
+            ) : (
+              <Link 
+                to="/customer/login" 
+                className={`flex items-center space-x-2 ${
+                  isScrolled ? 'text-gray-700 hover:text-blue-600' : 'text-white hover:text-blue-200'
+                } transition-colors`}
+              >
+                <User className="h-5 w-5" />
+                <span className="font-medium">Giriş Yap</span>
+              </Link>
+            )}
+            
+            <Link to="/booking" className="relative group bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/25 hover:scale-105">
+              <span className="relative z-10">Rezervasyon</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            </Link>
+          </div>
           
           <nav className="hidden lg:flex items-center space-x-8">
             {[
@@ -109,8 +149,15 @@ export default function Header() {
                 </Link>
               ))}
               <Link to="/booking" className="block w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-semibold mt-4 text-center">
-                Rezervasyon
+                </button>
               </Link>
+              {!isLoggedIn && (
+                <Link to="/customer/login">
+                  <button className="w-full bg-gray-600 text-white py-3 rounded-xl font-semibold mt-2">
+                    Giriş Yap
+                Rezervasyon
+                </Link>
+              )}
             </nav>
           </div>
         )}

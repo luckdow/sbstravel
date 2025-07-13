@@ -1,17 +1,14 @@
 import React, { useState } from 'react';
 import { Loader2 } from 'lucide-react';
-import { signInWithGoogle } from '../lib/firebase/auth';
 import toast from 'react-hot-toast';
 
 interface GoogleSignInButtonProps {
-  onSuccess: (user: any, role?: string) => void;
-  requiredRole?: 'admin' | 'driver' | 'customer';
+  onSuccess: (user: any) => void;
   className?: string;
 }
 
 export default function GoogleSignInButton({ 
   onSuccess, 
-  requiredRole, 
   className = '' 
 }: GoogleSignInButtonProps) {
   const [loading, setLoading] = useState(false);
@@ -19,19 +16,29 @@ export default function GoogleSignInButton({
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
-      const result = await signInWithGoogle(requiredRole || 'customer');
+      // Google ile giriş simülasyonu
+      // Gerçek bir uygulamada burada Firebase veya başka bir auth sağlayıcısı kullanılır
       
-      if (result.success) {
+      // Demo kullanıcı bilgileri
+      const mockUser = {
+        email: 'google-user@example.com',
+        name: 'Google Kullanıcı'
+      };
+      
+      // Kısa bir gecikme ekleyerek gerçek bir API çağrısı simüle ediyoruz
+      setTimeout(() => {
         toast.success('Google ile giriş başarılı!');
-        onSuccess(result.user, result.role || 'customer');
-      } else {
-        toast.error(result.error || 'Google ile giriş başarısız');
-      }
+        onSuccess(mockUser);
+        setLoading(false);
+      }, 1000);
+      
+      return;
     } catch (error) {
       console.error('Google sign-in error:', error);
       toast.error('Google ile giriş sırasında bir hata oluştu');
-    } finally {
       setLoading(false);
+    } finally {
+      // setLoading(false); // setTimeout içinde zaten yapılıyor
     }
   };
 
