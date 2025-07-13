@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../../../store/useStore';
-import { Search, Filter, CalendarCheck, MapPin, User, Car, DollarSign, Eye, Edit, Trash2, Plus } from 'lucide-react';
+import { Search, Filter, CalendarCheck, MapPin, User, Car, DollarSign, Eye, Edit, Trash2, Plus, Plane, QrCode } from 'lucide-react';
 import { getLocationString } from '../../../lib/utils/location';
 import { formatPrice } from '../../../lib/utils/pricing';
 import { addReadableReservationNumbers, getDriverDisplayName } from '../../../utils/reservation';
