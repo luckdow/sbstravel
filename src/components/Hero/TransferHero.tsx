@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, MapPin, Calendar, Clock, Star, ArrowRight, Plane, Users, Shield, Phone } from 'lucide-react';
+import { SelamGreeting } from '../Greeting';
 
 export default function TransferHero() {
   const [transferType, setTransferType] = useState('airport-hotel');
@@ -29,6 +30,9 @@ export default function TransferHero() {
             {/* Left Content */}
             <div className="text-white space-y-8">
               <div className="space-y-6">
+                {/* Greeting */}
+                <SelamGreeting className="mb-4" />
+                
                 <div className="flex items-center space-x-3">
                   <div className="flex items-center space-x-1">
                     {[...Array(5)].map((star, i) => (
