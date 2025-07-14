@@ -7,11 +7,12 @@ import { toast } from 'react-hot-toast';
 import { ArrowRight, Plane, Users, Calendar, Clock, MapPin, Car, CreditCard, Building2 } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import LocationSearch from '../components/Booking/LocationSearch';
 import VehicleSelection from '../components/Booking/VehicleSelection';
 import CustomerInfoForm from '../components/Booking/CustomerInfoForm';
 import PaymentSection from '../components/Payment/PaymentSection';
-import RouteMap from '../components/Booking/RouteMap';
+import GoogleMapsLoader from '../components/ui/GoogleMapsLoader';
+import HotelAutocomplete from '../components/ui/HotelAutocomplete';
+import TransferRouteMap from '../components/ui/TransferRouteMap';
 import { useStore } from '../store/useStore';
 import { calculatePrice } from '../utils/pricing';
 import { generateQRCode } from '../utils/qrCode';
@@ -53,6 +54,12 @@ export default function BookingPage() {
   const [priceCalculation, setPriceCalculation] = useState<any>(null);
   const [reservationId, setReservationId] = useState<string | null>(null);
   const [qrCode, setQrCode] = useState<string | null>(null);
+  const [selectedPlace, setSelectedPlace] = useState<{
+    name: string;
+    formatted_address: string;
+    lat: number;
+    lng: number;
+  } | null>(null);
   const navigate = useNavigate();
   
   const { vehicles, extraServices, settings, createNewReservation, addCustomer, fetchVehicles, fetchExtraServices } = useStore();
@@ -302,10 +309,11 @@ export default function BookingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <Header />
-      
-      <div className="pt-20 pb-12">
+    <GoogleMapsLoader>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <Header />
+        
+        <div className="pt-20 pb-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Progress Steps */}
           <div className="mb-8">
@@ -397,9 +405,18 @@ export default function BookingPage() {
 
                   {/* Destination */}
                   <div>
-                    <LocationSearch
-                      value={watchedValues.destination}
-                      onChange={(value) => setValue('destination', value)}
+                    <HotelAutocomplete
+                      onPlaceSelected={(place) => {
+                        setSelectedPlace(place);
+                        setValue('destination', {
+                          name: place.name,
+                          type: 'hotel',
+                          coordinates: {
+                            lat: place.lat,
+                            lng: place.lng
+                          }
+                        });
+                      }}
                       label={watchedValues.transferType === 'airport-hotel' ? 'Varış Noktası (Otel/Bölge)' : 'Kalkış Noktası (Otel/Bölge)'}
                       placeholder="Otel adı veya bölge girin (örn: Kemer, Belek, Side)"
                     />
@@ -409,11 +426,10 @@ export default function BookingPage() {
                   </div>
 
                   {/* Route Map */}
-                  {watchedValues.destination?.name && (
+                  {selectedPlace && (
                     <div>
-                      <RouteMap
-                        origin={watchedValues.transferType === 'airport-hotel' ? 'Antalya Airport' : watchedValues.destination.name}
-                        destination={watchedValues.transferType === 'airport-hotel' ? watchedValues.destination.name : 'Antalya Airport'}
+                      <TransferRouteMap
+                        destination={selectedPlace}
                         onRouteCalculated={(distance, duration) => {
                           // Update pricing calculation when route is calculated
                           console.log('Route calculated:', { distance, duration });
@@ -633,5 +649,6 @@ export default function BookingPage() {
       
       <Footer />
     </div>
+    </GoogleMapsLoader>
   );
 }

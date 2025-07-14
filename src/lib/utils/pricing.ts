@@ -1,5 +1,16 @@
-import { VEHICLE_PRICING, COMMISSION_RATES } from '../../config/google-maps';
 import { AdditionalService } from '../../types';
+
+// Moved from config/google-maps.ts as part of refactoring
+const VEHICLE_PRICING = {
+  standard: 4.5,
+  premium: 6.5,
+  luxury: 8.5
+} as const;
+
+const COMMISSION_RATES = {
+  company: 0.25, // 25% to company
+  driver: 0.75   // 75% to driver
+} as const;
 
 export function calculateBasePrice(distance: number, vehicleType: keyof typeof VEHICLE_PRICING): number {
   return distance * VEHICLE_PRICING[vehicleType];
